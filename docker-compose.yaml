@@ -1,0 +1,8 @@
+services:
+  db:
+    image: mysql
+    restart: always
+    env_file:
+      cmd/api/.env
+    ports:
+      - 3366:3306
