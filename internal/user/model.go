@@ -16,5 +16,11 @@ type User struct {
 }
 
 type UserIDURI struct {
-	ID string `uri:"id" validator:"required,uuid"`
+	ID uuid.UUID `uri:"id" validate:"required"`
+}
+
+type RegisterRequestDTO struct {
+	Email     string `json:"email" validate:"required,email,max=200"`
+	Firstname string `json:"firstname" validate:"required,max=100"`
+	Lastname  string `json:"lastname" validate:"required,max=100"`
 }

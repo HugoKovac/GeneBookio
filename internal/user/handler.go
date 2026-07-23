@@ -1,12 +1,11 @@
 package user
 
 import (
-	"context"
 	"hkorpo/book/pkg/errorwrapper"
+	"log"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
-	"github.com/google/uuid"
 )
 
 type Handler struct {
@@ -24,26 +23,42 @@ func NewHandler(router fiber.Router, userService *Service) {
 		userService: userService,
 	}
 
-	h.router.Get("/:id", h.Get)
+	h.router.Get("/:id",
+		MiddlewareUserExists(userService),
+		h.Get,
+	)
+
+	h.router.Post("/",
+		h.Register,
+	)
+
 }
 
 func (h *Handler) Get(c fiber.Ctx) error {
-	var (
-		ctx context.Context = context.Background()
-		uri UserIDURI
-	)
-	if err := c.Bind().URI(&uri); err != nil {
+	return c.JSON(c.Locals("user").(*User))
+}
+
+func (h *Handler) Register(c fiber.Ctx) error {
+	var body RegisterRequestDTO
+
+	if err := c.Bind().Body(&body); err != nil {
 		return errorwrapper.Wrap(err)
 	}
 
-	if err := h.validate.Struct(&uri); err != nil {
+	log.Println(body)
+
+	if err := validator.New().Struct(&body); err != nil {
 		return errorwrapper.Wrap(err)
 	}
 
-	user, err := h.userService.GetByID(ctx, uuid.MustParse(uri.ID))
+	createdUser, err := h.userService.Create(c.RequestCtx(), &User{
+		Firstname: body.Firstname,
+		Lastname:  body.Lastname,
+		Email:     body.Email,
+	})
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(user)
+	return c.JSON(createdUser)
 }

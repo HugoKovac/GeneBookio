@@ -26,7 +26,7 @@ func (User) Fields() []ent.Field {
 			Default(uuid.New),
 		field.String("firstname").MaxLen(100),
 		field.String("lastname").MaxLen(100),
-		field.String("email").MaxLen(200),
+		field.String("email").MaxLen(200).Unique(),
 	}
 }
 

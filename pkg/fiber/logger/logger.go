@@ -34,7 +34,13 @@ func deepestErrorWrapper(err error) errorwrapper.IErrorWrapper {
 func ErrorTraceLoggerTags(output logger.Buffer, c fiber.Ctx, data *logger.Data, _ string) (int, error) {
 	st := deepestErrorWrapper(data.ChainErr)
 	if st != nil {
-		status, msg := errorwrapper.EntError(data.ChainErr)
+		status, msg := errorwrapper.ValidateError(data.ChainErr)
+		if status == 0 {
+			status, msg = errorwrapper.EntError(data.ChainErr)
+		}
+		if status == 0 {
+			status, msg = errorwrapper.FiberError(data.ChainErr)
+		}
 
 		c.Status(status).JSON(msg)
 

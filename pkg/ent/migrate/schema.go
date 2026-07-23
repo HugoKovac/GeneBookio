@@ -15,7 +15,7 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "firstname", Type: field.TypeString, Size: 100},
 		{Name: "lastname", Type: field.TypeString, Size: 100},
-		{Name: "email", Type: field.TypeString, Size: 200},
+		{Name: "email", Type: field.TypeString, Unique: true, Size: 200},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
