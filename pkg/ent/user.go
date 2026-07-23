@@ -30,7 +30,9 @@ type User struct {
 	// Email holds the value of the "email" field.
 	Email string `json:"email,omitempty"`
 	// Role holds the value of the "role" field.
-	Role         primitive.UserRole `json:"role,omitempty"`
+	Role primitive.UserRole `json:"role,omitempty"`
+	// PasswordHash holds the value of the "password_hash" field.
+	PasswordHash []byte `json:"-"`
 	selectValues sql.SelectValues
 }
 
@@ -39,6 +41,8 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case user.FieldPasswordHash:
+			values[i] = new([]byte)
 		case user.FieldFirstname, user.FieldLastname, user.FieldEmail, user.FieldRole:
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt:
@@ -102,6 +106,12 @@ func (_m *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Role = primitive.UserRole(value.String)
 			}
+		case user.FieldPasswordHash:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field password_hash", values[i])
+			} else if value != nil {
+				_m.PasswordHash = *value
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -155,6 +165,8 @@ func (_m *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("role=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Role))
+	builder.WriteString(", ")
+	builder.WriteString("password_hash=<sensitive>")
 	builder.WriteByte(')')
 	return builder.String()
 }

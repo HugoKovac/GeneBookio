@@ -30,6 +30,8 @@ func (User) Fields() []ent.Field {
 		field.String("email").MaxLen(200).Unique(),
 		field.Enum("role").GoType(primitive.UserRole("")).
 			Default(primitive.Basic.String()),
+		field.Bytes("password_hash").
+			Sensitive(),
 	}
 }
 

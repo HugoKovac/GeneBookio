@@ -10,13 +10,14 @@ import (
 )
 
 type User struct {
-	ID        uuid.UUID
-	Email     string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	Firstname string
-	Lastname  string
-	Role      primitive.UserRole
+	ID           uuid.UUID
+	Email        string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	Firstname    string
+	Lastname     string
+	Role         primitive.UserRole
+	PasswordHash []byte
 }
 
 type ConfigJWT struct {
@@ -38,6 +39,12 @@ type RegisterRequestDTO struct {
 	Email     string `json:"email" validate:"required,email,max=200"`
 	Firstname string `json:"firstname" validate:"required,max=100"`
 	Lastname  string `json:"lastname" validate:"required,max=100"`
+	Password  string `json:"password" validate:"required,min=12,max=100"`
+}
+
+type LoginRequestDTO struct {
+	Email    string `json:"email" validate:"required,email,max=200"`
+	Password string `json:"password" validate:"required,min=12,max=100"`
 }
 
 type UserTokenClaims struct {

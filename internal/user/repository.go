@@ -31,13 +31,35 @@ func (r *RepositoryImpl) GetByID(ctx context.Context, id uuid.UUID) (*User, erro
 	}
 
 	return &User{
-		ID:        e.ID,
-		Email:     e.Email,
-		CreatedAt: e.CreatedAt,
-		UpdatedAt: e.UpdatedAt,
-		Firstname: e.Firstname,
-		Lastname:  e.Lastname,
-		Role:      e.Role,
+		ID:           e.ID,
+		Email:        e.Email,
+		CreatedAt:    e.CreatedAt,
+		UpdatedAt:    e.UpdatedAt,
+		Firstname:    e.Firstname,
+		Lastname:     e.Lastname,
+		Role:         e.Role,
+		PasswordHash: e.PasswordHash,
+	}, nil
+}
+
+func (r *RepositoryImpl) GetByEmail(ctx context.Context, email string) (*User, error) {
+	e, err := r.dbClient.User.Query().Where(
+		user.EmailEQ(email),
+	).First(ctx)
+
+	if err != nil {
+		return nil, errorwrapper.Wrap(err)
+	}
+
+	return &User{
+		ID:           e.ID,
+		Email:        e.Email,
+		CreatedAt:    e.CreatedAt,
+		UpdatedAt:    e.UpdatedAt,
+		Firstname:    e.Firstname,
+		Lastname:     e.Lastname,
+		Role:         e.Role,
+		PasswordHash: e.PasswordHash,
 	}, nil
 }
 
@@ -46,6 +68,7 @@ func (r *RepositoryImpl) Create(ctx context.Context, user *User) (*User, error) 
 		SetFirstname(user.Firstname).
 		SetLastname(user.Lastname).
 		SetEmail(user.Email).
+		SetPasswordHash(user.PasswordHash).
 		Save(ctx)
 
 	if err != nil {
@@ -53,12 +76,13 @@ func (r *RepositoryImpl) Create(ctx context.Context, user *User) (*User, error) 
 	}
 
 	return &User{
-		ID:        e.ID,
-		Email:     e.Email,
-		CreatedAt: e.CreatedAt,
-		UpdatedAt: e.UpdatedAt,
-		Firstname: e.Firstname,
-		Lastname:  e.Lastname,
-		Role:      e.Role,
+		ID:           e.ID,
+		Email:        e.Email,
+		CreatedAt:    e.CreatedAt,
+		UpdatedAt:    e.UpdatedAt,
+		Firstname:    e.Firstname,
+		Lastname:     e.Lastname,
+		Role:         e.Role,
+		PasswordHash: e.PasswordHash,
 	}, nil
 }
