@@ -4,6 +4,7 @@ package ent
 
 import (
 	"fmt"
+	"hkorpo/book/internal/primitive"
 	"hkorpo/book/pkg/ent/user"
 	"strings"
 	"time"
@@ -27,7 +28,9 @@ type User struct {
 	// Lastname holds the value of the "lastname" field.
 	Lastname string `json:"lastname,omitempty"`
 	// Email holds the value of the "email" field.
-	Email        string `json:"email,omitempty"`
+	Email string `json:"email,omitempty"`
+	// Role holds the value of the "role" field.
+	Role         primitive.UserRole `json:"role,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -36,7 +39,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldFirstname, user.FieldLastname, user.FieldEmail:
+		case user.FieldFirstname, user.FieldLastname, user.FieldEmail, user.FieldRole:
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -93,6 +96,12 @@ func (_m *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Email = value.String
 			}
+		case user.FieldRole:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field role", values[i])
+			} else if value.Valid {
+				_m.Role = primitive.UserRole(value.String)
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -143,6 +152,9 @@ func (_m *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("email=")
 	builder.WriteString(_m.Email)
+	builder.WriteString(", ")
+	builder.WriteString("role=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Role))
 	builder.WriteByte(')')
 	return builder.String()
 }

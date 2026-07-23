@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"hkorpo/book/internal/primitive"
 	"hkorpo/book/pkg/ent/mixin"
 
 	"entgo.io/ent"
@@ -27,6 +28,8 @@ func (User) Fields() []ent.Field {
 		field.String("firstname").MaxLen(100),
 		field.String("lastname").MaxLen(100),
 		field.String("email").MaxLen(200).Unique(),
+		field.Enum("role").GoType(primitive.UserRole("")).
+			Default(primitive.Basic.String()),
 	}
 }
 

@@ -3,6 +3,7 @@
 package user
 
 import (
+	"hkorpo/book/internal/primitive"
 	"hkorpo/book/pkg/ent/predicate"
 	"time"
 
@@ -353,6 +354,36 @@ func EmailEqualFold(v string) predicate.User {
 // EmailContainsFold applies the ContainsFold predicate on the "email" field.
 func EmailContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldEmail, v))
+}
+
+// RoleEQ applies the EQ predicate on the "role" field.
+func RoleEQ(v primitive.UserRole) predicate.User {
+	vc := v
+	return predicate.User(sql.FieldEQ(FieldRole, vc))
+}
+
+// RoleNEQ applies the NEQ predicate on the "role" field.
+func RoleNEQ(v primitive.UserRole) predicate.User {
+	vc := v
+	return predicate.User(sql.FieldNEQ(FieldRole, vc))
+}
+
+// RoleIn applies the In predicate on the "role" field.
+func RoleIn(vs ...primitive.UserRole) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(sql.FieldIn(FieldRole, v...))
+}
+
+// RoleNotIn applies the NotIn predicate on the "role" field.
+func RoleNotIn(vs ...primitive.UserRole) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(sql.FieldNotIn(FieldRole, v...))
 }
 
 // And groups predicates with the AND operator between them.

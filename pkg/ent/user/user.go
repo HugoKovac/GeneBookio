@@ -3,6 +3,8 @@
 package user
 
 import (
+	"fmt"
+	"hkorpo/book/internal/primitive"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -24,6 +26,8 @@ const (
 	FieldLastname = "lastname"
 	// FieldEmail holds the string denoting the email field in the database.
 	FieldEmail = "email"
+	// FieldRole holds the string denoting the role field in the database.
+	FieldRole = "role"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 )
@@ -36,6 +40,7 @@ var Columns = []string{
 	FieldFirstname,
 	FieldLastname,
 	FieldEmail,
+	FieldRole,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -64,6 +69,18 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+const DefaultRole primitive.UserRole = "basic"
+
+// RoleValidator is a validator for the "role" field enum values. It is called by the builders before save.
+func RoleValidator(r primitive.UserRole) error {
+	switch r.String() {
+	case "basic":
+		return nil
+	default:
+		return fmt.Errorf("user: invalid enum value for role field: %q", r)
+	}
+}
 
 // OrderOption defines the ordering options for the User queries.
 type OrderOption func(*sql.Selector)
@@ -96,4 +113,9 @@ func ByLastname(opts ...sql.OrderTermOption) OrderOption {
 // ByEmail orders the results by the email field.
 func ByEmail(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEmail, opts...).ToFunc()
+}
+
+// ByRole orders the results by the role field.
+func ByRole(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRole, opts...).ToFunc()
 }

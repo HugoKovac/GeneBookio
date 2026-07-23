@@ -2,7 +2,6 @@ package user
 
 import (
 	"hkorpo/book/pkg/errorwrapper"
-	"log"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
@@ -45,8 +44,6 @@ func (h *Handler) Register(c fiber.Ctx) error {
 		return errorwrapper.Wrap(err)
 	}
 
-	log.Println(body)
-
 	if err := validator.New().Struct(&body); err != nil {
 		return errorwrapper.Wrap(err)
 	}
@@ -60,5 +57,18 @@ func (h *Handler) Register(c fiber.Ctx) error {
 		return err
 	}
 
-	return c.JSON(createdUser)
+	token, err := h.userService.GenerateToken(c.RequestCtx(), createdUser, h.userService.configJWT.PrivateKey, h.userService.configJWT.JWT_TOKEN_EXP)
+	if err != nil {
+		return err
+	}
+
+	refreshToken, err := h.userService.GenerateToken(c.RequestCtx(), createdUser, h.userService.configJWT.RefreshPrivateKey, h.userService.configJWT.JWT_REFRESH_TOKEN_EXP)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(map[string]any{
+		"token":         token,
+		"refresh_token": refreshToken,
+	})
 }

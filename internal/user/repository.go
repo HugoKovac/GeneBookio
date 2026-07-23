@@ -37,6 +37,7 @@ func (r *RepositoryImpl) GetByID(ctx context.Context, id uuid.UUID) (*User, erro
 		UpdatedAt: e.UpdatedAt,
 		Firstname: e.Firstname,
 		Lastname:  e.Lastname,
+		Role:      e.Role,
 	}, nil
 }
 
@@ -58,5 +59,6 @@ func (r *RepositoryImpl) Create(ctx context.Context, user *User) (*User, error) 
 		UpdatedAt: e.UpdatedAt,
 		Firstname: e.Firstname,
 		Lastname:  e.Lastname,
+		Role:      e.Role,
 	}, nil
 }

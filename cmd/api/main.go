@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"crypto/rsa"
 	"log"
+	"os"
 
 	"hkorpo/book/internal/user"
 	"hkorpo/book/pkg/ent"
@@ -12,6 +14,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/logger"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 
@@ -28,6 +31,29 @@ type ConfigDB struct {
 
 type Config struct {
 	ConfigDB
+	user.ConfigJWT
+}
+
+func readKeys(privatePath, publicPath string) (*rsa.PrivateKey, *rsa.PublicKey, error) {
+	privateBytes, err := os.ReadFile(privatePath)
+	if err != nil {
+		return nil, nil, err
+	}
+	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateBytes)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	publicBytes, err := os.ReadFile(publicPath)
+	if err != nil {
+		return nil, nil, err
+	}
+	publicKey, err := jwt.ParseRSAPublicKeyFromPEM(publicBytes)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return privateKey, publicKey, nil
 }
 
 func main() {
@@ -44,6 +70,9 @@ func main() {
 	if err := envconfig.Process("", &config); err != nil {
 		log.Fatal(err.Error())
 	}
+
+	config.ConfigJWT.PrivateKey, config.ConfigJWT.PublicKey, err = readKeys(config.ConfigJWT.PRIVATE_KEY_PATH, config.ConfigJWT.PUBLIC_KEY_PATH)
+	config.ConfigJWT.RefreshPrivateKey, config.ConfigJWT.RefreshPublicKey, err = readKeys(config.ConfigJWT.PRIVATE_REFRESH_KEY_PATH, config.ConfigJWT.PUBLIC_REFRESH_KEY_PATH)
 
 	dbClient, err := ent.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s)/%s?parseTime=True",
 		config.ConfigDB.USER,
@@ -67,7 +96,7 @@ func main() {
 	}))
 
 	userRepo := user.NewRepositoryImpl(dbClient)
-	userService := user.NewService(userRepo)
+	userService := user.NewService(userRepo, &config.ConfigJWT)
 	user.NewHandler(app.Group("/users"), userService)
 
 	if err := app.Listen(":3000"); err != nil {
