@@ -9,6 +9,11 @@ import (
 	"time"
 )
 
+// https://openlibrary.org/dev/docs/api/search
+// https://openlibrary.org/dev/docs/api/covers
+// https://libgen.li/json.php
+// https://libgen.li/index.php
+
 type OpenLibraryClient struct {
 	client *http.Client
 }
