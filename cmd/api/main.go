@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 
+	"hkorpo/book/internal/book"
 	"hkorpo/book/internal/user"
 	"hkorpo/book/pkg/ent"
 	fiberlogger "hkorpo/book/pkg/fiber/logger"
@@ -98,6 +99,8 @@ func main() {
 	userRepo := user.NewRepositoryImpl(dbClient)
 	userService := user.NewService(userRepo, &config.ConfigJWT)
 	user.NewHandler(app.Group("/users"), userService)
+
+	book.NewHandler(app.Group("/books"), book.NewService(book.NewOpenLibraryClient()))
 
 	if err := app.Listen(":3000"); err != nil {
 		log.Fatalf("fiber listen failed: %v", err)

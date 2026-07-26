@@ -6,7 +6,6 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
-	"github.com/matthewhartstonge/argon2"
 )
 
 type Handler struct {
@@ -41,20 +40,6 @@ func NewHandler(router fiber.Router, userService *Service) {
 
 func (h *Handler) Get(c fiber.Ctx) error {
 	return c.JSON(c.Locals("user").(*User))
-}
-
-func ValidatePasswordHash(storedPassword, suppliedPassword []byte) (bool, error) {
-	// Check if the password match
-	ok, err := argon2.VerifyEncoded(suppliedPassword, storedPassword)
-	if err != nil {
-		return false, errorwrapper.Wrap(err)
-	}
-	// Check if password is valid
-	if ok {
-		return true, nil
-	}
-
-	return false, nil
 }
 
 func (h *Handler) Register(c fiber.Ctx) error {
