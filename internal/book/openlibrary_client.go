@@ -53,6 +53,7 @@ func (c *OpenLibraryClient) GetBookByID(q string, page int) (books []*Book, err 
 
 	for _, b := range parsedBody.Docs {
 		books = append(books, &Book{
+			DetailsURL:  fmt.Sprintf("https://openlibrary.org/%s.json", b.Key),
 			Title:       b.Title,
 			AuthorNames: b.AuthorNames,
 			CoverURL:    fmt.Sprintf("https://covers.openlibrary.org/b/id/%d-M.jpg\n", b.CoverID),

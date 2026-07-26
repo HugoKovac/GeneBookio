@@ -4,6 +4,7 @@ type Book struct {
 	Title       string
 	AuthorNames []string
 	CoverURL    string
+	DetailsURL  string
 }
 
 type DocsSearchAPIResponse struct {
@@ -11,6 +12,7 @@ type DocsSearchAPIResponse struct {
 	Languages   []string `json:"language"`
 	Title       string   `json:"title"`
 	CoverID     int      `json:"cover_i"`
+	Key         string   `json:"key"`
 }
 
 type SearchAPIResponse struct {
