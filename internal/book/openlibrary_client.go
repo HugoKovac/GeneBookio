@@ -15,19 +15,19 @@ import (
 // https://libgen.li/json.php
 // https://libgen.li/index.php
 
-type OpenLibraryClient struct {
+type LibraryClient struct {
 	client *http.Client
 }
 
-func NewOpenLibraryClient() *OpenLibraryClient {
-	return &OpenLibraryClient{
+func NewOpenLibraryClient() *LibraryClient {
+	return &LibraryClient{
 		client: &http.Client{
 			Timeout: time.Second * 10,
 		},
 	}
 }
 
-func (c *OpenLibraryClient) SearchBookByString(q string, page int) (books []*Book, err error) {
+func (c *LibraryClient) SearchBookByString(q string, page int) (books []*Book, err error) {
 	req, err := http.NewRequest("GET", fmt.Sprintf("https://openlibrary.org/search.json?q=%s&limit=5&page=%d", q, page), nil)
 	if err != nil {
 		return nil, errorwrapper.Wrap(err)
@@ -68,7 +68,7 @@ func (c *OpenLibraryClient) SearchBookByString(q string, page int) (books []*Boo
 	return books, nil
 }
 
-func (c *OpenLibraryClient) GetBookByKey(key string) (books *Book, err error) {
+func (c *LibraryClient) GetBookByKey(key string) (books *Book, err error) {
 	req, err := http.NewRequest("GET", fmt.Sprintf("https://openlibrary.org/works/%s.json", key), nil)
 	if err != nil {
 		return nil, errorwrapper.Wrap(err)

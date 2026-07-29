@@ -6,3 +6,17 @@ services:
       cmd/api/.env
     ports:
       - 3366:3306
+
+  minio:
+    image: minio/minio:latest
+    ports:
+      - 9000:9000
+      - 9001:9001
+    volumes:
+      - minio:/mnt/data
+    command: server /mnt/data --console-address ":9001"
+    env_file:
+      - .env
+
+volumes:
+  minio:

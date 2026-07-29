@@ -7,6 +7,12 @@ ent:
 api:
 	go run cmd/api/main.go
 
+epub_split:
+	go run cmd/epub_parser/main.go ${ARG}
+
+script:
+	go run cmd/script/main.go ${ARG}
+
 docker:
 	docker compose up -d
 

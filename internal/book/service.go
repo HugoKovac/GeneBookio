@@ -4,16 +4,16 @@ import (
 	"context"
 )
 
-type BookAPI interface {
+type LibraryAPI interface {
 	SearchBookByString(q string, page int) (books []*Book, err error)
 	GetBookByKey(key string) (books *Book, err error)
 }
 
 type Service struct {
-	bookAPI BookAPI
+	bookAPI LibraryAPI
 }
 
-func NewService(bookAPI BookAPI) *Service {
+func NewService(bookAPI LibraryAPI) *Service {
 	return &Service{
 		bookAPI: bookAPI,
 	}
