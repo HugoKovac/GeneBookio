@@ -13,10 +13,7 @@ services:
       - 9000:9000
       - 9001:9001
     volumes:
-      - minio:/mnt/data
+      - ./minio-data:/mnt/data
     command: server /mnt/data --console-address ":9001"
     env_file:
       - .env
-
-volumes:
-  minio:

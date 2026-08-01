@@ -10,63 +10,107 @@ import (
 	"path/filepath"
 	"strings"
 
-	"hkorpo/book/internal/script"
+	"hkorpo/book/internal/platform/bucket"
+	"hkorpo/book/internal/primitive"
 
 	"github.com/joho/godotenv"
+	"github.com/kelseyhightower/envconfig"
 	"github.com/openai/openai-go/v3"
 	"github.com/openai/openai-go/v3/responses"
 )
 
-//go:embed prompt1.md
-var preparationPrompt string
-
-//go:embed prompt2.md
-var generationPrompt string
-
 func main() {
-	if len(os.Args) != 2 {
-		log.Fatal("usage: go run ./cmd/script <book-directory>")
-	}
+	epubPath := "petit_traite_de_manipulation_a_l_usage_des_honnetes_gens.epub"
 
 	if err := godotenv.Load("cmd/script/.env"); err != nil && !errors.Is(err, os.ErrNotExist) {
 		log.Fatalf("load environment: %v", err)
 	}
 
-	bookChunks, err := loadBookChunks(os.Args[1])
+	var (
+		cfg bucket.ConfigBucket
+		ctx = context.Background()
+	)
+
+	if err := envconfig.Process("", &cfg); err != nil {
+		log.Fatal(err)
+	}
+
+	cClient, err := bucket.Init(ctx, &cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	workflow := script.Script{
-		PreparationPrompt: preparationPrompt,
-		GenerationPrompt:  generationPrompt,
-		BookChunks:        bookChunks,
+	pathSplit := strings.Split(epubPath, "/")
+	bucketPath := strings.TrimSuffix(pathSplit[len(pathSplit)-1], ".epub")
+	/*
+		promptPrepareChapter, err := cClient.GetBucketFileAsString(ctx, primitive.PromptsBucket, primitive.NoneFictionPrepareChapter)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		iter := cClient.GetFilesIteratorOfDir(ctx, primitive.BooksBucket, "chunks/"+bucketPath+"/")
+
+		client := openai.NewClient()
+		count := 0
+		for i := range iter {
+			fmt.Println(i.Key)
+			content, err := cClient.GetBucketFileAsString(ctx, primitive.BooksBucket, i.Key)
+			if err != nil {
+				log.Fatal(err)
+			}
+			// fmt.Println(promptPrepareChapter)
+			// fmt.Println(content)
+
+			preparation, err := client.Responses.New(ctx, responses.ResponseNewParams{
+				Model: openai.ChatModelGPT5_2,
+				Input: responses.ResponseNewParamsInputUnion{OfString: openai.String(
+					promptPrepareChapter + content,
+				)},
+			})
+			if err != nil {
+				log.Fatalf("generate preparation: %v", err)
+			}
+
+			if err := cClient.UploadStringAsTextFile(ctx, primitive.ScriptsBucket, fmt.Sprintf("preparation/%s/%d.txt", bucketPath, count), preparation.OutputText()); err != nil {
+				log.Fatal(err)
+			}
+			count++
+		}
+	*/
+
+	/////////////////////////////////////////
+
+	var builder strings.Builder
+	iter := cClient.GetFilesIteratorOfDir(ctx, primitive.ScriptsBucket, "preparation/"+bucketPath+"/")
+	for i := range iter {
+		content, err := cClient.GetBucketFileAsString(ctx, primitive.ScriptsBucket, i.Key)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if _, err := builder.WriteString(content); err != nil {
+			log.Fatal(err)
+		}
+	}
+	result := builder.String()
+
+	promptGenerateScript, err := cClient.GetBucketFileAsString(ctx, primitive.PromptsBucket, primitive.NoneFictionGenerateScript)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	ctx := context.Background()
 	client := openai.NewClient()
 
-	preparation, err := client.Responses.New(ctx, responses.ResponseNewParams{
-		Model: openai.ChatModelGPT5_2,
-		Input: responses.ResponseNewParamsInputUnion{OfString: openai.String(
-			workflow.PreparationPrompt + "\n\n--- DOCUMENT À ANALYSER ---\n" + strings.Join(workflow.BookChunks, "\n\n"),
-		)},
-	})
-	if err != nil {
-		log.Fatalf("generate preparation: %v", err)
-	}
-
 	generated, err := client.Responses.New(ctx, responses.ResponseNewParams{
-		Model:              openai.ChatModelGPT5_2,
-		PreviousResponseID: openai.String(preparation.ID),
-		Input:              responses.ResponseNewParamsInputUnion{OfString: openai.String(workflow.GenerationPrompt)},
+		Model: openai.ChatModelGPT5_2,
+		Input: responses.ResponseNewParamsInputUnion{OfString: openai.String(promptGenerateScript + result)},
 	})
 	if err != nil {
 		log.Fatalf("generate script: %v", err)
 	}
 
-	workflow.Content = generated.OutputText()
-	fmt.Print(workflow.Content)
+	if err := cClient.UploadStringAsTextFile(ctx, primitive.ScriptsBucket, fmt.Sprintf("%s/script.txt", bucketPath), generated.OutputText()); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func loadBookChunks(bookDirectory string) ([]string, error) {

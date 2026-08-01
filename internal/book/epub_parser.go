@@ -2,13 +2,12 @@ package book
 
 import (
 	"archive/zip"
+	"bytes"
 	"encoding/xml"
 	"fmt"
 	"html"
 	"io"
-	"os"
 	"path"
-	"path/filepath"
 	"regexp"
 	"strings"
 )
@@ -37,13 +36,15 @@ type epubPackage struct {
 }
 
 // ExtractEPUB extracts each non-empty HTML document in an EPUB spine into a
-// numbered plain-text chapter in outputDir.
-func ExtractEPUB(epubPath, outputDir string) error {
-	zr, err := zip.OpenReader(epubPath)
+// numbered plain-text chapter, keyed by filename.
+func ExtractEPUB(epubContent []byte) (map[string]string, error) {
+	chunks := make(map[string]string, 0)
+
+	zr, err := zip.NewReader(bytes.NewReader(epubContent), int64(len(epubContent)))
 	if err != nil {
-		return fmt.Errorf("opening epub: %w", err)
+		return nil, fmt.Errorf("opening epub: %w", err)
 	}
-	defer zr.Close()
+	// no defer zr.Close() — zip.Reader has no Close method, unlike zip.ReadCloser
 
 	files := make(map[string]*zip.File, len(zr.File))
 	for _, file := range zr.File {
@@ -52,35 +53,32 @@ func ExtractEPUB(epubPath, outputDir string) error {
 
 	containerBytes, err := readEPUBFile(files, "META-INF/container.xml")
 	if err != nil {
-		return fmt.Errorf("reading container.xml: %w", err)
+		return nil, fmt.Errorf("reading container.xml: %w", err)
 	}
 	var container epubContainer
 	if err := xml.Unmarshal(containerBytes, &container); err != nil {
-		return fmt.Errorf("parsing container.xml: %w", err)
+		return nil, fmt.Errorf("parsing container.xml: %w", err)
 	}
 	if len(container.Rootfiles) == 0 {
-		return fmt.Errorf("no rootfile found in container.xml")
+		return nil, fmt.Errorf("no rootfile found in container.xml")
 	}
 
 	opfPath := container.Rootfiles[0].FullPath
 	opfBytes, err := readEPUBFile(files, opfPath)
 	if err != nil {
-		return fmt.Errorf("reading opf: %w", err)
+		return nil, fmt.Errorf("reading opf: %w", err)
 	}
 	var pkg epubPackage
 	if err := xml.Unmarshal(opfBytes, &pkg); err != nil {
-		return fmt.Errorf("parsing opf: %w", err)
+		return nil, fmt.Errorf("parsing opf: %w", err)
 	}
 	if len(pkg.Spine.Items) == 0 {
-		return fmt.Errorf("no spine items found — is this a valid EPUB?")
+		return nil, fmt.Errorf("no spine items found — is this a valid EPUB?")
 	}
 
 	manifestByID := make(map[string]epubManifestItem, len(pkg.Manifest.Items))
 	for _, item := range pkg.Manifest.Items {
 		manifestByID[item.ID] = item
-	}
-	if err := os.MkdirAll(outputDir, 0o755); err != nil {
-		return fmt.Errorf("creating output dir: %w", err)
 	}
 
 	chapters := 0
@@ -106,14 +104,12 @@ func ExtractEPUB(epubPath, outputDir string) error {
 		if title != "" {
 			content = title + "\n\n" + text
 		}
-		if err := os.WriteFile(filepath.Join(outputDir, filename), []byte(content), 0o644); err != nil {
-			return fmt.Errorf("writing %s: %w", filename, err)
-		}
+		chunks[filename] = content
 	}
 	if chapters == 0 {
-		return fmt.Errorf("no chapter content extracted — check the EPUB structure")
+		return nil, fmt.Errorf("no chapter content extracted — check the EPUB structure")
 	}
-	return nil
+	return chunks, nil
 }
 
 func isEPUBHTML(mediaType, href string) bool {
