@@ -18,7 +18,7 @@ import (
 func main() {
 	epubPath := "petit_traite_de_manipulation_a_l_usage_des_honnetes_gens.epub"
 
-	if err := godotenv.Load("cmd/script/.env"); err != nil && !errors.Is(err, os.ErrNotExist) {
+	if err := godotenv.Load("cmd/epub_parser/.env"); err != nil && !errors.Is(err, os.ErrNotExist) {
 		log.Fatalf("load environment: %v", err)
 	}
 

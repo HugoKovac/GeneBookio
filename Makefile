@@ -8,10 +8,10 @@ api:
 	go run cmd/api/main.go
 
 epub_split:
-	go run cmd/epub_parser/main.go ${ARG}
+	go run cmd/epub_parser/main.go
 
 script:
-	go run cmd/script/main.go ${ARG}
+	go run cmd/script/main.go
 
 docker:
 	docker compose up -d
