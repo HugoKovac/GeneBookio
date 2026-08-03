@@ -98,6 +98,8 @@ type UploadHandlers struct {
 func NewUploadHandlers(router fiber.Router, bookService *Service) {
 	h := &UploadHandlers{
 		router: router,
+
+		bookService: bookService,
 	}
 
 	h.router.Get("/",
@@ -130,7 +132,7 @@ func (UploadHandlers) UploadPage(c fiber.Ctx) error {
 	return c.SendString(html)
 }
 
-func (UploadHandlers) Upload(c fiber.Ctx) error {
+func (uh *UploadHandlers) Upload(c fiber.Ctx) error {
 	file, err := c.FormFile("epub")
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).SendString("no file received (" + err.Error() + ")")
@@ -139,6 +141,8 @@ func (UploadHandlers) Upload(c fiber.Ctx) error {
 	if strings.ToLower(filepath.Ext(file.Filename)) != ".epub" {
 		return c.Status(fiber.StatusBadRequest).SendString("file extension should be .epub")
 	}
+
+	uh.bookService.UploadNewBook("test123")
 
 	return c.SendStatus(http.StatusCreated)
 }
