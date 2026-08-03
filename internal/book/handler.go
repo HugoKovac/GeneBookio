@@ -2,20 +2,23 @@ package book
 
 import (
 	"hkorpo/book/pkg/errorwrapper"
+	"net/http"
+	"path/filepath"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
 )
 
-type Handler struct {
+type Handlers struct {
 	validate *validator.Validate
 	router   fiber.Router
 
 	bookService *Service
 }
 
-func NewHandler(router fiber.Router, bookService *Service) {
-	h := &Handler{
+func NewHandlers(router fiber.Router, bookService *Service) {
+	h := &Handlers{
 		validate: validator.New(validator.WithRequiredStructEnabled()),
 		router:   router,
 
@@ -31,7 +34,7 @@ func NewHandler(router fiber.Router, bookService *Service) {
 	)
 }
 
-func (h *Handler) Search(c fiber.Ctx) error {
+func (h *Handlers) Search(c fiber.Ctx) error {
 	var queryURI QueryURI
 
 	if err := c.Bind().URI(&queryURI); err != nil {
@@ -61,7 +64,7 @@ func (h *Handler) Search(c fiber.Ctx) error {
 	return c.JSON(books)
 }
 
-func (h *Handler) GetBookByKey(c fiber.Ctx) error {
+func (h *Handlers) GetBookByKey(c fiber.Ctx) error {
 	var queryURI QueryURI
 
 	if err := c.Bind().URI(&queryURI); err != nil {
@@ -84,4 +87,58 @@ func (h *Handler) GetBookByKey(c fiber.Ctx) error {
 		Key:         b.Key,
 		Descriptiom: b.Description,
 	})
+}
+
+type UploadHandlers struct {
+	router fiber.Router
+
+	bookService *Service
+}
+
+func NewUploadHandlers(router fiber.Router, bookService *Service) {
+	h := &UploadHandlers{
+		router: router,
+	}
+
+	h.router.Get("/",
+		h.UploadPage,
+	)
+
+	h.router.Post("/upload",
+		h.Upload,
+	)
+}
+
+func (UploadHandlers) UploadPage(c fiber.Ctx) error {
+	html := `
+		<!DOCTYPE html>
+		<html">
+		<head>
+			<meta charset="UTF-8">
+			<title>Upload EPUB</title>
+		</head>
+		<body>
+			<h1>Upload .epub files</h1>
+			<form action="/upload" method="POST" enctype="multipart/form-data">
+				<input type="file" name="epub" accept=".epub" required>
+				<button type="submit">Upload</button>
+			</form>
+		</body>
+		</html>
+	`
+	c.Set("Content-Type", "text/html; charset=utf-8")
+	return c.SendString(html)
+}
+
+func (UploadHandlers) Upload(c fiber.Ctx) error {
+	file, err := c.FormFile("epub")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).SendString("no file received (" + err.Error() + ")")
+	}
+
+	if strings.ToLower(filepath.Ext(file.Filename)) != ".epub" {
+		return c.Status(fiber.StatusBadRequest).SendString("file extension should be .epub")
+	}
+
+	return c.SendStatus(http.StatusCreated)
 }

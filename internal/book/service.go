@@ -9,14 +9,33 @@ type LibraryAPI interface {
 	GetBookByKey(key string) (books *Book, err error)
 }
 
-type Service struct {
-	bookAPI LibraryAPI
+type QueueRepo interface {
+	PostMessage(msg string) error
 }
 
-func NewService(bookAPI LibraryAPI) *Service {
-	return &Service{
-		bookAPI: bookAPI,
+type Service struct {
+	bookAPI   LibraryAPI
+	queueRepo QueueRepo
+}
+
+func WithLibraryAPI(lAPI LibraryAPI) func(*Service) {
+	return func(s *Service) {
+		s.bookAPI = lAPI
 	}
+}
+
+func WithQueueRepo(qRepo QueueRepo) func(*Service) {
+	return func(s *Service) {
+		s.queueRepo = qRepo
+	}
+}
+
+func NewService(options ...func(*Service)) *Service {
+	srv := &Service{}
+	for _, o := range options {
+		o(srv)
+	}
+	return srv
 }
 
 func (s *Service) Search(ctx context.Context, query string) ([]*Book, error) {

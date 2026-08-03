@@ -29,7 +29,9 @@ func main() {
 	userService := user.NewService(userRepo, &config.ConfigJWT)
 	user.NewHandler(app.Group("/users"), userService)
 
-	book.NewHandler(app.Group("/books"), book.NewService(book.NewOpenLibraryClient()))
+	book.NewHandlers(app.Group("/books"), book.NewService(
+		book.WithLibraryAPI(book.NewOpenLibraryClient()),
+	))
 
 	if err := app.Listen(":3000"); err != nil {
 		log.Fatalf("fiber listen failed: %v", err)
