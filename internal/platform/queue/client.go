@@ -4,19 +4,16 @@ import (
 	"fmt"
 	"hkorpo/book/internal/primitive"
 	"hkorpo/book/pkg/errorwrapper"
-	"log"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-func InitConsumer(cfg *ConfigQueue, channel primitive.QueueChannel) error {
+func InitConsumer(cfg *ConfigQueue, channel primitive.QueueChannel, handler func(d amqp.Delivery)) error {
 	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@localhost:5672/", cfg.USER, cfg.PASSWORD))
 	ch, err := conn.Channel()
 	if err != nil {
 		return errorwrapper.Wrap(err)
 	}
-
-	defer conn.Close()
 
 	q, err := ch.QueueDeclare(
 		string(channel), // name
@@ -47,7 +44,7 @@ func InitConsumer(cfg *ConfigQueue, channel primitive.QueueChannel) error {
 
 	go func() {
 		for d := range msgs {
-			log.Printf("Received a message: %s", d.Body)
+			handler(d)
 		}
 	}()
 
