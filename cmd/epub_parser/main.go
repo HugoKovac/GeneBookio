@@ -45,8 +45,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	pathSplit := strings.Split(epubPath, "/")
-	bucketPath := strings.TrimSuffix(pathSplit[len(pathSplit)-1], ".epub")
+	bucketPath := strings.TrimSuffix(epubPath, ".epub")
 	for name, content := range chunks {
 		if err := buckerRepo.UploadStringAsTextFile(ctx, primitive.BooksBucket, "chunks/"+bucketPath+"/"+name, content); err != nil {
 			log.Fatal(err)

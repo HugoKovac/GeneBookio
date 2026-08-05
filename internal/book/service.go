@@ -2,7 +2,6 @@ package book
 
 import (
 	"context"
-	"fmt"
 	"hkorpo/book/internal/primitive"
 )
 
@@ -17,6 +16,7 @@ type QueueRepo interface {
 
 type BucketRepo interface {
 	UploadStringAsTextFile(ctx context.Context, bucketName primitive.Bucket, path, content string) error
+	GetBucketFileAsString(ctx context.Context, bucket primitive.Bucket, path string) (string, error)
 }
 
 type Service struct {
@@ -59,15 +59,16 @@ func (s *Service) GetBookByKey(key string) (books *Book, err error) {
 	return s.bookAPI.GetBookByKey(key)
 }
 
-func (s *Service) UploadNewBook(newBook string) error {
-	fmt.Println(s)
-	fmt.Println(s.bucketRepo)
-	fmt.Println(s.queueRepo)
-	if err := s.bucketRepo.UploadStringAsTextFile(context.Background(), primitive.BooksBucket, "uploads/test.txt", newBook); err != nil {
+func (s *Service) GetUploadBook(name string) (string, error) {
+	return s.bucketRepo.GetBucketFileAsString(context.Background(), primitive.BooksBucket, "uploads/"+name)
+}
+
+func (s *Service) UploadNewBook(name, data string) error {
+	if err := s.bucketRepo.UploadStringAsTextFile(context.Background(), primitive.BooksBucket, "uploads/"+name, data); err != nil {
 		return err
 	}
-	if err := s.queueRepo.PostMessage("newbookXXX"); err != nil {
-
+	if err := s.queueRepo.PostMessage("uploads/" + name); err != nil {
+		return err
 	}
 	return nil
 }

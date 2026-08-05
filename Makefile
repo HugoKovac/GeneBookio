@@ -13,6 +13,9 @@ epub_split:
 script:
 	go run cmd/script/main.go
 
+upload_service:
+	go run cmd/upload_book/main.go
+
 docker:
 	docker compose up -d
 

@@ -38,8 +38,7 @@ func main() {
 	}
 	buckerRepo := book.NewBucketRepoImpl(cClient)
 
-	pathSplit := strings.Split(epubPath, "/")
-	bucketPath := strings.TrimSuffix(pathSplit[len(pathSplit)-1], ".epub")
+	bucketPath := strings.TrimSuffix(epubPath, ".epub")
 	promptPrepareChapter, err := buckerRepo.GetBucketFileAsString(ctx, primitive.PromptsBucket, primitive.NoneFictionPrepareChapter)
 	if err != nil {
 		log.Fatal(err)

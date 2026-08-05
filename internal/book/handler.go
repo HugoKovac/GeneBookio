@@ -2,6 +2,7 @@ package book
 
 import (
 	"hkorpo/book/pkg/errorwrapper"
+	"io"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -142,7 +143,31 @@ func (uh *UploadHandlers) Upload(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).SendString("file extension should be .epub")
 	}
 
-	uh.bookService.UploadNewBook("test123")
+	f, err := file.Open()
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	data, err := io.ReadAll(f)
+	if err != nil {
+		return err
+	}
+
+	b, err := uh.bookService.GetUploadBook(file.Filename)
+	if err != nil {
+		if err.Error() != "The specified key does not exist." {
+			return err
+		}
+	}
+
+	if b != "" {
+		return errorwrapper.Wrap("already exists")
+	}
+
+	if err := uh.bookService.UploadNewBook(file.Filename, string(data)); err != nil {
+		return err
+	}
 
 	return c.SendStatus(http.StatusCreated)
 }

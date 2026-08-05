@@ -37,9 +37,7 @@ func main() {
 		log.Fatal(err)
 	}
 	buckerRepo := book.NewBucketRepoImpl(cClient)
-
-	pathSplit := strings.Split(epubPath, "/")
-	bucketPath := strings.TrimSuffix(pathSplit[len(pathSplit)-1], ".epub")
+	bucketPath := strings.TrimSuffix(epubPath, ".epub")
 
 	var builder strings.Builder
 	iter := buckerRepo.GetFilesIteratorOfDir(ctx, primitive.ScriptsBucket, bucketPath+"/preparation/")
