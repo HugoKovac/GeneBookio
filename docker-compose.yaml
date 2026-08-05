@@ -3,7 +3,7 @@ services:
     image: mysql
     restart: always
     env_file:
-      cmd/api/.env
+      - .env
     ports:
       - 3366:3306
 
@@ -13,9 +13,8 @@ services:
     ports:
       - "5672:5672"   
       - "15672:15672" 
-    environment:
-      RABBITMQ_DEFAULT_USER: "guest"
-      RABBITMQ_DEFAULT_PASS: "guest"
+    env_file:
+      - .env
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 5s
