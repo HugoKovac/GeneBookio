@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/minio/minio-go/v7"
+	"golang.org/x/sync/errgroup"
 )
 
 type LibraryAPI interface {
@@ -146,16 +147,60 @@ func (s *Service) MapOnChunks(ctx context.Context, fileName string, fn func(ctx 
 	if err != nil {
 		return err
 	}
+
 	iter := s.bucketRepo.GetFilesIteratorOfDir(ctx, primitive.BooksBucket, "chunks/"+fileName+"/")
+
+	g, ctx := errgroup.WithContext(ctx)
+	g.SetLimit(10)
+
 	count := 0
 	for i := range iter {
-		err = fn(ctx, count, fileName, i.Key, promptPrepareChapter)
+		c := count
+		chunkKey := i.Key
+
+		g.Go(func() error {
+			return fn(ctx, c, fileName, chunkKey, promptPrepareChapter)
+		})
+
+		count++
+	}
+
+	if err := g.Wait(); err != nil {
+		return fmt.Errorf("map on chunks failed: %w", err)
+	}
+
+	if err := s.queueRepo.PostMessage(fileName); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Service) GenerateScript(ctx context.Context, fileName string) error {
+	var builder strings.Builder
+	iter := s.bucketRepo.GetFilesIteratorOfDir(ctx, primitive.ScriptsBucket, fileName+"/preparation/")
+	for i := range iter {
+		content, err := s.bucketRepo.GetBucketFileAsString(ctx, primitive.ScriptsBucket, i.Key)
 		if err != nil {
 			return err
 		}
-		count++
+		if _, err := builder.WriteString(content); err != nil {
+			return err
+		}
 	}
-	if err := s.queueRepo.PostMessage(fileName); err != nil {
+	result := builder.String()
+
+	promptGenerateScript, err := s.bucketRepo.GetBucketFileAsString(ctx, primitive.PromptsBucket, primitive.NoneFictionGenerateScript)
+	if err != nil {
+		return err
+	}
+
+	output, err := s.aiAPI.Request(ctx, promptGenerateScript+result)
+	if err != nil {
+		return err
+	}
+
+	if err := s.bucketRepo.UploadStringAsTextFile(ctx, primitive.ScriptsBucket, fmt.Sprintf("%s/script.txt", fileName), output); err != nil {
 		return err
 	}
 	return nil
