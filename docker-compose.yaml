@@ -31,4 +31,66 @@ services:
     command: server /mnt/data --console-address ":9001"
     env_file:
       - .env
+
+
+  api:
+    build:
+      context: .
+      args:
+        CMD: api
+    env_file:
+      - cmd/api/.env
+    environment:
+      - MYSQL_HOST=db:3306
+    ports:
+      - 3000:3000
+
+
+  upload_book:
+    build:
+      context: .
+      args:
+        CMD: upload_book
+    env_file:
+      - cmd/upload_book/.env
+    environment:
+      - MINIO_ENPOINT=minio:9000
+      - RABBITMQ_HOST=rabbitmq:5672
+    ports:
+      - 3001:3001
+
+
+  epub_parser:
+    build:
+      context: .
+      args:
+        CMD: epub_parser
+    env_file:
+      - cmd/epub_parser/.env
+    environment:
+      - MINIO_ENPOINT=minio:9000
+      - RABBITMQ_HOST=rabbitmq:5672
+
+
+  prepare_chapters:
+    build:
+      context: .
+      args:
+        CMD: prepare_chapters
+    env_file:
+      - cmd/prepare_chapters/.env
+    environment:
+      - MINIO_ENPOINT=minio:9000
+      - RABBITMQ_HOST=rabbitmq:5672
+
+  generate_script:
+    build:
+      context: .
+      args:
+        CMD: generate_script
+    env_file:
+      - cmd/generate_script/.env
+    environment:
+      - MINIO_ENPOINT=minio:9000
+      - RABBITMQ_HOST=rabbitmq:5672
   

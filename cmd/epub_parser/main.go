@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -11,9 +10,9 @@ import (
 	"hkorpo/book/internal/platform/bucket"
 	"hkorpo/book/internal/platform/queue"
 	"hkorpo/book/internal/primitive"
+	"hkorpo/book/pkg/env"
 	"hkorpo/book/pkg/errorpkg"
 
-	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/rabbitmq/amqp091-go"
 )
@@ -28,10 +27,7 @@ func main() {
 		cfg Config
 		ctx = context.Background()
 	)
-
-	if err := godotenv.Load("cmd/epub_parser/.env"); err != nil {
-		errorpkg.ExitTrace(fmt.Errorf("load environment: %v", err))
-	}
+	env.LoadEnv()
 
 	if err := envconfig.Process("", &cfg); err != nil {
 		errorpkg.ExitTrace(err)

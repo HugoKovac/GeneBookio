@@ -10,7 +10,10 @@ import (
 )
 
 func InitConsumer(cfg *ConfigQueue, channel primitive.QueueChannel, handler func(d amqp.Delivery) error) error {
-	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@localhost:5672/", cfg.USER, cfg.PASSWORD))
+	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s/", cfg.USER, cfg.PASSWORD, cfg.HOST))
+	if err != nil {
+		return errorwrapper.Wrap(err)
+	}
 	ch, err := conn.Channel()
 	if err != nil {
 		return errorwrapper.Wrap(err)
@@ -56,7 +59,10 @@ func InitConsumer(cfg *ConfigQueue, channel primitive.QueueChannel, handler func
 }
 
 func InitProducer(cfg *ConfigQueue, channel primitive.QueueChannel) (*amqp.Queue, *amqp.Channel, error) {
-	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@localhost:5672/", cfg.USER, cfg.PASSWORD))
+	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s/", cfg.USER, cfg.PASSWORD, cfg.HOST))
+	if err != nil {
+		return nil, nil, errorwrapper.Wrap(err)
+	}
 	ch, err := conn.Channel()
 	if err != nil {
 		return nil, nil, errorwrapper.Wrap(err)

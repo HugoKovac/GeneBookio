@@ -9,10 +9,10 @@ import (
 	"hkorpo/book/internal/platform/database"
 	"hkorpo/book/internal/platform/httpserver"
 	"hkorpo/book/internal/user"
+	"hkorpo/book/pkg/env"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 )
 
@@ -44,11 +44,11 @@ func readKeys(privatePath, publicPath string) (*rsa.PrivateKey, *rsa.PublicKey, 
 }
 
 func main() {
-	var config Config
-	err := godotenv.Load("cmd/api/.env")
-	if err != nil {
-		log.Fatalf("load environment: %v", err)
-	}
+	var (
+		config Config
+		err    error
+	)
+	env.LoadEnv()
 
 	if err := envconfig.Process("", &config); err != nil {
 		log.Fatal(err)

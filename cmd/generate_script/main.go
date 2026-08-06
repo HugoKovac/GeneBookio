@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	_ "embed"
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -12,9 +11,9 @@ import (
 	"hkorpo/book/internal/platform/bucket"
 	"hkorpo/book/internal/platform/queue"
 	"hkorpo/book/internal/primitive"
+	"hkorpo/book/pkg/env"
 	"hkorpo/book/pkg/errorpkg"
 
-	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/openai/openai-go/v3"
 	"github.com/rabbitmq/amqp091-go"
@@ -30,10 +29,7 @@ func main() {
 		cfg Config
 		ctx = context.Background()
 	)
-
-	if err := godotenv.Load("cmd/generate_script/.env"); err != nil {
-		errorpkg.ExitTrace(fmt.Errorf("load environment: %v", err))
-	}
+	env.LoadEnv()
 
 	if err := envconfig.Process("", &cfg); err != nil {
 		errorpkg.ExitTrace(err)

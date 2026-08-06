@@ -1,15 +1,14 @@
 package main
 
 import (
-	"fmt"
 	"hkorpo/book/internal/book"
 	"hkorpo/book/internal/platform/bucket"
 	"hkorpo/book/internal/platform/queue"
 	"hkorpo/book/internal/primitive"
+	"hkorpo/book/pkg/env"
 	"hkorpo/book/pkg/errorpkg"
 
 	"github.com/gofiber/fiber/v3"
-	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 )
 
@@ -23,10 +22,7 @@ func main() {
 		cfg Config
 		app = fiber.New()
 	)
-
-	if err := godotenv.Load("cmd/upload_book/.env"); err != nil {
-		errorpkg.ExitTrace(fmt.Errorf("load environment: %v", err))
-	}
+	env.LoadEnv()
 
 	if err := envconfig.Process("", &cfg); err != nil {
 		errorpkg.ExitTrace(err)
