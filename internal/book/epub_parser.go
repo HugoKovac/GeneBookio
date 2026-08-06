@@ -35,16 +35,22 @@ type epubPackage struct {
 	} `xml:"spine"`
 }
 
+type EpubParserImpl struct {
+}
+
+func NewEpubParserImpl() *EpubParserImpl {
+	return &EpubParserImpl{}
+}
+
 // ExtractEPUB extracts each non-empty HTML document in an EPUB spine into a
 // numbered plain-text chapter, keyed by filename.
-func ExtractEPUB(epubContent []byte) (map[string]string, error) {
+func (EpubParserImpl) ExtractEPUB(epubContent []byte) (map[string]string, error) {
 	chunks := make(map[string]string, 0)
 
 	zr, err := zip.NewReader(bytes.NewReader(epubContent), int64(len(epubContent)))
 	if err != nil {
 		return nil, fmt.Errorf("opening epub: %w", err)
 	}
-	// no defer zr.Close() — zip.Reader has no Close method, unlike zip.ReadCloser
 
 	files := make(map[string]*zip.File, len(zr.File))
 	for _, file := range zr.File {

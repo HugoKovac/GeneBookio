@@ -2,16 +2,16 @@ package main
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 
 	"hkorpo/book/internal/book"
 	"hkorpo/book/internal/platform/bucket"
 	"hkorpo/book/internal/platform/queue"
 	"hkorpo/book/internal/primitive"
+	"hkorpo/book/pkg/errorpkg"
 
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
@@ -30,41 +30,44 @@ func main() {
 	)
 
 	if err := godotenv.Load("cmd/epub_parser/.env"); err != nil {
-		log.Fatalf("load environment: %v", err)
+		errorpkg.ExitTrace(fmt.Errorf("load environment: %v", err))
 	}
 
 	if err := envconfig.Process("", &cfg); err != nil {
-		log.Fatal(err)
+		errorpkg.ExitTrace(err)
 	}
 
 	cClient, err := bucket.Init(&cfg.ConfigBucket)
 	if err != nil {
-		log.Fatal(err)
+		errorpkg.ExitTrace(err)
 	}
 
-	buckerRepo := book.NewBucketRepoImpl(cClient)
+	q, ch, err := queue.InitProducer(&cfg.ConfigQueue, primitive.Prepare)
+	if err != nil {
+		errorpkg.ExitTrace(err)
+	}
 
-	err = queue.InitConsumer(&cfg.ConfigQueue, primitive.Uploads, func(d amqp091.Delivery) {
-		bookName := string(d.Body)
-		bookContent, err := buckerRepo.GetBucketFileAsBytes(ctx, primitive.BooksBucket, bookName)
+	bucketServie := book.NewService(
+		book.WithQueueRepo(book.NewQueueRepoImpl(q, ch)),
+		book.WithBucketRepo(book.NewBucketRepoImpl(cClient)),
+		book.WithEpubParser(book.NewEpubParserImpl()),
+	)
+
+	err = queue.InitConsumer(&cfg.ConfigQueue, primitive.Split, func(d amqp091.Delivery) error {
+		fileName := string(d.Body)
+
+		chunks, err := bucketServie.GetBookAsChunks(ctx, fileName)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 
-		chunks, err := book.ExtractEPUB(bookContent)
-		if err != nil {
-			log.Fatal(err)
+		if err := bucketServie.UploadBookChunks(ctx, fileName, chunks); err != nil {
+			return err
 		}
-
-		bucketPath := strings.TrimSuffix(bookName, ".epub")
-		for name, content := range chunks {
-			if err := buckerRepo.UploadStringAsTextFile(ctx, primitive.BooksBucket, "chunks/"+bucketPath+"/"+name, content); err != nil {
-				log.Fatal(err)
-			}
-		}
+		return nil
 	})
 	if err != nil {
-		log.Fatal(err)
+		errorpkg.ExitTrace(err)
 	}
 
 	sigChan := make(chan os.Signal, 1)

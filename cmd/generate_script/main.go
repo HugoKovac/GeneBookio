@@ -4,70 +4,91 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"log"
+	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 
 	"hkorpo/book/internal/book"
 	"hkorpo/book/internal/platform/bucket"
+	"hkorpo/book/internal/platform/queue"
 	"hkorpo/book/internal/primitive"
+	"hkorpo/book/pkg/errorpkg"
+	"hkorpo/book/pkg/errorwrapper"
 
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/openai/openai-go/v3"
 	"github.com/openai/openai-go/v3/responses"
+	"github.com/rabbitmq/amqp091-go"
 )
+
+type Config struct {
+	queue.ConfigQueue
+	bucket.ConfigBucket
+}
 
 func main() {
 	var (
-		cfg      bucket.ConfigBucket
-		ctx      = context.Background()
-		epubPath = "petit_traite_de_manipulation_a_l_usage_des_honnetes_gens.epub"
+		cfg Config
+		ctx = context.Background()
 	)
 
 	if err := godotenv.Load("cmd/generate_script/.env"); err != nil {
-		log.Fatalf("load environment: %v", err)
+		errorpkg.ExitTrace(fmt.Errorf("load environment: %v", err))
 	}
 
 	if err := envconfig.Process("", &cfg); err != nil {
-		log.Fatal(err)
+		errorpkg.ExitTrace(err)
 	}
 
-	cClient, err := bucket.Init(&cfg)
+	cClient, err := bucket.Init(&cfg.ConfigBucket)
 	if err != nil {
-		log.Fatal(err)
+		errorpkg.ExitTrace(err)
 	}
 	buckerRepo := book.NewBucketRepoImpl(cClient)
 
-	bucketPath := strings.TrimSuffix(epubPath, ".epub")
-	promptPrepareChapter, err := buckerRepo.GetBucketFileAsString(ctx, primitive.PromptsBucket, primitive.NoneFictionPrepareChapter)
-	if err != nil {
-		log.Fatal(err)
-	}
+	err = queue.InitConsumer(&cfg.ConfigQueue, primitive.Generate, func(d amqp091.Delivery) error {
+		fileName := string(d.Body)
+		var builder strings.Builder
+		iter := buckerRepo.GetFilesIteratorOfDir(ctx, primitive.ScriptsBucket, fileName+"/preparation/")
+		for i := range iter {
+			content, err := buckerRepo.GetBucketFileAsString(ctx, primitive.ScriptsBucket, i.Key)
+			if err != nil {
+				return err
+			}
+			if _, err := builder.WriteString(content); err != nil {
+				return err
+			}
+		}
+		result := builder.String()
 
-	iter := buckerRepo.GetFilesIteratorOfDir(ctx, primitive.BooksBucket, "chunks/"+bucketPath+"/")
-
-	client := openai.NewClient()
-	count := 0
-	for i := range iter {
-		fmt.Println(i.Key)
-		content, err := buckerRepo.GetBucketFileAsString(ctx, primitive.BooksBucket, i.Key)
+		promptGenerateScript, err := buckerRepo.GetBucketFileAsString(ctx, primitive.PromptsBucket, primitive.NoneFictionGenerateScript)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 
-		preparation, err := client.Responses.New(ctx, responses.ResponseNewParams{
+		client := openai.NewClient()
+
+		generated, err := client.Responses.New(ctx, responses.ResponseNewParams{
 			Model: openai.ChatModelGPT5_2,
-			Input: responses.ResponseNewParamsInputUnion{OfString: openai.String(
-				promptPrepareChapter + content,
-			)},
+			Input: responses.ResponseNewParamsInputUnion{OfString: openai.String(promptGenerateScript + result)},
 		})
 		if err != nil {
-			log.Fatalf("generate preparation: %v", err)
+			return errorwrapper.Wrap(fmt.Errorf("generate script: %v", err))
 		}
 
-		if err := buckerRepo.UploadStringAsTextFile(ctx, primitive.ScriptsBucket, fmt.Sprintf("%s/preparation/%d.txt", bucketPath, count), preparation.OutputText()); err != nil {
-			log.Fatal(err)
+		if err := buckerRepo.UploadStringAsTextFile(ctx, primitive.ScriptsBucket, fmt.Sprintf("%s/script.txt", fileName), generated.OutputText()); err != nil {
+			return err
 		}
-		count++
+		return nil
+	})
+	if err != nil {
+		errorpkg.ExitTrace(err)
 	}
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+
+	<-sigChan
 }

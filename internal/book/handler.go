@@ -154,7 +154,7 @@ func (uh *UploadHandlers) Upload(c fiber.Ctx) error {
 		return err
 	}
 
-	b, err := uh.bookService.GetUploadBook(file.Filename)
+	b, err := uh.bookService.GetUploadBook(c.RequestCtx(), file.Filename)
 	if err != nil {
 		if err.Error() != "The specified key does not exist." {
 			return err
@@ -165,7 +165,7 @@ func (uh *UploadHandlers) Upload(c fiber.Ctx) error {
 		return errorwrapper.Wrap("already exists")
 	}
 
-	if err := uh.bookService.UploadNewBook(file.Filename, string(data)); err != nil {
+	if err := uh.bookService.UploadNewBook(c.RequestCtx(), file.Filename, string(data)); err != nil {
 		return err
 	}
 

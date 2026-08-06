@@ -2,4 +2,6 @@ package primitive
 
 type QueueChannel string
 
-const Uploads = "uploads"
+const Split = "split"
+const Prepare = "prepare"
+const Generate = "generate"

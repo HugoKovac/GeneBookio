@@ -1,11 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"hkorpo/book/internal/book"
 	"hkorpo/book/internal/platform/bucket"
 	"hkorpo/book/internal/platform/queue"
 	"hkorpo/book/internal/primitive"
-	"log"
+	"hkorpo/book/pkg/errorpkg"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/joho/godotenv"
@@ -24,21 +25,21 @@ func main() {
 	)
 
 	if err := godotenv.Load("cmd/upload_book/.env"); err != nil {
-		log.Fatalf("load environment: %v", err)
+		errorpkg.ExitTrace(fmt.Errorf("load environment: %v", err))
 	}
 
 	if err := envconfig.Process("", &cfg); err != nil {
-		log.Fatal(err)
+		errorpkg.ExitTrace(err)
 	}
 
-	q, ch, err := queue.InitProducer(&cfg.ConfigQueue, primitive.Uploads)
+	q, ch, err := queue.InitProducer(&cfg.ConfigQueue, primitive.Split)
 	if err != nil {
-		log.Fatal(err)
+		errorpkg.ExitTrace(err)
 	}
 
 	bucketClient, err := bucket.Init(&cfg.ConfigBucket)
 	if err != nil {
-		log.Fatal(err)
+		errorpkg.ExitTrace(err)
 	}
 
 	book.NewUploadHandlers(app, book.NewService(
@@ -46,5 +47,5 @@ func main() {
 		book.WithBucketRepo(book.NewBucketRepoImpl(bucketClient)),
 	))
 
-	log.Fatal(app.Listen(":3001"))
+	errorpkg.ExitTrace(app.Listen(":3001"))
 }

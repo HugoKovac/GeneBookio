@@ -1,4 +1,4 @@
-- [ ] upload book as entry point then other cmds consuming rabbit mq
+- [ ] upload book as entry point then other cmds consuming rabbit mq + envoyer un message rmq pour le service suivant
     - [ ] upload_book
     - [ ] epub_parser
     - [ ] prepare_chapters

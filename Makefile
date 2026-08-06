@@ -10,8 +10,8 @@ api:
 epub_split:
 	go run cmd/epub_parser/main.go
 
-script:
-	go run cmd/script/main.go
+prepare_chapters:
+	go run cmd/prepare_chapters/main.go
 
 upload_service:
 	go run cmd/upload_book/main.go

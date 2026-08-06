@@ -3,12 +3,13 @@ package queue
 import (
 	"fmt"
 	"hkorpo/book/internal/primitive"
+	"hkorpo/book/pkg/errorpkg"
 	"hkorpo/book/pkg/errorwrapper"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-func InitConsumer(cfg *ConfigQueue, channel primitive.QueueChannel, handler func(d amqp.Delivery)) error {
+func InitConsumer(cfg *ConfigQueue, channel primitive.QueueChannel, handler func(d amqp.Delivery) error) error {
 	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@localhost:5672/", cfg.USER, cfg.PASSWORD))
 	ch, err := conn.Channel()
 	if err != nil {
@@ -44,7 +45,10 @@ func InitConsumer(cfg *ConfigQueue, channel primitive.QueueChannel, handler func
 
 	go func() {
 		for d := range msgs {
-			handler(d)
+			fmt.Println(string(d.Body))
+			if err := handler(d); err != nil {
+				errorpkg.PrintTrace(err)
+			}
 		}
 	}()
 
