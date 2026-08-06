@@ -13,12 +13,10 @@ import (
 	"hkorpo/book/internal/platform/queue"
 	"hkorpo/book/internal/primitive"
 	"hkorpo/book/pkg/errorpkg"
-	"hkorpo/book/pkg/errorwrapper"
 
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/openai/openai-go/v3"
-	"github.com/openai/openai-go/v3/responses"
 	"github.com/rabbitmq/amqp091-go"
 )
 
@@ -45,40 +43,24 @@ func main() {
 	if err != nil {
 		errorpkg.ExitTrace(err)
 	}
-	buckerRepo := book.NewBucketRepoImpl(cClient)
+
+	q, ch, err := queue.InitProducer(&cfg.ConfigQueue, primitive.Generate)
+	if err != nil {
+		errorpkg.ExitTrace(err)
+	}
+
+	bucketServie := book.NewService(
+		book.WithQueueRepo(book.NewQueueRepoImpl(q, ch)),
+		book.WithBucketRepo(book.NewBucketRepoImpl(cClient)),
+		book.WithAiAPI(book.NewOpenAiClient(openai.NewClient())),
+	)
 
 	err = queue.InitConsumer(&cfg.ConfigQueue, primitive.Prepare, func(d amqp091.Delivery) error {
 		fileName := string(d.Body)
 
-		promptPrepareChapter, err := buckerRepo.GetBucketFileAsString(ctx, primitive.PromptsBucket, primitive.NoneFictionPrepareChapter)
+		err = bucketServie.MapOnChunks(ctx, fileName, bucketServie.GenerateChapterPreparation)
 		if err != nil {
 			return err
-		}
-
-		iter := buckerRepo.GetFilesIteratorOfDir(ctx, primitive.BooksBucket, "chunks/"+fileName+"/")
-
-		client := openai.NewClient()
-		count := 0
-		for i := range iter {
-			content, err := buckerRepo.GetBucketFileAsString(ctx, primitive.BooksBucket, i.Key)
-			if err != nil {
-				return err
-			}
-
-			preparation, err := client.Responses.New(ctx, responses.ResponseNewParams{
-				Model: openai.ChatModelGPT5_2,
-				Input: responses.ResponseNewParamsInputUnion{OfString: openai.String(
-					promptPrepareChapter + content,
-				)},
-			})
-			if err != nil {
-				return errorwrapper.Wrap(fmt.Errorf("generate preparation: %v", err))
-			}
-
-			if err := buckerRepo.UploadStringAsTextFile(ctx, primitive.ScriptsBucket, fmt.Sprintf("%s/preparation/%d.txt", fileName, count), preparation.OutputText()); err != nil {
-				return err
-			}
-			count++
 		}
 		return nil
 
@@ -91,5 +73,4 @@ func main() {
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 
 	<-sigChan
-
 }

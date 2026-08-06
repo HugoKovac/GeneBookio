@@ -2,9 +2,13 @@ package book
 
 import (
 	"context"
+	"fmt"
 	"hkorpo/book/internal/primitive"
+	"iter"
 	"log"
 	"strings"
+
+	"github.com/minio/minio-go/v7"
 )
 
 type LibraryAPI interface {
@@ -20,10 +24,15 @@ type BucketRepo interface {
 	UploadStringAsTextFile(ctx context.Context, bucketName primitive.Bucket, path, content string) error
 	GetBucketFileAsString(ctx context.Context, bucket primitive.Bucket, path string) (string, error)
 	GetBucketFileAsBytes(ctx context.Context, bucket primitive.Bucket, path string) ([]byte, error)
+	GetFilesIteratorOfDir(ctx context.Context, bucket primitive.Bucket, path string) iter.Seq[minio.ObjectInfo]
 }
 
 type EpubParser interface {
 	ExtractEPUB(epubContent []byte) (map[string]string, error)
+}
+
+type AiAPI interface {
+	Request(ctx context.Context, request string) (string, error)
 }
 
 type Service struct {
@@ -31,11 +40,18 @@ type Service struct {
 	queueRepo  QueueRepo
 	bucketRepo BucketRepo
 	epubParser EpubParser
+	aiAPI      AiAPI
 }
 
 func WithLibraryAPI(lAPI LibraryAPI) func(*Service) {
 	return func(s *Service) {
 		s.bookAPI = lAPI
+	}
+}
+
+func WithAiAPI(aiAPI AiAPI) func(*Service) {
+	return func(s *Service) {
+		s.aiAPI = aiAPI
 	}
 }
 
@@ -103,6 +119,43 @@ func (s *Service) UploadBookChunks(ctx context.Context, fileName string, chunks 
 		}
 	}
 	if err := s.queueRepo.PostMessage(bookName); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *Service) GenerateChapterPreparation(ctx context.Context, count int, fileName, chunkName, prompt string) error {
+	content, err := s.bucketRepo.GetBucketFileAsString(ctx, primitive.BooksBucket, chunkName)
+	if err != nil {
+		return err
+	}
+
+	output, err := s.aiAPI.Request(ctx, prompt+content)
+	if err != nil {
+		return err
+	}
+
+	if err := s.bucketRepo.UploadStringAsTextFile(ctx, primitive.ScriptsBucket, fmt.Sprintf("%s/preparation/%d.txt", fileName, count), output); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *Service) MapOnChunks(ctx context.Context, fileName string, fn func(ctx context.Context, count int, fileName, chunkName, prompt string) error) error {
+	promptPrepareChapter, err := s.bucketRepo.GetBucketFileAsString(ctx, primitive.PromptsBucket, primitive.NoneFictionPrepareChapter)
+	if err != nil {
+		return err
+	}
+	iter := s.bucketRepo.GetFilesIteratorOfDir(ctx, primitive.BooksBucket, "chunks/"+fileName+"/")
+	count := 0
+	for i := range iter {
+		err = fn(ctx, count, fileName, i.Key, promptPrepareChapter)
+		if err != nil {
+			return err
+		}
+		count++
+	}
+	if err := s.queueRepo.PostMessage(fileName); err != nil {
 		return err
 	}
 	return nil

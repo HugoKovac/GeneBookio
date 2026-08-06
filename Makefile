@@ -16,6 +16,9 @@ prepare_chapters:
 upload_service:
 	go run cmd/upload_book/main.go
 
+generate_script:
+	go run cmd/generate_script/main.go
+
 docker:
 	docker compose up -d
 
