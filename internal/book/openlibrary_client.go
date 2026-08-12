@@ -69,6 +69,13 @@ func (c *LibraryClient) SearchBookByString(q string, page int) (books []*Book, e
 	return books, nil
 }
 
+func AuthorsToStringSlice(ba []BookAuthor) (as []string) {
+	for _, a := range ba {
+		as = append(as, a.Author.Key)
+	}
+	return
+}
+
 func (c *LibraryClient) GetBookByKey(key string) (books *Book, err error) {
 	req, err := http.NewRequest("GET", fmt.Sprintf("https://openlibrary.org/works/%s.json", key), nil)
 	if err != nil {
@@ -112,7 +119,7 @@ func (c *LibraryClient) GetBookByKey(key string) (books *Book, err error) {
 	return &Book{
 		Key:         keySplit[2],
 		Title:       parsedBody.Title,
-		AuthorIDs:   parsedBody.Authors,
+		AuthorKeys:  AuthorsToStringSlice(parsedBody.Authors),
 		CoverURL:    fmt.Sprintf("https://covers.openlibrary.org/b/id/%d-M.jpg\n", coverID),
 		Description: parsedBody.Description.Value,
 	}, nil

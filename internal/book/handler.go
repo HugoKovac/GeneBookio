@@ -1,12 +1,10 @@
 package book
 
 import (
-	"fmt"
+	"hkorpo/book/pkg/ent"
 	"hkorpo/book/pkg/errorwrapper"
 	"io"
 	"net/http"
-	"path/filepath"
-	"strings"
 
 	_ "embed"
 
@@ -86,7 +84,7 @@ func (h *Handlers) GetBookByKey(c fiber.Ctx) error {
 
 	return c.JSON(BookDTO{
 		Title:       b.Title,
-		Authors:     b.AuthorIDs,
+		Authors:     b.AuthorKeys,
 		CoverURL:    b.CoverURL,
 		Key:         b.Key,
 		Descriptiom: b.Description,
@@ -143,16 +141,12 @@ func (uh *UploadHandlers) Search(c fiber.Ctx) error {
 }
 
 func (uh *UploadHandlers) Upload(c fiber.Ctx) error {
-	fmt.Println(c.FormValue("book_key"))
-	// get https://openlibrary.org/works/OL477826W.json and add it to DB
 	file, err := c.FormFile("epub")
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).SendString("no file received (" + err.Error() + ")")
 	}
 
-	if strings.ToLower(filepath.Ext(file.Filename)) != ".epub" {
-		return c.Status(fiber.StatusBadRequest).SendString("file extension should be .epub")
-	}
+	// todo: verify epub magic number
 
 	f, err := file.Open()
 	if err != nil {
@@ -165,21 +159,28 @@ func (uh *UploadHandlers) Upload(c fiber.Ctx) error {
 		return err
 	}
 
-	b, err := uh.bookService.GetUploadBook(c.RequestCtx(), file.Filename)
+	bookData, err := uh.bookService.GetSavedBookByKey(c.RequestCtx(), c.FormValue("book_key"))
 	if err != nil {
-		if err.Error() != "The specified key does not exist." {
-			return err
+		if !ent.IsNotFound(err) {
+			return c.Status(http.StatusConflict).SendString("already uploaded")
+		} else if bookData != nil && bookData.Uploaded == true {
+			return c.Status(http.StatusConflict).SendString("already uploaded")
 		}
 	}
 
-	if b != "" {
-		return errorwrapper.Wrap("already exists")
+	bookData, err = uh.bookService.GetBookByKey(c.FormValue("book_key"))
+	if err != nil {
+		return err
 	}
 
-	_ = data
-	// if err := uh.bookService.UploadNewBook(c.RequestCtx(), file.Filename, string(data)); err != nil {
-	// 	return err
-	// }
+	bookData, err = uh.bookService.SaveBook(c.RequestCtx(), bookData)
+	if err != nil {
+		return err
+	}
+
+	if err := uh.bookService.UploadNewBook(c.RequestCtx(), bookData.ID.String(), string(data)); err != nil {
+		return err
+	}
 
 	return c.SendStatus(http.StatusCreated)
 }

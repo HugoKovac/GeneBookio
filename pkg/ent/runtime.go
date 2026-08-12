@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"hkorpo/book/pkg/ent/book"
 	"hkorpo/book/pkg/ent/schema"
 	"hkorpo/book/pkg/ent/user"
 	"time"
@@ -14,6 +15,53 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	bookMixin := schema.Book{}.Mixin()
+	bookMixinFields0 := bookMixin[0].Fields()
+	_ = bookMixinFields0
+	bookFields := schema.Book{}.Fields()
+	_ = bookFields
+	// bookDescCreatedAt is the schema descriptor for created_at field.
+	bookDescCreatedAt := bookMixinFields0[0].Descriptor()
+	// book.DefaultCreatedAt holds the default value on creation for the created_at field.
+	book.DefaultCreatedAt = bookDescCreatedAt.Default.(func() time.Time)
+	// bookDescUpdatedAt is the schema descriptor for updated_at field.
+	bookDescUpdatedAt := bookMixinFields0[1].Descriptor()
+	// book.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	book.DefaultUpdatedAt = bookDescUpdatedAt.Default.(func() time.Time)
+	// book.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	book.UpdateDefaultUpdatedAt = bookDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// bookDescKey is the schema descriptor for key field.
+	bookDescKey := bookFields[1].Descriptor()
+	// book.KeyValidator is a validator for the "key" field. It is called by the builders before save.
+	book.KeyValidator = bookDescKey.Validators[0].(func(string) error)
+	// bookDescTitle is the schema descriptor for title field.
+	bookDescTitle := bookFields[2].Descriptor()
+	// book.TitleValidator is a validator for the "title" field. It is called by the builders before save.
+	book.TitleValidator = bookDescTitle.Validators[0].(func(string) error)
+	// bookDescCoverURL is the schema descriptor for cover_url field.
+	bookDescCoverURL := bookFields[6].Descriptor()
+	// book.CoverURLValidator is a validator for the "cover_url" field. It is called by the builders before save.
+	book.CoverURLValidator = bookDescCoverURL.Validators[0].(func(string) error)
+	// bookDescUploaded is the schema descriptor for uploaded field.
+	bookDescUploaded := bookFields[7].Descriptor()
+	// book.DefaultUploaded holds the default value on creation for the uploaded field.
+	book.DefaultUploaded = bookDescUploaded.Default.(bool)
+	// bookDescParsed is the schema descriptor for parsed field.
+	bookDescParsed := bookFields[8].Descriptor()
+	// book.DefaultParsed holds the default value on creation for the parsed field.
+	book.DefaultParsed = bookDescParsed.Default.(bool)
+	// bookDescPrepared is the schema descriptor for prepared field.
+	bookDescPrepared := bookFields[9].Descriptor()
+	// book.DefaultPrepared holds the default value on creation for the prepared field.
+	book.DefaultPrepared = bookDescPrepared.Default.(bool)
+	// bookDescScriptGenerated is the schema descriptor for script_generated field.
+	bookDescScriptGenerated := bookFields[10].Descriptor()
+	// book.DefaultScriptGenerated holds the default value on creation for the script_generated field.
+	book.DefaultScriptGenerated = bookDescScriptGenerated.Default.(bool)
+	// bookDescID is the schema descriptor for id field.
+	bookDescID := bookFields[0].Descriptor()
+	// book.DefaultID holds the default value on creation for the id field.
+	book.DefaultID = bookDescID.Default.(func() uuid.UUID)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0

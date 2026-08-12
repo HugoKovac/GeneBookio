@@ -8,6 +8,7 @@ import (
 
 	"hkorpo/book/internal/book"
 	"hkorpo/book/internal/platform/bucket"
+	"hkorpo/book/internal/platform/database"
 	"hkorpo/book/internal/platform/queue"
 	"hkorpo/book/internal/primitive"
 	"hkorpo/book/pkg/env"
@@ -20,6 +21,7 @@ import (
 type Config struct {
 	queue.ConfigQueue
 	bucket.ConfigBucket
+	database.ConfigDB
 }
 
 func main() {
@@ -38,26 +40,32 @@ func main() {
 		errorpkg.ExitTrace(err)
 	}
 
+	dbClient, err := database.Init(&cfg.ConfigDB)
+	if err != nil {
+		errorpkg.ExitTrace(err)
+	}
+
 	q, ch, err := queue.InitProducer(&cfg.ConfigQueue, primitive.Prepare)
 	if err != nil {
 		errorpkg.ExitTrace(err)
 	}
 
-	bucketServie := book.NewService(
+	bookService := book.NewService(
 		book.WithQueueRepo(book.NewQueueRepoImpl(q, ch)),
 		book.WithBucketRepo(book.NewBucketRepoImpl(cClient)),
 		book.WithEpubParser(book.NewEpubParserImpl()),
+		book.WithRepository(book.NewRepositoryImpl(dbClient)),
 	)
 
 	err = queue.InitConsumer(&cfg.ConfigQueue, primitive.Split, func(d amqp091.Delivery) error {
-		fileName := string(d.Body)
+		bookID := string(d.Body)
 
-		chunks, err := bucketServie.GetBookAsChunks(ctx, fileName)
+		chunks, err := bookService.GetBookAsChunks(ctx, bookID)
 		if err != nil {
 			return err
 		}
 
-		if err := bucketServie.UploadBookChunks(ctx, fileName, chunks); err != nil {
+		if err := bookService.UploadBookChunks(ctx, bookID, chunks); err != nil {
 			return err
 		}
 		return nil

@@ -8,6 +8,28 @@ import (
 )
 
 var (
+	// BooksColumns holds the columns for the "books" table.
+	BooksColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "key", Type: field.TypeString, Unique: true, Size: 20},
+		{Name: "title", Type: field.TypeString, Size: 100},
+		{Name: "author_names", Type: field.TypeJSON, Nullable: true},
+		{Name: "author_keys", Type: field.TypeJSON, Nullable: true},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "cover_url", Type: field.TypeString, Nullable: true, Size: 100},
+		{Name: "uploaded", Type: field.TypeBool, Default: false},
+		{Name: "parsed", Type: field.TypeBool, Default: false},
+		{Name: "prepared", Type: field.TypeBool, Default: false},
+		{Name: "script_generated", Type: field.TypeBool, Default: false},
+	}
+	// BooksTable holds the schema information for the "books" table.
+	BooksTable = &schema.Table{
+		Name:       "books",
+		Columns:    BooksColumns,
+		PrimaryKey: []*schema.Column{BooksColumns[0]},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -27,6 +49,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		BooksTable,
 		UsersTable,
 	}
 )

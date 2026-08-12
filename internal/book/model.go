@@ -1,5 +1,9 @@
 package book
 
+import (
+	"github.com/google/uuid"
+)
+
 type BookAuthor struct {
 	Author struct {
 		Key string `json:"key"`
@@ -7,12 +11,14 @@ type BookAuthor struct {
 }
 
 type Book struct {
-	Title       string
-	AuthorNames []string
-	CoverURL    string
-	Key         string
-	AuthorIDs   []BookAuthor
-	Description string
+	ID                                          uuid.UUID
+	Title                                       string
+	AuthorNames                                 []string
+	CoverURL                                    string
+	Key                                         string
+	AuthorKeys                                  []string
+	Description                                 string
+	Uploaded, Parsed, Prepared, ScriptGenerated bool
 }
 
 type DocsSearchAPIResponse struct {
@@ -51,10 +57,19 @@ type QueryURI struct {
 }
 
 type BookDTO struct {
-	Title       string       `json:"title"`
-	Authors     []BookAuthor `json:"authors,omitempty"`
-	AuthorNames []string     `json:"author_names,omitempty"`
-	CoverURL    string       `json:"cover_url"`
-	Key         string       `json:"key"`
-	Descriptiom string       `json:"description"`
+	Title       string   `json:"title"`
+	Authors     []string `json:"authors,omitempty"`
+	AuthorNames []string `json:"author_names,omitempty"`
+	CoverURL    string   `json:"cover_url"`
+	Key         string   `json:"key"`
+	Descriptiom string   `json:"description"`
 }
+
+type Stage int
+
+const (
+	Uploaded Stage = iota
+	Parsed
+	Prepared
+	ScriptGenerated
+)

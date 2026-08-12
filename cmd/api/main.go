@@ -11,7 +11,6 @@ import (
 	"hkorpo/book/internal/user"
 	"hkorpo/book/pkg/env"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/kelseyhightower/envconfig"
 )

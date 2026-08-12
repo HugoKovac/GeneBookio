@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"hkorpo/book/pkg/ent"
 	"hkorpo/book/pkg/errorwrapper"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 func Init(cfg *ConfigDB) (*ent.Client, error) {

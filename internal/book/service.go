@@ -8,6 +8,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
 	"golang.org/x/sync/errgroup"
 )
@@ -19,6 +20,12 @@ type LibraryAPI interface {
 
 type QueueRepo interface {
 	PostMessage(msg string) error
+}
+
+type Repository interface {
+	CreateBook(ctx context.Context, book *Book) (*Book, error)
+	UpdateBookStage(ctx context.Context, bookID uuid.UUID, s Stage) error
+	GetSavedBookByKey(ctx context.Context, bookKey string) (*Book, error)
 }
 
 type BucketRepo interface {
@@ -42,6 +49,13 @@ type Service struct {
 	bucketRepo BucketRepo
 	epubParser EpubParser
 	aiAPI      AiAPI
+	repo       Repository
+}
+
+func WithRepository(repo Repository) func(*Service) {
+	return func(s *Service) {
+		s.repo = repo
+	}
 }
 
 func WithLibraryAPI(lAPI LibraryAPI) func(*Service) {
@@ -94,38 +108,55 @@ func (s *Service) GetUploadBook(ctx context.Context, name string) (string, error
 	return s.bucketRepo.GetBucketFileAsString(ctx, primitive.BooksBucket, "uploads/"+name)
 }
 
-func (s *Service) UploadNewBook(ctx context.Context, name, data string) error {
-	if err := s.bucketRepo.UploadStringAsTextFile(ctx, primitive.BooksBucket, "uploads/"+name, data); err != nil {
+func (s *Service) UploadNewBook(ctx context.Context, bookID, data string) error {
+	if err := s.bucketRepo.UploadStringAsTextFile(ctx, primitive.BooksBucket, "uploads/"+bookID, data); err != nil {
 		return err
 	}
-	if err := s.queueRepo.PostMessage(name); err != nil {
+	if err := s.queueRepo.PostMessage(bookID); err != nil {
+		return err
+	}
+	if err := s.repo.UpdateBookStage(ctx, uuid.MustParse(bookID), Uploaded); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *Service) GetBookAsChunks(ctx context.Context, fileName string) (map[string]string, error) {
-	bookContent, err := s.bucketRepo.GetBucketFileAsBytes(ctx, primitive.BooksBucket, "uploads/"+fileName)
+func (s *Service) SaveBook(ctx context.Context, book *Book) (*Book, error) {
+	return s.repo.CreateBook(ctx, book)
+}
+
+func (s *Service) UpdateBookStage(ctx context.Context, bookID uuid.UUID, st Stage) error {
+	return s.repo.UpdateBookStage(ctx, bookID, st)
+}
+
+func (s *Service) GetSavedBookByKey(ctx context.Context, bookKey string) (*Book, error) {
+	return s.repo.GetSavedBookByKey(ctx, bookKey)
+}
+
+func (s *Service) GetBookAsChunks(ctx context.Context, bookID string) (map[string]string, error) {
+	bookContent, err := s.bucketRepo.GetBucketFileAsBytes(ctx, primitive.BooksBucket, "uploads/"+bookID)
 	if err != nil {
 		return nil, err
 	}
 	return s.epubParser.ExtractEPUB(bookContent)
 }
 
-func (s *Service) UploadBookChunks(ctx context.Context, fileName string, chunks map[string]string) error {
-	bookName := strings.TrimSuffix(fileName, ".epub")
+func (s *Service) UploadBookChunks(ctx context.Context, bookID string, chunks map[string]string) error {
 	for name, content := range chunks {
-		if err := s.bucketRepo.UploadStringAsTextFile(ctx, primitive.BooksBucket, "chunks/"+bookName+"/"+name, content); err != nil {
+		if err := s.bucketRepo.UploadStringAsTextFile(ctx, primitive.BooksBucket, "chunks/"+bookID+"/"+name, content); err != nil {
 			log.Fatal(err)
 		}
 	}
-	if err := s.queueRepo.PostMessage(bookName); err != nil {
+	if err := s.repo.UpdateBookStage(ctx, uuid.MustParse(bookID), Parsed); err != nil {
+		return err
+	}
+	if err := s.queueRepo.PostMessage(bookID); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *Service) GenerateChapterPreparation(ctx context.Context, count int, fileName, chunkName, prompt string) error {
+func (s *Service) GenerateChapterPreparation(ctx context.Context, count int, bookID, chunkName, prompt string) error {
 	content, err := s.bucketRepo.GetBucketFileAsString(ctx, primitive.BooksBucket, chunkName)
 	if err != nil {
 		return err
@@ -136,19 +167,19 @@ func (s *Service) GenerateChapterPreparation(ctx context.Context, count int, fil
 		return err
 	}
 
-	if err := s.bucketRepo.UploadStringAsTextFile(ctx, primitive.ScriptsBucket, fmt.Sprintf("%s/preparation/%d.txt", fileName, count), output); err != nil {
+	if err := s.bucketRepo.UploadStringAsTextFile(ctx, primitive.ScriptsBucket, fmt.Sprintf("%s/preparation/%d.txt", bookID, count), output); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *Service) MapOnChunks(ctx context.Context, fileName string, fn func(ctx context.Context, count int, fileName, chunkName, prompt string) error) error {
+func (s *Service) MapOnChunks(ctx context.Context, bookID string, fn func(ctx context.Context, count int, bookID, chunkName, prompt string) error) error {
 	promptPrepareChapter, err := s.bucketRepo.GetBucketFileAsString(ctx, primitive.PromptsBucket, primitive.NoneFictionPrepareChapter)
 	if err != nil {
 		return err
 	}
 
-	iter := s.bucketRepo.GetFilesIteratorOfDir(ctx, primitive.BooksBucket, "chunks/"+fileName+"/")
+	iter := s.bucketRepo.GetFilesIteratorOfDir(ctx, primitive.BooksBucket, "chunks/"+bookID+"/")
 
 	g, ctx := errgroup.WithContext(ctx)
 	g.SetLimit(10)
@@ -159,7 +190,7 @@ func (s *Service) MapOnChunks(ctx context.Context, fileName string, fn func(ctx 
 		chunkKey := i.Key
 
 		g.Go(func() error {
-			return fn(ctx, c, fileName, chunkKey, promptPrepareChapter)
+			return fn(ctx, c, bookID, chunkKey, promptPrepareChapter)
 		})
 
 		count++
@@ -169,16 +200,20 @@ func (s *Service) MapOnChunks(ctx context.Context, fileName string, fn func(ctx 
 		return fmt.Errorf("map on chunks failed: %w", err)
 	}
 
-	if err := s.queueRepo.PostMessage(fileName); err != nil {
+	if err := s.repo.UpdateBookStage(ctx, uuid.MustParse(bookID), Prepared); err != nil {
+		return err
+	}
+
+	if err := s.queueRepo.PostMessage(bookID); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (s *Service) GenerateScript(ctx context.Context, fileName string) error {
+func (s *Service) GenerateScript(ctx context.Context, bookID string) error {
 	var builder strings.Builder
-	iter := s.bucketRepo.GetFilesIteratorOfDir(ctx, primitive.ScriptsBucket, fileName+"/preparation/")
+	iter := s.bucketRepo.GetFilesIteratorOfDir(ctx, primitive.ScriptsBucket, bookID+"/preparation/")
 	for i := range iter {
 		content, err := s.bucketRepo.GetBucketFileAsString(ctx, primitive.ScriptsBucket, i.Key)
 		if err != nil {
@@ -200,7 +235,7 @@ func (s *Service) GenerateScript(ctx context.Context, fileName string) error {
 		return err
 	}
 
-	if err := s.bucketRepo.UploadStringAsTextFile(ctx, primitive.ScriptsBucket, fmt.Sprintf("%s/script.txt", fileName), output); err != nil {
+	if err := s.bucketRepo.UploadStringAsTextFile(ctx, primitive.ScriptsBucket, fmt.Sprintf("%s/script.txt", bookID), output); err != nil {
 		return err
 	}
 	return nil

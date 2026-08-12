@@ -1,7 +1,6 @@
 package env
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -18,7 +17,6 @@ func LoadEnv() {
 		panic("Unable to get file path")
 	}
 	dir := filepath.Dir(filename)
-	fmt.Println("Source directory:", dir)
 	if err := godotenv.Load(dir + "/.env"); err != nil {
 		panic("load environment")
 	}

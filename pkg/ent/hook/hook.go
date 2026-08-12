@@ -8,6 +8,18 @@ import (
 	"hkorpo/book/pkg/ent"
 )
 
+// The BookFunc type is an adapter to allow the use of ordinary
+// function as Book mutator.
+type BookFunc func(context.Context, *ent.BookMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f BookFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.BookMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.BookMutation", m)
+}
+
 // The UserFunc type is an adapter to allow the use of ordinary
 // function as User mutator.
 type UserFunc func(context.Context, *ent.UserMutation) (ent.Value, error)

@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"hkorpo/book/pkg/ent/book"
 	"hkorpo/book/pkg/ent/user"
 	"reflect"
 	"sync"
@@ -73,6 +74,7 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			book.Table: book.ValidColumn,
 			user.Table: user.ValidColumn,
 		})
 	})

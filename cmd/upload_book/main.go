@@ -8,6 +8,8 @@ import (
 	"hkorpo/book/pkg/env"
 	"hkorpo/book/pkg/errorpkg"
 
+	"hkorpo/book/internal/platform/database"
+
 	"github.com/gofiber/fiber/v3"
 	"github.com/kelseyhightower/envconfig"
 )
@@ -15,6 +17,7 @@ import (
 type Config struct {
 	queue.ConfigQueue
 	bucket.ConfigBucket
+	database.ConfigDB
 }
 
 func main() {
@@ -33,12 +36,18 @@ func main() {
 		errorpkg.ExitTrace(err)
 	}
 
+	dbClient, err := database.Init(&cfg.ConfigDB)
+	if err != nil {
+		errorpkg.ExitTrace(err)
+	}
+
 	bucketClient, err := bucket.Init(&cfg.ConfigBucket)
 	if err != nil {
 		errorpkg.ExitTrace(err)
 	}
 
 	book.NewUploadHandlers(app, book.NewService(
+		book.WithRepository(book.NewRepositoryImpl(dbClient)),
 		book.WithQueueRepo(book.NewQueueRepoImpl(q, ch)),
 		book.WithBucketRepo(book.NewBucketRepoImpl(bucketClient)),
 		book.WithLibraryAPI(book.NewOpenLibraryClient()),

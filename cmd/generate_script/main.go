@@ -9,11 +9,13 @@ import (
 
 	"hkorpo/book/internal/book"
 	"hkorpo/book/internal/platform/bucket"
+	"hkorpo/book/internal/platform/database"
 	"hkorpo/book/internal/platform/queue"
 	"hkorpo/book/internal/primitive"
 	"hkorpo/book/pkg/env"
 	"hkorpo/book/pkg/errorpkg"
 
+	"github.com/google/uuid"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/openai/openai-go/v3"
 	"github.com/rabbitmq/amqp091-go"
@@ -22,6 +24,7 @@ import (
 type Config struct {
 	queue.ConfigQueue
 	bucket.ConfigBucket
+	database.ConfigDB
 }
 
 func main() {
@@ -39,15 +42,26 @@ func main() {
 	if err != nil {
 		errorpkg.ExitTrace(err)
 	}
-	bucketServie := book.NewService(
+
+	dbClient, err := database.Init(&cfg.ConfigDB)
+	if err != nil {
+		errorpkg.ExitTrace(err)
+	}
+
+	bookService := book.NewService(
+		book.WithRepository(book.NewRepositoryImpl(dbClient)),
 		book.WithBucketRepo(book.NewBucketRepoImpl(cClient)),
 		book.WithAiAPI(book.NewOpenAiClient(openai.NewClient())),
 	)
 
 	err = queue.InitConsumer(&cfg.ConfigQueue, primitive.Generate, func(d amqp091.Delivery) error {
-		fileName := string(d.Body)
+		bookID := string(d.Body)
 
-		if err := bucketServie.GenerateScript(ctx, fileName); err != nil {
+		if err := bookService.GenerateScript(ctx, bookID); err != nil {
+			return err
+		}
+
+		if err := bookService.UpdateBookStage(ctx, uuid.MustParse(bookID), book.ScriptGenerated); err != nil {
 			return err
 		}
 

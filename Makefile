@@ -2,7 +2,7 @@ KEYS_DIR?=keys/
 KEY_NAME?=JWT_
 
 ent:
-	go generate ./pkg/ent
+	go generate ./pkg/ent/generate.go
 
 api:
 	go run cmd/api/main.go

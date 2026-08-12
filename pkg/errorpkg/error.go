@@ -31,7 +31,9 @@ func DeepestErrorWrapper(err error) errorwrapper.IErrorWrapper {
 
 func PrintTrace(err error) {
 	errwrap := DeepestErrorWrapper(err)
-	fmt.Println(errwrap.FormatTrace())
+	if errwrap != nil {
+		fmt.Println(errwrap.FormatTrace())
+	}
 }
 
 func ExitTrace(err error) {
