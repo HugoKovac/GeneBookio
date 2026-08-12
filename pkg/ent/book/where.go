@@ -105,6 +105,11 @@ func ScriptGenerated(v bool) predicate.Book {
 	return predicate.Book(sql.FieldEQ(FieldScriptGenerated, v))
 }
 
+// TtsGenerated applies equality check predicate on the "tts_generated" field. It's identical to TtsGeneratedEQ.
+func TtsGenerated(v bool) predicate.Book {
+	return predicate.Book(sql.FieldEQ(FieldTtsGenerated, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Book {
 	return predicate.Book(sql.FieldEQ(FieldCreatedAt, v))
@@ -523,6 +528,16 @@ func ScriptGeneratedEQ(v bool) predicate.Book {
 // ScriptGeneratedNEQ applies the NEQ predicate on the "script_generated" field.
 func ScriptGeneratedNEQ(v bool) predicate.Book {
 	return predicate.Book(sql.FieldNEQ(FieldScriptGenerated, v))
+}
+
+// TtsGeneratedEQ applies the EQ predicate on the "tts_generated" field.
+func TtsGeneratedEQ(v bool) predicate.Book {
+	return predicate.Book(sql.FieldEQ(FieldTtsGenerated, v))
+}
+
+// TtsGeneratedNEQ applies the NEQ predicate on the "tts_generated" field.
+func TtsGeneratedNEQ(v bool) predicate.Book {
+	return predicate.Book(sql.FieldNEQ(FieldTtsGenerated, v))
 }
 
 // And groups predicates with the AND operator between them.

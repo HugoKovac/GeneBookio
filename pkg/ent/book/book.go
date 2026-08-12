@@ -38,6 +38,8 @@ const (
 	FieldPrepared = "prepared"
 	// FieldScriptGenerated holds the string denoting the script_generated field in the database.
 	FieldScriptGenerated = "script_generated"
+	// FieldTtsGenerated holds the string denoting the tts_generated field in the database.
+	FieldTtsGenerated = "tts_generated"
 	// Table holds the table name of the book in the database.
 	Table = "books"
 )
@@ -57,6 +59,7 @@ var Columns = []string{
 	FieldParsed,
 	FieldPrepared,
 	FieldScriptGenerated,
+	FieldTtsGenerated,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -90,6 +93,8 @@ var (
 	DefaultPrepared bool
 	// DefaultScriptGenerated holds the default value on creation for the "script_generated" field.
 	DefaultScriptGenerated bool
+	// DefaultTtsGenerated holds the default value on creation for the "tts_generated" field.
+	DefaultTtsGenerated bool
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -150,4 +155,9 @@ func ByPrepared(opts ...sql.OrderTermOption) OrderOption {
 // ByScriptGenerated orders the results by the script_generated field.
 func ByScriptGenerated(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldScriptGenerated, opts...).ToFunc()
+}
+
+// ByTtsGenerated orders the results by the tts_generated field.
+func ByTtsGenerated(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTtsGenerated, opts...).ToFunc()
 }

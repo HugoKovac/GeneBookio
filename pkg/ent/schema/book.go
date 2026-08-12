@@ -32,6 +32,7 @@ func (Book) Fields() []ent.Field {
 		field.Bool("parsed").Default(false),
 		field.Bool("prepared").Default(false),
 		field.Bool("script_generated").Default(false),
+		field.Bool("tts_generated").Default(false),
 	}
 }
 

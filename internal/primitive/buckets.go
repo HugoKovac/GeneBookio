@@ -5,5 +5,6 @@ type Bucket string
 const (
 	PromptsBucket = "prompts"
 	BooksBucket   = "books"
-	ScriptsBucket   = "scripts"
+	ScriptsBucket = "scripts"
+	AudioBucket   = "audio"
 )

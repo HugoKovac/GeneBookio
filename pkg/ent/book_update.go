@@ -195,6 +195,20 @@ func (_u *BookUpdate) SetNillableScriptGenerated(v *bool) *BookUpdate {
 	return _u
 }
 
+// SetTtsGenerated sets the "tts_generated" field.
+func (_u *BookUpdate) SetTtsGenerated(v bool) *BookUpdate {
+	_u.mutation.SetTtsGenerated(v)
+	return _u
+}
+
+// SetNillableTtsGenerated sets the "tts_generated" field if the given value is not nil.
+func (_u *BookUpdate) SetNillableTtsGenerated(v *bool) *BookUpdate {
+	if v != nil {
+		_u.SetTtsGenerated(*v)
+	}
+	return _u
+}
+
 // Mutation returns the BookMutation object of the builder.
 func (_u *BookUpdate) Mutation() *BookMutation {
 	return _u.mutation
@@ -322,6 +336,9 @@ func (_u *BookUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.ScriptGenerated(); ok {
 		_spec.SetField(book.FieldScriptGenerated, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.TtsGenerated(); ok {
+		_spec.SetField(book.FieldTtsGenerated, field.TypeBool, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -509,6 +526,20 @@ func (_u *BookUpdateOne) SetNillableScriptGenerated(v *bool) *BookUpdateOne {
 	return _u
 }
 
+// SetTtsGenerated sets the "tts_generated" field.
+func (_u *BookUpdateOne) SetTtsGenerated(v bool) *BookUpdateOne {
+	_u.mutation.SetTtsGenerated(v)
+	return _u
+}
+
+// SetNillableTtsGenerated sets the "tts_generated" field if the given value is not nil.
+func (_u *BookUpdateOne) SetNillableTtsGenerated(v *bool) *BookUpdateOne {
+	if v != nil {
+		_u.SetTtsGenerated(*v)
+	}
+	return _u
+}
+
 // Mutation returns the BookMutation object of the builder.
 func (_u *BookUpdateOne) Mutation() *BookMutation {
 	return _u.mutation
@@ -666,6 +697,9 @@ func (_u *BookUpdateOne) sqlSave(ctx context.Context) (_node *Book, err error) {
 	}
 	if value, ok := _u.mutation.ScriptGenerated(); ok {
 		_spec.SetField(book.FieldScriptGenerated, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.TtsGenerated(); ok {
+		_spec.SetField(book.FieldTtsGenerated, field.TypeBool, value)
 	}
 	_node = &Book{config: _u.config}
 	_spec.Assign = _node.assignValues

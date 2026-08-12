@@ -51,6 +51,7 @@ type BookMutation struct {
 	parsed             *bool
 	prepared           *bool
 	script_generated   *bool
+	tts_generated      *bool
 	clearedFields      map[string]struct{}
 	done               bool
 	oldValue           func(context.Context) (*Book, error)
@@ -677,6 +678,42 @@ func (m *BookMutation) ResetScriptGenerated() {
 	m.script_generated = nil
 }
 
+// SetTtsGenerated sets the "tts_generated" field.
+func (m *BookMutation) SetTtsGenerated(b bool) {
+	m.tts_generated = &b
+}
+
+// TtsGenerated returns the value of the "tts_generated" field in the mutation.
+func (m *BookMutation) TtsGenerated() (r bool, exists bool) {
+	v := m.tts_generated
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTtsGenerated returns the old "tts_generated" field's value of the Book entity.
+// If the Book object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BookMutation) OldTtsGenerated(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTtsGenerated is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTtsGenerated requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTtsGenerated: %w", err)
+	}
+	return oldValue.TtsGenerated, nil
+}
+
+// ResetTtsGenerated resets all changes to the "tts_generated" field.
+func (m *BookMutation) ResetTtsGenerated() {
+	m.tts_generated = nil
+}
+
 // Where appends a list predicates to the BookMutation builder.
 func (m *BookMutation) Where(ps ...predicate.Book) {
 	m.predicates = append(m.predicates, ps...)
@@ -711,7 +748,7 @@ func (m *BookMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *BookMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 13)
 	if m.created_at != nil {
 		fields = append(fields, book.FieldCreatedAt)
 	}
@@ -748,6 +785,9 @@ func (m *BookMutation) Fields() []string {
 	if m.script_generated != nil {
 		fields = append(fields, book.FieldScriptGenerated)
 	}
+	if m.tts_generated != nil {
+		fields = append(fields, book.FieldTtsGenerated)
+	}
 	return fields
 }
 
@@ -780,6 +820,8 @@ func (m *BookMutation) Field(name string) (ent.Value, bool) {
 		return m.Prepared()
 	case book.FieldScriptGenerated:
 		return m.ScriptGenerated()
+	case book.FieldTtsGenerated:
+		return m.TtsGenerated()
 	}
 	return nil, false
 }
@@ -813,6 +855,8 @@ func (m *BookMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldPrepared(ctx)
 	case book.FieldScriptGenerated:
 		return m.OldScriptGenerated(ctx)
+	case book.FieldTtsGenerated:
+		return m.OldTtsGenerated(ctx)
 	}
 	return nil, fmt.Errorf("unknown Book field %s", name)
 }
@@ -905,6 +949,13 @@ func (m *BookMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetScriptGenerated(v)
+		return nil
+	case book.FieldTtsGenerated:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTtsGenerated(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Book field %s", name)
@@ -1017,6 +1068,9 @@ func (m *BookMutation) ResetField(name string) error {
 		return nil
 	case book.FieldScriptGenerated:
 		m.ResetScriptGenerated()
+		return nil
+	case book.FieldTtsGenerated:
+		m.ResetTtsGenerated()
 		return nil
 	}
 	return fmt.Errorf("unknown Book field %s", name)

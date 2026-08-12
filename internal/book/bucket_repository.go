@@ -3,6 +3,7 @@ package book
 import (
 	"bytes"
 	"context"
+	pbucket "hkorpo/book/internal/platform/bucket"
 	"hkorpo/book/internal/primitive"
 	"hkorpo/book/pkg/errorwrapper"
 	"io"
@@ -59,14 +60,30 @@ func (bc *BucketRepoImpl) GetFilesIteratorOfDir(ctx context.Context, bucket prim
 
 }
 
-func (bc *BucketRepoImpl) UploadStringAsTextFile(ctx context.Context, bucketName primitive.Bucket, path, content string) error {
+func (bc *BucketRepoImpl) UploadString(ctx context.Context, bucketName primitive.Bucket, path, content string, ctype pbucket.ContentType) error {
 	_, err := bc.client.PutObject(
 		ctx,
 		string(bucketName),
 		path,
 		strings.NewReader(content),
 		int64(len(content)),
-		minio.PutObjectOptions{ContentType: "text/plain; charset=utf-8"},
+		minio.PutObjectOptions{ContentType: string(ctype)},
+	)
+	if err != nil {
+		return errorwrapper.Wrap(err)
+	}
+
+	return nil
+}
+
+func (bc *BucketRepoImpl) UploadReader(ctx context.Context, bucketName primitive.Bucket, path string, content io.ReadCloser, len int64, ctype pbucket.ContentType) error {
+	_, err := bc.client.PutObject(
+		ctx,
+		string(bucketName),
+		path,
+		content,
+		len,
+		minio.PutObjectOptions{ContentType: string(ctype)},
 	)
 	if err != nil {
 		return errorwrapper.Wrap(err)

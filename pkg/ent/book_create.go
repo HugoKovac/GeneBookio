@@ -160,6 +160,20 @@ func (_c *BookCreate) SetNillableScriptGenerated(v *bool) *BookCreate {
 	return _c
 }
 
+// SetTtsGenerated sets the "tts_generated" field.
+func (_c *BookCreate) SetTtsGenerated(v bool) *BookCreate {
+	_c.mutation.SetTtsGenerated(v)
+	return _c
+}
+
+// SetNillableTtsGenerated sets the "tts_generated" field if the given value is not nil.
+func (_c *BookCreate) SetNillableTtsGenerated(v *bool) *BookCreate {
+	if v != nil {
+		_c.SetTtsGenerated(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *BookCreate) SetID(v uuid.UUID) *BookCreate {
 	_c.mutation.SetID(v)
@@ -233,6 +247,10 @@ func (_c *BookCreate) defaults() {
 		v := book.DefaultScriptGenerated
 		_c.mutation.SetScriptGenerated(v)
 	}
+	if _, ok := _c.mutation.TtsGenerated(); !ok {
+		v := book.DefaultTtsGenerated
+		_c.mutation.SetTtsGenerated(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := book.DefaultID()
 		_c.mutation.SetID(v)
@@ -279,6 +297,9 @@ func (_c *BookCreate) check() error {
 	}
 	if _, ok := _c.mutation.ScriptGenerated(); !ok {
 		return &ValidationError{Name: "script_generated", err: errors.New(`ent: missing required field "Book.script_generated"`)}
+	}
+	if _, ok := _c.mutation.TtsGenerated(); !ok {
+		return &ValidationError{Name: "tts_generated", err: errors.New(`ent: missing required field "Book.tts_generated"`)}
 	}
 	return nil
 }
@@ -363,6 +384,10 @@ func (_c *BookCreate) createSpec() (*Book, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.ScriptGenerated(); ok {
 		_spec.SetField(book.FieldScriptGenerated, field.TypeBool, value)
 		_node.ScriptGenerated = value
+	}
+	if value, ok := _c.mutation.TtsGenerated(); ok {
+		_spec.SetField(book.FieldTtsGenerated, field.TypeBool, value)
+		_node.TtsGenerated = value
 	}
 	return _node, _spec
 }
@@ -569,6 +594,18 @@ func (u *BookUpsert) SetScriptGenerated(v bool) *BookUpsert {
 // UpdateScriptGenerated sets the "script_generated" field to the value that was provided on create.
 func (u *BookUpsert) UpdateScriptGenerated() *BookUpsert {
 	u.SetExcluded(book.FieldScriptGenerated)
+	return u
+}
+
+// SetTtsGenerated sets the "tts_generated" field.
+func (u *BookUpsert) SetTtsGenerated(v bool) *BookUpsert {
+	u.Set(book.FieldTtsGenerated, v)
+	return u
+}
+
+// UpdateTtsGenerated sets the "tts_generated" field to the value that was provided on create.
+func (u *BookUpsert) UpdateTtsGenerated() *BookUpsert {
+	u.SetExcluded(book.FieldTtsGenerated)
 	return u
 }
 
@@ -802,6 +839,20 @@ func (u *BookUpsertOne) SetScriptGenerated(v bool) *BookUpsertOne {
 func (u *BookUpsertOne) UpdateScriptGenerated() *BookUpsertOne {
 	return u.Update(func(s *BookUpsert) {
 		s.UpdateScriptGenerated()
+	})
+}
+
+// SetTtsGenerated sets the "tts_generated" field.
+func (u *BookUpsertOne) SetTtsGenerated(v bool) *BookUpsertOne {
+	return u.Update(func(s *BookUpsert) {
+		s.SetTtsGenerated(v)
+	})
+}
+
+// UpdateTtsGenerated sets the "tts_generated" field to the value that was provided on create.
+func (u *BookUpsertOne) UpdateTtsGenerated() *BookUpsertOne {
+	return u.Update(func(s *BookUpsert) {
+		s.UpdateTtsGenerated()
 	})
 }
 
@@ -1202,6 +1253,20 @@ func (u *BookUpsertBulk) SetScriptGenerated(v bool) *BookUpsertBulk {
 func (u *BookUpsertBulk) UpdateScriptGenerated() *BookUpsertBulk {
 	return u.Update(func(s *BookUpsert) {
 		s.UpdateScriptGenerated()
+	})
+}
+
+// SetTtsGenerated sets the "tts_generated" field.
+func (u *BookUpsertBulk) SetTtsGenerated(v bool) *BookUpsertBulk {
+	return u.Update(func(s *BookUpsert) {
+		s.SetTtsGenerated(v)
+	})
+}
+
+// UpdateTtsGenerated sets the "tts_generated" field to the value that was provided on create.
+func (u *BookUpsertBulk) UpdateTtsGenerated() *BookUpsertBulk {
+	return u.Update(func(s *BookUpsert) {
+		s.UpdateTtsGenerated()
 	})
 }
 

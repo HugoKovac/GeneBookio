@@ -44,6 +44,20 @@ services:
   #     - AWS_SECRET_ACCESS_KEY=secret
   #     - S3_BUCKET=my-bucket
 
+  localai:
+    image: localai/localai:latest
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/readyz"]
+      start_period: 60m
+      interval: 1m
+      timeout: 10s
+      retries: 3
+    ports:
+      - 9999:8080
+    environment:
+      - DEBUG=false
+    volumes:
+      - ./models:/models:cached
 
   api:
     build:
@@ -108,4 +122,19 @@ services:
     environment:
       - MINIO_ENPOINT=minio:9000
       - RABBITMQ_HOST=rabbitmq:5672
+
+
+  generate_tss:
+    build:
+      context: .
+      args:
+        CMD: generate_tts
+    env_file:
+      - cmd/generate_tts/.env
+    environment:
+      - MINIO_ENPOINT=minio:9000
+      - RABBITMQ_HOST=rabbitmq:5672
+      - LOCAL_AI_HOST="http://localai:8080"
+
+      
   

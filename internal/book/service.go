@@ -3,7 +3,9 @@ package book
 import (
 	"context"
 	"fmt"
+	pbucket "hkorpo/book/internal/platform/bucket"
 	"hkorpo/book/internal/primitive"
+	"io"
 	"iter"
 	"log"
 	"strings"
@@ -29,10 +31,15 @@ type Repository interface {
 }
 
 type BucketRepo interface {
-	UploadStringAsTextFile(ctx context.Context, bucketName primitive.Bucket, path, content string) error
+	UploadString(ctx context.Context, bucketName primitive.Bucket, path, content string, ctype pbucket.ContentType) error
 	GetBucketFileAsString(ctx context.Context, bucket primitive.Bucket, path string) (string, error)
 	GetBucketFileAsBytes(ctx context.Context, bucket primitive.Bucket, path string) ([]byte, error)
 	GetFilesIteratorOfDir(ctx context.Context, bucket primitive.Bucket, path string) iter.Seq[minio.ObjectInfo]
+	UploadReader(ctx context.Context, bucketName primitive.Bucket, path string, content io.ReadCloser, len int64, ctype pbucket.ContentType) error
+}
+
+type TTSAPI interface {
+	CreateAudioFromString(ctx context.Context, content string) (io.ReadCloser, int64, error)
 }
 
 type EpubParser interface {
@@ -50,11 +57,18 @@ type Service struct {
 	epubParser EpubParser
 	aiAPI      AiAPI
 	repo       Repository
+	TTSAPI     TTSAPI
 }
 
 func WithRepository(repo Repository) func(*Service) {
 	return func(s *Service) {
 		s.repo = repo
+	}
+}
+
+func WithTTSAPI(client TTSAPI) func(*Service) {
+	return func(s *Service) {
+		s.TTSAPI = client
 	}
 }
 
@@ -109,7 +123,7 @@ func (s *Service) GetUploadBook(ctx context.Context, name string) (string, error
 }
 
 func (s *Service) UploadNewBook(ctx context.Context, bookID, data string) error {
-	if err := s.bucketRepo.UploadStringAsTextFile(ctx, primitive.BooksBucket, "uploads/"+bookID, data); err != nil {
+	if err := s.bucketRepo.UploadString(ctx, primitive.BooksBucket, "uploads/"+bookID, data, pbucket.EPUB); err != nil {
 		return err
 	}
 	if err := s.queueRepo.PostMessage(bookID); err != nil {
@@ -125,10 +139,6 @@ func (s *Service) SaveBook(ctx context.Context, book *Book) (*Book, error) {
 	return s.repo.CreateBook(ctx, book)
 }
 
-func (s *Service) UpdateBookStage(ctx context.Context, bookID uuid.UUID, st Stage) error {
-	return s.repo.UpdateBookStage(ctx, bookID, st)
-}
-
 func (s *Service) GetSavedBookByKey(ctx context.Context, bookKey string) (*Book, error) {
 	return s.repo.GetSavedBookByKey(ctx, bookKey)
 }
@@ -141,9 +151,22 @@ func (s *Service) GetBookAsChunks(ctx context.Context, bookID string) (map[strin
 	return s.epubParser.ExtractEPUB(bookContent)
 }
 
+func (s *Service) CreateAudioFromScript(ctx context.Context, bookID string) error {
+	bookContent, err := s.bucketRepo.GetBucketFileAsString(ctx, primitive.ScriptsBucket, fmt.Sprintf("%s/script.txt", bookID))
+	if err != nil {
+		return err
+	}
+	audio, len, err := s.TTSAPI.CreateAudioFromString(ctx, bookContent)
+	err = s.bucketRepo.UploadReader(ctx, primitive.AudioBucket, bookID, audio, len, pbucket.WAV)
+	if err != nil {
+		return err
+	}
+	return s.repo.UpdateBookStage(ctx, uuid.MustParse(bookID), ScriptGenerated)
+}
+
 func (s *Service) UploadBookChunks(ctx context.Context, bookID string, chunks map[string]string) error {
 	for name, content := range chunks {
-		if err := s.bucketRepo.UploadStringAsTextFile(ctx, primitive.BooksBucket, "chunks/"+bookID+"/"+name, content); err != nil {
+		if err := s.bucketRepo.UploadString(ctx, primitive.BooksBucket, "chunks/"+bookID+"/"+name, content, pbucket.TEXT); err != nil {
 			log.Fatal(err)
 		}
 	}
@@ -167,7 +190,7 @@ func (s *Service) GenerateChapterPreparation(ctx context.Context, count int, boo
 		return err
 	}
 
-	if err := s.bucketRepo.UploadStringAsTextFile(ctx, primitive.ScriptsBucket, fmt.Sprintf("%s/preparation/%d.txt", bookID, count), output); err != nil {
+	if err := s.bucketRepo.UploadString(ctx, primitive.ScriptsBucket, fmt.Sprintf("%s/preparation/%d.txt", bookID, count), output, pbucket.TEXT); err != nil {
 		return err
 	}
 	return nil
@@ -235,8 +258,14 @@ func (s *Service) GenerateScript(ctx context.Context, bookID string) error {
 		return err
 	}
 
-	if err := s.bucketRepo.UploadStringAsTextFile(ctx, primitive.ScriptsBucket, fmt.Sprintf("%s/script.txt", bookID), output); err != nil {
+	if err := s.bucketRepo.UploadString(ctx, primitive.ScriptsBucket, fmt.Sprintf("%s/script.txt", bookID), output, pbucket.TEXT); err != nil {
 		return err
 	}
-	return nil
+
+	err = s.repo.UpdateBookStage(ctx, uuid.MustParse(bookID), ScriptGenerated)
+	if err != nil {
+		return err
+	}
+
+	return s.queueRepo.PostMessage(bookID)
 }

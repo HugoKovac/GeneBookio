@@ -23,6 +23,7 @@ var (
 		{Name: "parsed", Type: field.TypeBool, Default: false},
 		{Name: "prepared", Type: field.TypeBool, Default: false},
 		{Name: "script_generated", Type: field.TypeBool, Default: false},
+		{Name: "tts_generated", Type: field.TypeBool, Default: false},
 	}
 	// BooksTable holds the schema information for the "books" table.
 	BooksTable = &schema.Table{

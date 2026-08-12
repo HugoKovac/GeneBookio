@@ -58,6 +58,10 @@ func init() {
 	bookDescScriptGenerated := bookFields[10].Descriptor()
 	// book.DefaultScriptGenerated holds the default value on creation for the script_generated field.
 	book.DefaultScriptGenerated = bookDescScriptGenerated.Default.(bool)
+	// bookDescTtsGenerated is the schema descriptor for tts_generated field.
+	bookDescTtsGenerated := bookFields[11].Descriptor()
+	// book.DefaultTtsGenerated holds the default value on creation for the tts_generated field.
+	book.DefaultTtsGenerated = bookDescTtsGenerated.Default.(bool)
 	// bookDescID is the schema descriptor for id field.
 	bookDescID := bookFields[0].Descriptor()
 	// book.DefaultID holds the default value on creation for the id field.

@@ -54,6 +54,8 @@ func (r *RepositoryImpl) UpdateBookStage(ctx context.Context, bookID uuid.UUID, 
 		query.SetPrepared(true)
 	case ScriptGenerated:
 		query.SetScriptGenerated(true)
+	case TTSGenerated:
+		query.SetTtsGenerated(true)
 	}
 
 	return query.Exec(ctx)

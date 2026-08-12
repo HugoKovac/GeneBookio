@@ -72,4 +72,5 @@ const (
 	Parsed
 	Prepared
 	ScriptGenerated
+	TTSGenerated
 )

@@ -43,7 +43,9 @@ type Book struct {
 	Prepared bool `json:"prepared,omitempty"`
 	// ScriptGenerated holds the value of the "script_generated" field.
 	ScriptGenerated bool `json:"script_generated,omitempty"`
-	selectValues    sql.SelectValues
+	// TtsGenerated holds the value of the "tts_generated" field.
+	TtsGenerated bool `json:"tts_generated,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -53,7 +55,7 @@ func (*Book) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case book.FieldAuthorNames, book.FieldAuthorKeys:
 			values[i] = new([]byte)
-		case book.FieldUploaded, book.FieldParsed, book.FieldPrepared, book.FieldScriptGenerated:
+		case book.FieldUploaded, book.FieldParsed, book.FieldPrepared, book.FieldScriptGenerated, book.FieldTtsGenerated:
 			values[i] = new(sql.NullBool)
 		case book.FieldKey, book.FieldTitle, book.FieldDescription, book.FieldCoverURL:
 			values[i] = new(sql.NullString)
@@ -158,6 +160,12 @@ func (_m *Book) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.ScriptGenerated = value.Bool
 			}
+		case book.FieldTtsGenerated:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field tts_generated", values[i])
+			} else if value.Valid {
+				_m.TtsGenerated = value.Bool
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -229,6 +237,9 @@ func (_m *Book) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("script_generated=")
 	builder.WriteString(fmt.Sprintf("%v", _m.ScriptGenerated))
+	builder.WriteString(", ")
+	builder.WriteString("tts_generated=")
+	builder.WriteString(fmt.Sprintf("%v", _m.TtsGenerated))
 	builder.WriteByte(')')
 	return builder.String()
 }
