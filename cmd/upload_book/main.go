@@ -41,6 +41,7 @@ func main() {
 	book.NewUploadHandlers(app, book.NewService(
 		book.WithQueueRepo(book.NewQueueRepoImpl(q, ch)),
 		book.WithBucketRepo(book.NewBucketRepoImpl(bucketClient)),
+		book.WithLibraryAPI(book.NewOpenLibraryClient()),
 	))
 
 	errorpkg.ExitTrace(app.Listen(":3001"))

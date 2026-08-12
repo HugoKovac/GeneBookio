@@ -32,6 +32,18 @@ services:
     env_file:
       - .env
 
+  seaweed:
+    image: chrislusf/seaweedfs
+    ports:
+      - 8333:8333   # endpoint
+      - 9333:9333   # overview
+      - 8888:8888   # filer
+      - 23646:23646 # admin
+    environment:
+      - AWS_ACCESS_KEY_ID=value
+      - AWS_SECRET_ACCESS_KEY=secret
+      - S3_BUCKET=my-bucket
+
 
   api:
     build:

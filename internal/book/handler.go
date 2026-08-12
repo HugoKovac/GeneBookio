@@ -1,11 +1,14 @@
 package book
 
 import (
+	"fmt"
 	"hkorpo/book/pkg/errorwrapper"
 	"io"
 	"net/http"
 	"path/filepath"
 	"strings"
+
+	_ "embed"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
@@ -110,30 +113,38 @@ func NewUploadHandlers(router fiber.Router, bookService *Service) {
 	h.router.Post("/upload",
 		h.Upload,
 	)
+
+	h.router.Get("/search",
+		h.Search,
+	)
 }
 
+//go:embed  html/upload.html
+var uploadHTML string
+
 func (UploadHandlers) UploadPage(c fiber.Ctx) error {
-	html := `
-		<!DOCTYPE html>
-		<html">
-		<head>
-			<meta charset="UTF-8">
-			<title>Upload EPUB</title>
-		</head>
-		<body>
-			<h1>Upload .epub files</h1>
-			<form action="/upload" method="POST" enctype="multipart/form-data">
-				<input type="file" name="epub" accept=".epub" required>
-				<button type="submit">Upload</button>
-			</form>
-		</body>
-		</html>
-	`
 	c.Set("Content-Type", "text/html; charset=utf-8")
-	return c.SendString(html)
+	return c.SendString(uploadHTML)
+}
+
+func (uh *UploadHandlers) Search(c fiber.Ctx) error {
+	q := c.FormValue("q")
+
+	if q == "" {
+		return c.SendStatus(http.StatusUnprocessableEntity)
+	}
+
+	books, err := uh.bookService.Search(c.RequestCtx(), q)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(books)
 }
 
 func (uh *UploadHandlers) Upload(c fiber.Ctx) error {
+	fmt.Println(c.FormValue("book_key"))
+	// get https://openlibrary.org/works/OL477826W.json and add it to DB
 	file, err := c.FormFile("epub")
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).SendString("no file received (" + err.Error() + ")")
@@ -165,9 +176,10 @@ func (uh *UploadHandlers) Upload(c fiber.Ctx) error {
 		return errorwrapper.Wrap("already exists")
 	}
 
-	if err := uh.bookService.UploadNewBook(c.RequestCtx(), file.Filename, string(data)); err != nil {
-		return err
-	}
+	_ = data
+	// if err := uh.bookService.UploadNewBook(c.RequestCtx(), file.Filename, string(data)); err != nil {
+	// 	return err
+	// }
 
 	return c.SendStatus(http.StatusCreated)
 }

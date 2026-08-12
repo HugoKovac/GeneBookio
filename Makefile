@@ -19,6 +19,10 @@ upload_service:
 generate_script:
 	go run cmd/generate_script/main.go
 
+
+docker-hybrid:
+	docker compose up -d db rabbitmq minio
+
 docker:
 	docker compose up -d
 

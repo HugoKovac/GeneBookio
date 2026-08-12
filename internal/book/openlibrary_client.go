@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"hkorpo/book/pkg/errorwrapper"
+	"html"
 	"io"
 	"net/http"
 	"strings"
@@ -28,7 +29,7 @@ func NewOpenLibraryClient() *LibraryClient {
 }
 
 func (c *LibraryClient) SearchBookByString(q string, page int) (books []*Book, err error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("https://openlibrary.org/search.json?q=%s&limit=5&page=%d", q, page), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("https://openlibrary.org/search.json?q=%s&limit=5&page=%d", strings.ReplaceAll(html.EscapeString(q), " ", "%20"), page), nil)
 	if err != nil {
 		return nil, errorwrapper.Wrap(err)
 	}

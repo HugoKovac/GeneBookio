@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload EPUB</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            max-width: 500px;
+            margin: 40px auto;
+            color: #222;
+        }
+        .search-wrapper {
+            position: relative;
+            margin-bottom: 16px;
+        }
+        #book-search {
+            width: 100%;
+            padding: 8px 10px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        #results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border: 1px solid #ccc;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 10;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: none;
+        }
+        #results li {
+            display: flex;
+            gap: 10px;
+            padding: 6px 8px;
+            cursor: pointer;
+            align-items: center;
+        }
+        #results li:hover {
+            background: #f0f0f0;
+        }
+        #results img {
+            width: 32px;
+            height: 48px;
+            object-fit: cover;
+            background: #ddd;
+            flex-shrink: 0;
+        }
+        #results .book-info {
+            display: flex;
+            flex-direction: column;
+            font-size: 13px;
+        }
+        #results .book-title {
+            font-weight: 600;
+        }
+        #results .book-authors {
+            color: #666;
+        }
+        #selected-book {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid #ccc;
+            padding: 8px;
+            margin-bottom: 16px;
+        }
+        #selected-book img {
+            width: 40px;
+            height: 60px;
+            object-fit: cover;
+        }
+        #selected-book button {
+            margin-left: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Upload .epub files</h1>
+
+    <div class="search-wrapper">
+        <input type="text" id="book-search" placeholder="Rechercher un livre..." autocomplete="off">
+        <ul id="results"></ul>
+    </div>
+
+    <div id="selected-book">
+        <img id="selected-cover" src="" alt="">
+        <div class="book-info">
+            <span class="book-title" id="selected-title"></span>
+            <span class="book-authors" id="selected-authors"></span>
+        </div>
+        <button type="button" id="clear-selection">Retirer</button>
+    </div>
+
+    <form action="/upload" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="book_key" id="book-key" value="">
+        <input type="file" name="epub" accept=".epub" required>
+        <button type="submit">Upload</button>
+    </form>
+
+    <script>
+        // de Book (mêmes champs que le struct Go, en JSON).
+        const SEARCH_ENDPOINT = "/search";
+
+        const searchInput = document.getElementById("book-search");
+        const resultsList = document.getElementById("results");
+        const bookKeyInput = document.getElementById("book-key");
+
+        const selectedBox = document.getElementById("selected-book");
+        const selectedCover = document.getElementById("selected-cover");
+        const selectedTitle = document.getElementById("selected-title");
+        const selectedAuthors = document.getElementById("selected-authors");
+        const clearBtn = document.getElementById("clear-selection");
+
+        let debounceTimer = null;
+        let currentController = null;
+
+        searchInput.addEventListener("input", () => {
+            const query = searchInput.value.trim();
+            clearTimeout(debounceTimer);
+
+            if (query.length === 0) {
+                hideResults();
+                return;
+            }
+
+            debounceTimer = setTimeout(() => runSearch(query), 250);
+        });
+
+        async function runSearch(query) {
+            if (currentController) currentController.abort();
+            currentController = new AbortController();
+
+            try {
+                const url = `${SEARCH_ENDPOINT}?q=${encodeURIComponent(query)}`;
+                const res = await fetch(url, { signal: currentController.signal });
+                if (!res.ok) throw new Error("Search failed: " + res.status);
+
+                const books = await res.json();
+                renderResults(books);
+            } catch (err) {
+                if (err.name !== "AbortError") {
+                    console.error(err);
+                    hideResults();
+                }
+            }
+        }
+
+        function renderResults(books) {
+            resultsList.innerHTML = "";
+
+            if (!books || books.length === 0) {
+                hideResults();
+                return;
+            }
+
+            books.forEach((book) => {
+                const li = document.createElement("li");
+
+                const img = document.createElement("img");
+                img.src = book.CoverURL || book.coverUrl || "";
+                img.alt = book.Title || book.title || "";
+
+                const info = document.createElement("div");
+                info.className = "book-info";
+
+                const titleEl = document.createElement("span");
+                titleEl.className = "book-title";
+                titleEl.textContent = book.Title || book.title || "(Sans titre)";
+
+                const authorsEl = document.createElement("span");
+                authorsEl.className = "book-authors";
+                const authors = book.AuthorNames || book.authorNames || [];
+                authorsEl.textContent = authors.join(", ");
+
+                info.appendChild(titleEl);
+                info.appendChild(authorsEl);
+
+                li.appendChild(img);
+                li.appendChild(info);
+
+                li.addEventListener("click", () => selectBook(book));
+
+                resultsList.appendChild(li);
+            });
+
+            resultsList.style.display = "block";
+        }
+
+        function selectBook(book) {
+            const key = book.Key || book.key;
+            bookKeyInput.value = key || "";
+
+            selectedCover.src = book.CoverURL || book.coverUrl || "";
+            selectedTitle.textContent = book.Title || book.title || "(Sans titre)";
+            const authors = book.AuthorNames || book.authorNames || [];
+            selectedAuthors.textContent = authors.join(", ");
+
+            selectedBox.style.display = "flex";
+            hideResults();
+            searchInput.value = book.Title || book.title || "";
+        }
+
+        clearBtn.addEventListener("click", () => {
+            bookKeyInput.value = "";
+            selectedBox.style.display = "none";
+            searchInput.value = "";
+        });
+
+        function hideResults() {
+            resultsList.style.display = "none";
+        }
+
+        document.addEventListener("click", (e) => {
+            if (!e.target.closest(".search-wrapper")) {
+                hideResults();
+            }
+        });
+    </script>
+</body>
+</html>
