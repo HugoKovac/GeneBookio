@@ -1,11 +1,13 @@
 // src/layouts/MainLayout.tsx
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { AppShell, Burger, Group, NavLink, Title } from '@mantine/core';
+import { AppShell, Burger, Button, Group, NavLink, Title } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
+import { useAuth } from '../features/auth/useAuth';
 
 export default function MainLayout() {
   const [opened, { toggle }] = useDisclosure();
   const location = useLocation();
+  const { isAuthenticated, logout } = useAuth();
 
   return (
     <AppShell
@@ -17,6 +19,9 @@ export default function MainLayout() {
         <Group h="100%" px="md">
           <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
           <Title order={3}>GeneBookio</Title>
+          <Group ml="auto">
+            {isAuthenticated ? <Button variant="subtle" onClick={logout}>Sign out</Button> : <Button component={Link} to="/login">Sign in</Button>}
+          </Group>
         </Group>
       </AppShell.Header>
 
@@ -27,6 +32,7 @@ export default function MainLayout() {
           label="Home"
           active={location.pathname === '/'}
         />
+        {isAuthenticated && <NavLink component={Link} to="/dashboard" label="My library" active={location.pathname === '/dashboard'} />}
         <NavLink
           component={Link}
           to="/about"
