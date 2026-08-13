@@ -4,3 +4,4 @@ resources
 output
 minio-data
 models
+node_modules
