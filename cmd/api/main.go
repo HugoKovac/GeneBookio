@@ -6,10 +6,12 @@ import (
 	"os"
 
 	"hkorpo/book/internal/book"
+	"hkorpo/book/internal/platform/bucket"
 	"hkorpo/book/internal/platform/database"
 	"hkorpo/book/internal/platform/httpserver"
 	"hkorpo/book/internal/user"
 	"hkorpo/book/pkg/env"
+	"hkorpo/book/pkg/errorpkg"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/kelseyhightower/envconfig"
@@ -18,6 +20,7 @@ import (
 type Config struct {
 	database.ConfigDB
 	user.ConfigJWT
+	bucket.ConfigBucket
 }
 
 func readKeys(privatePath, publicPath string) (*rsa.PrivateKey, *rsa.PublicKey, error) {
@@ -44,31 +47,41 @@ func readKeys(privatePath, publicPath string) (*rsa.PrivateKey, *rsa.PublicKey, 
 
 func main() {
 	var (
-		config Config
-		err    error
+		cfg Config
+		err error
 	)
 	env.LoadEnv()
 
-	if err := envconfig.Process("", &config); err != nil {
+	if err := envconfig.Process("", &cfg); err != nil {
 		log.Fatal(err)
 	}
 
-	config.ConfigJWT.PrivateKey, config.ConfigJWT.PublicKey, err = readKeys(config.ConfigJWT.PRIVATE_KEY_PATH, config.ConfigJWT.PUBLIC_KEY_PATH)
-	config.ConfigJWT.RefreshPrivateKey, config.ConfigJWT.RefreshPublicKey, err = readKeys(config.ConfigJWT.PRIVATE_REFRESH_KEY_PATH, config.ConfigJWT.PUBLIC_REFRESH_KEY_PATH)
+	cfg.ConfigJWT.PrivateKey, cfg.ConfigJWT.PublicKey, err = readKeys(cfg.ConfigJWT.PRIVATE_KEY_PATH, cfg.ConfigJWT.PUBLIC_KEY_PATH)
+	cfg.ConfigJWT.RefreshPrivateKey, cfg.ConfigJWT.RefreshPublicKey, err = readKeys(cfg.ConfigJWT.PRIVATE_REFRESH_KEY_PATH, cfg.ConfigJWT.PUBLIC_REFRESH_KEY_PATH)
 
-	dbClient, err := database.Init(&config.ConfigDB)
+	dbClient, err := database.Init(&cfg.ConfigDB)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	cClient, err := bucket.Init(&cfg.ConfigBucket)
+	if err != nil {
+		errorpkg.ExitTrace(err)
+	}
+
 	app := httpserver.Init()
 
-	userRepo := user.NewRepositoryImpl(dbClient)
-	userService := user.NewService(userRepo, &config.ConfigJWT)
-	user.NewHandler(app.Group("/users"), userService)
+	user.NewHandler(app.Group("/users"),
+		user.NewService(
+			user.NewRepositoryImpl(dbClient),
+			&cfg.ConfigJWT,
+		),
+	)
 
 	book.NewHandlers(app.Group("/books"), book.NewService(
 		book.WithLibraryAPI(book.NewOpenLibraryClient()),
+		book.WithRepository(book.NewRepositoryImpl(dbClient)),
+		book.WithBucketRepo(book.NewBucketRepoImpl(cClient)),
 	))
 
 	if err := app.Listen(":3000"); err != nil {

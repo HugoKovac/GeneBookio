@@ -82,3 +82,32 @@ func (r *RepositoryImpl) GetSavedBookByKey(ctx context.Context, bookKey string) 
 		ScriptGenerated: e.ScriptGenerated,
 	}, nil
 }
+
+func (r *RepositoryImpl) GetBooks(ctx context.Context, page, limit int) ([]*Book, error) {
+	e, err := r.dbClient.Book.Query().
+		Where().
+		Order(ent.Desc(book.FieldCreatedAt)).
+		Offset(page * limit).
+		Limit(limit).
+		All(ctx)
+	if err != nil {
+		return nil, errorwrapper.Wrap(err)
+	}
+	rtn := make([]*Book, 0, len(e))
+	for _, b := range e {
+		rtn = append(rtn, &Book{
+			ID:              b.ID,
+			Title:           b.Title,
+			AuthorNames:     b.AuthorNames,
+			CoverURL:        b.CoverURL,
+			Key:             b.Key,
+			AuthorKeys:      b.AuthorKeys,
+			Description:     b.Description,
+			Uploaded:        b.Uploaded,
+			Parsed:          b.Parsed,
+			Prepared:        b.Prepared,
+			ScriptGenerated: b.ScriptGenerated,
+		})
+	}
+	return rtn, nil
+}

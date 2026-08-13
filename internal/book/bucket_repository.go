@@ -53,6 +53,19 @@ func (bc *BucketRepoImpl) GetBucketFileAsBytes(ctx context.Context, bucket primi
 	return buf.Bytes(), nil
 }
 
+func (bc *BucketRepoImpl) GetBucketObjectAsReader(ctx context.Context, bucket primitive.Bucket, path string) (io.Reader, int64, string, error) {
+	obj, err := bc.client.GetObject(ctx, string(bucket), path, minio.GetObjectOptions{})
+	if err != nil {
+		return nil, 0, "", errorwrapper.Wrap(err)
+	}
+	stat, err := obj.Stat()
+	if err != nil {
+		obj.Close()
+		return nil, 0, "", err
+	}
+	return obj, stat.Size, stat.ContentType, nil
+}
+
 func (bc *BucketRepoImpl) GetFilesIteratorOfDir(ctx context.Context, bucket primitive.Bucket, path string) iter.Seq[minio.ObjectInfo] {
 	return bc.client.ListObjectsIter(ctx, string(bucket), minio.ListObjectsOptions{
 		Prefix: path,

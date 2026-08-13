@@ -28,12 +28,14 @@ type Repository interface {
 	CreateBook(ctx context.Context, book *Book) (*Book, error)
 	UpdateBookStage(ctx context.Context, bookID uuid.UUID, s Stage) error
 	GetSavedBookByKey(ctx context.Context, bookKey string) (*Book, error)
+	GetBooks(ctx context.Context, page, limit int) ([]*Book, error)
 }
 
 type BucketRepo interface {
 	UploadString(ctx context.Context, bucketName primitive.Bucket, path, content string, ctype pbucket.ContentType) error
 	GetBucketFileAsString(ctx context.Context, bucket primitive.Bucket, path string) (string, error)
 	GetBucketFileAsBytes(ctx context.Context, bucket primitive.Bucket, path string) ([]byte, error)
+	GetBucketObjectAsReader(ctx context.Context, bucket primitive.Bucket, path string) (io.Reader, int64, string, error)
 	GetFilesIteratorOfDir(ctx context.Context, bucket primitive.Bucket, path string) iter.Seq[minio.ObjectInfo]
 	UploadReader(ctx context.Context, bucketName primitive.Bucket, path string, content io.ReadCloser, len int64, ctype pbucket.ContentType) error
 }
@@ -141,6 +143,14 @@ func (s *Service) SaveBook(ctx context.Context, book *Book) (*Book, error) {
 
 func (s *Service) GetSavedBookByKey(ctx context.Context, bookKey string) (*Book, error) {
 	return s.repo.GetSavedBookByKey(ctx, bookKey)
+}
+
+func (s *Service) GetBooks(ctx context.Context, page, limit int) ([]*Book, error) {
+	return s.repo.GetBooks(ctx, page, limit)
+}
+
+func (s *Service) GetBucketObjectAsReader(ctx context.Context, bucket primitive.Bucket, path string) (io.Reader, int64, string, error) {
+	return s.bucketRepo.GetBucketObjectAsReader(ctx, bucket, path)
 }
 
 func (s *Service) GetBookAsChunks(ctx context.Context, bookID string) (map[string]string, error) {

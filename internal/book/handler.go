@@ -1,6 +1,7 @@
 package book
 
 import (
+	"hkorpo/book/internal/primitive"
 	"hkorpo/book/pkg/ent"
 	"hkorpo/book/pkg/errorwrapper"
 	"io"
@@ -34,6 +35,15 @@ func NewHandlers(router fiber.Router, bookService *Service) {
 	h.router.Get("/:query",
 		h.GetBookByKey,
 	)
+
+	h.router.Get("/",
+		h.GetBooks,
+	)
+
+	h.router.Get("/audio/:query",
+		h.GetAudioBook,
+	)
+
 }
 
 func (h *Handlers) Search(c fiber.Ctx) error {
@@ -89,6 +99,35 @@ func (h *Handlers) GetBookByKey(c fiber.Ctx) error {
 		Key:         b.Key,
 		Descriptiom: b.Description,
 	})
+}
+
+func (h *Handlers) GetBooks(c fiber.Ctx) error {
+	books, err := h.bookService.GetBooks(c.RequestCtx(), 0, 5)
+	if err != nil {
+		return err
+	}
+	return c.JSON(books)
+}
+
+func (h *Handlers) GetAudioBook(c fiber.Ctx) error {
+	var queryURI QueryURI
+
+	if err := c.Bind().URI(&queryURI); err != nil {
+		return errorwrapper.Wrap(err)
+	}
+
+	if err := validator.New().Struct(&queryURI); err != nil {
+		return errorwrapper.Wrap(err)
+	}
+
+	audioReader, len, ctype, err := h.bookService.GetBucketObjectAsReader(c.RequestCtx(), primitive.AudioBucket, queryURI.Query)
+	if err != nil {
+		return err
+	}
+
+	c.Set("Content-Type", ctype)
+
+	return c.SendStream(audioReader, int(len))
 }
 
 type UploadHandlers struct {
@@ -167,6 +206,8 @@ func (uh *UploadHandlers) Upload(c fiber.Ctx) error {
 			return c.Status(http.StatusConflict).SendString("already uploaded")
 		}
 	}
+
+	// todo: handle book exists but not uploaded
 
 	bookData, err = uh.bookService.GetBookByKey(c.FormValue("book_key"))
 	if err != nil {
