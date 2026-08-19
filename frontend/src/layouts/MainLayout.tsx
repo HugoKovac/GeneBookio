@@ -33,6 +33,7 @@ export default function MainLayout() {
           active={location.pathname === '/'}
         />
         {isAuthenticated && <NavLink component={Link} to="/dashboard" label="My library" active={location.pathname === '/dashboard'} />}
+        {isAuthenticated && <NavLink component={Link} to="/profile" label="Profile" active={location.pathname === '/profile'} />}
         <NavLink
           component={Link}
           to="/about"

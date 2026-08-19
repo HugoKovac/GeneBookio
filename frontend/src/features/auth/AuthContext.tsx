@@ -1,6 +1,7 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { login as loginRequest, register as registerRequest, type AuthTokens } from './api';
 import { AuthContext, type AuthContextValue } from './context';
+import { decodeUserID } from './jwt';
 
 const storageKey = 'genebookio.auth';
 
@@ -23,6 +24,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<AuthContextValue>(() => ({
     isAuthenticated: Boolean(tokens?.token),
+    userID: tokens?.token ? decodeUserID(tokens.token) : null,
+    token: tokens?.token ?? null,
     login: async (input) => saveTokens(await loginRequest(input)),
     register: async (input) => saveTokens(await registerRequest(input)),
     logout: () => {
