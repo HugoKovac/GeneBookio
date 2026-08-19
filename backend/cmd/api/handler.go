@@ -1,32 +1,32 @@
-package book
+package main
 
 import (
+	"hkorpo/book/internal/book"
+	"hkorpo/book/internal/catalog"
+	"hkorpo/book/internal/library"
 	"hkorpo/book/internal/primitive"
 	"hkorpo/book/internal/user"
-	"hkorpo/book/pkg/ent"
 	"hkorpo/book/pkg/errorwrapper"
-	"io"
-	"net/http"
-
-	_ "embed"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
 )
 
-type Handlers struct {
+type bookHandlers struct {
 	validate *validator.Validate
 	router   fiber.Router
 
-	bookService *Service
+	libraryService *library.Service
+	catalogService *catalog.Service
 }
 
-func NewHandlers(router fiber.Router, bookService *Service, userService *user.Service) {
-	h := &Handlers{
+func newBookHandlers(router fiber.Router, libraryService *library.Service, catalogService *catalog.Service, userService *user.Service) {
+	h := &bookHandlers{
 		validate: validator.New(validator.WithRequiredStructEnabled()),
 		router:   router,
 
-		bookService: bookService,
+		libraryService: libraryService,
+		catalogService: catalogService,
 	}
 
 	h.router.Use(user.MiddlewareAuth(userService))
@@ -57,11 +57,11 @@ func NewHandlers(router fiber.Router, bookService *Service, userService *user.Se
 // @Security     BearerAuth
 // @Produce      json
 // @Param        query  path  string  true  "Search query"
-// @Success      200  {array}   BookDTO
+// @Success      200  {array}   book.BookDTO
 // @Failure      400  {object}  map[string]string
 // @Router       /books/search/{query} [get]
-func (h *Handlers) Search(c fiber.Ctx) error {
-	var queryURI QueryURI
+func (h *bookHandlers) Search(c fiber.Ctx) error {
+	var queryURI book.QueryURI
 
 	if err := c.Bind().URI(&queryURI); err != nil {
 		return errorwrapper.Wrap(err)
@@ -71,15 +71,15 @@ func (h *Handlers) Search(c fiber.Ctx) error {
 		return errorwrapper.Wrap(err)
 	}
 
-	books, err := h.bookService.Search(c.RequestCtx(), queryURI.Query)
+	books, err := h.libraryService.Search(c.RequestCtx(), queryURI.Query)
 	if err != nil {
 		return err
 	}
 
-	var booksDTO []*BookDTO
+	var booksDTO []*book.BookDTO
 	for _, b := range books {
 
-		booksDTO = append(booksDTO, &BookDTO{
+		booksDTO = append(booksDTO, &book.BookDTO{
 			Title:       b.Title,
 			AuthorNames: b.AuthorNames,
 			CoverURL:    b.CoverURL,
@@ -98,11 +98,11 @@ func (h *Handlers) Search(c fiber.Ctx) error {
 // @Security     BearerAuth
 // @Produce      json
 // @Param        query  path  string  true  "OpenLibrary book key"
-// @Success      200  {object}  BookDTO
+// @Success      200  {object}  book.BookDTO
 // @Failure      400  {object}  map[string]string
 // @Router       /books/{query} [get]
-func (h *Handlers) GetBookByKey(c fiber.Ctx) error {
-	var queryURI QueryURI
+func (h *bookHandlers) GetBookByKey(c fiber.Ctx) error {
+	var queryURI book.QueryURI
 
 	if err := c.Bind().URI(&queryURI); err != nil {
 		return errorwrapper.Wrap(err)
@@ -112,12 +112,12 @@ func (h *Handlers) GetBookByKey(c fiber.Ctx) error {
 		return errorwrapper.Wrap(err)
 	}
 
-	b, err := h.bookService.GetBookByKey(queryURI.Query)
+	b, err := h.libraryService.GetBookByKey(queryURI.Query)
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(BookDTO{
+	return c.JSON(book.BookDTO{
 		Title:       b.Title,
 		Authors:     b.AuthorKeys,
 		CoverURL:    b.CoverURL,
@@ -133,11 +133,11 @@ func (h *Handlers) GetBookByKey(c fiber.Ctx) error {
 // @Tags         books
 // @Security     BearerAuth
 // @Produce      json
-// @Success      200  {array}   BookDTO
+// @Success      200  {array}   book.BookDTO
 // @Failure      500  {object}  map[string]string
 // @Router       /books/ [get]
-func (h *Handlers) GetBooks(c fiber.Ctx) error {
-	books, err := h.bookService.GetBooks(c.RequestCtx(), 0, 5)
+func (h *bookHandlers) GetBooks(c fiber.Ctx) error {
+	books, err := h.catalogService.GetBooks(c.RequestCtx(), 0, 5)
 	if err != nil {
 		return err
 	}
@@ -156,8 +156,8 @@ func (h *Handlers) GetBooks(c fiber.Ctx) error {
 // @Failure      400  {object}  map[string]string
 // @Failure      404  {object}  map[string]string
 // @Router       /books/audio/{query} [get]
-func (h *Handlers) GetAudioBook(c fiber.Ctx) error {
-	var queryURI QueryURI
+func (h *bookHandlers) GetAudioBook(c fiber.Ctx) error {
+	var queryURI book.QueryURI
 
 	if err := c.Bind().URI(&queryURI); err != nil {
 		return errorwrapper.Wrap(err)
@@ -167,7 +167,7 @@ func (h *Handlers) GetAudioBook(c fiber.Ctx) error {
 		return errorwrapper.Wrap(err)
 	}
 
-	audioReader, len, ctype, err := h.bookService.GetBucketObjectAsReader(c.RequestCtx(), primitive.AudioBucket, queryURI.Query)
+	audioReader, len, ctype, err := h.catalogService.GetBucketObjectAsReader(c.RequestCtx(), primitive.AudioBucket, queryURI.Query)
 	if err != nil {
 		return err
 	}
@@ -175,100 +175,4 @@ func (h *Handlers) GetAudioBook(c fiber.Ctx) error {
 	c.Set("Content-Type", ctype)
 
 	return c.SendStream(audioReader, int(len))
-}
-
-type UploadHandlers struct {
-	router fiber.Router
-
-	bookService *Service
-}
-
-func NewUploadHandlers(router fiber.Router, bookService *Service) {
-	h := &UploadHandlers{
-		router: router,
-
-		bookService: bookService,
-	}
-
-	h.router.Get("/",
-		h.UploadPage,
-	)
-
-	h.router.Post("/upload",
-		h.Upload,
-	)
-
-	h.router.Get("/search",
-		h.Search,
-	)
-}
-
-//go:embed  html/upload.html
-var uploadHTML string
-
-func (UploadHandlers) UploadPage(c fiber.Ctx) error {
-	c.Set("Content-Type", "text/html; charset=utf-8")
-	return c.SendString(uploadHTML)
-}
-
-func (uh *UploadHandlers) Search(c fiber.Ctx) error {
-	q := c.FormValue("q")
-
-	if q == "" {
-		return c.SendStatus(http.StatusUnprocessableEntity)
-	}
-
-	books, err := uh.bookService.Search(c.RequestCtx(), q)
-	if err != nil {
-		return err
-	}
-
-	return c.JSON(books)
-}
-
-func (uh *UploadHandlers) Upload(c fiber.Ctx) error {
-	file, err := c.FormFile("epub")
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).SendString("no file received (" + err.Error() + ")")
-	}
-
-	// todo: verify epub magic number
-
-	f, err := file.Open()
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	data, err := io.ReadAll(f)
-	if err != nil {
-		return err
-	}
-
-	bookData, err := uh.bookService.GetSavedBookByKey(c.RequestCtx(), c.FormValue("book_key"))
-	if err != nil {
-		if !ent.IsNotFound(err) {
-			return c.Status(http.StatusConflict).SendString("already uploaded")
-		} else if bookData != nil && bookData.Uploaded == true {
-			return c.Status(http.StatusConflict).SendString("already uploaded")
-		}
-	}
-
-	// todo: handle book exists but not uploaded
-
-	bookData, err = uh.bookService.GetBookByKey(c.FormValue("book_key"))
-	if err != nil {
-		return err
-	}
-
-	bookData, err = uh.bookService.SaveBook(c.RequestCtx(), bookData)
-	if err != nil {
-		return err
-	}
-
-	if err := uh.bookService.UploadNewBook(c.RequestCtx(), bookData.ID.String(), string(data)); err != nil {
-		return err
-	}
-
-	return c.SendStatus(http.StatusCreated)
 }

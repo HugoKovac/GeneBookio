@@ -4,12 +4,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type BookAuthor struct {
-	Author struct {
-		Key string `json:"key"`
-	} `json:"author"`
-}
-
 type Book struct {
 	ID                                          uuid.UUID
 	Title                                       string
@@ -19,37 +13,6 @@ type Book struct {
 	AuthorKeys                                  []string
 	Description                                 string
 	Uploaded, Parsed, Prepared, ScriptGenerated bool
-}
-
-type DocsSearchAPIResponse struct {
-	AuthorNames []string `json:"author_name"`
-	Languages   []string `json:"language"`
-	Title       string   `json:"title"`
-	CoverID     int      `json:"cover_i"`
-	Key         string   `json:"key"`
-}
-
-type SearchAPIResponse struct {
-	Docs []DocsSearchAPIResponse `json:"docs"`
-}
-
-type DescriptionWorksApiResponse struct {
-	Type  string `json:"type"`
-	Value string `json:"value"`
-}
-
-type AuthorWorksApiResponse struct {
-	Type  string `json:"type"`
-	Value string `json:"value"`
-}
-
-type WorksApiResponse struct {
-	Description      DescriptionWorksApiResponse `json:"description"`
-	Title            string                      `json:"title"`
-	Key              string                      `json:"key"`
-	FirstPublishDate string                      `json:"first_publish_date"`
-	Covers           []int                       `json:"covers"`
-	Authors          []BookAuthor
 }
 
 type QueryURI struct {

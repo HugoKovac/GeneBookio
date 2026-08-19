@@ -9,6 +9,13 @@ import (
 	"github.com/google/uuid"
 )
 
+type Repository interface {
+	CreateBook(ctx context.Context, book *Book) (*Book, error)
+	UpdateBookStage(ctx context.Context, bookID uuid.UUID, s Stage) error
+	GetSavedBookByKey(ctx context.Context, bookKey string) (*Book, error)
+	GetBooks(ctx context.Context, page, limit int) ([]*Book, error)
+}
+
 type RepositoryImpl struct {
 	dbClient *ent.Client
 }

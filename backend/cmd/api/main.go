@@ -17,6 +17,8 @@ import (
 	"os"
 
 	"hkorpo/book/internal/book"
+	"hkorpo/book/internal/catalog"
+	"hkorpo/book/internal/library"
 	"hkorpo/book/internal/platform/bucket"
 	"hkorpo/book/internal/platform/database"
 	"hkorpo/book/internal/platform/httpserver"
@@ -89,11 +91,10 @@ func main() {
 
 	user.NewHandler(app.Group("/users"), userService)
 
-	book.NewHandlers(app.Group("/books"), book.NewService(
-		book.WithLibraryAPI(book.NewOpenLibraryClient()),
-		book.WithRepository(book.NewRepositoryImpl(dbClient)),
-		book.WithBucketRepo(book.NewBucketRepoImpl(cClient)),
-	), userService)
+	libraryService := library.NewService(library.NewOpenLibraryClient())
+	catalogService := catalog.NewService(book.NewRepositoryImpl(dbClient), book.NewBucketRepoImpl(cClient))
+
+	newBookHandlers(app.Group("/books"), libraryService, catalogService, userService)
 
 	if err := app.Listen(":3000"); err != nil {
 		log.Fatalf("fiber listen failed: %v", err)

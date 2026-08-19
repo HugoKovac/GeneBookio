@@ -1,8 +1,8 @@
-package book_test
+package library_test
 
 import (
 	"fmt"
-	"hkorpo/book/internal/book"
+	"hkorpo/book/internal/library"
 	"log"
 	"testing"
 	"time"
@@ -11,7 +11,7 @@ import (
 )
 
 func TestSearchBookByString(t *testing.T) {
-	client := book.NewOpenLibraryClient()
+	client := library.NewOpenLibraryClient()
 	n := time.Now()
 	books, err := client.SearchBookByString("prince", 1)
 	log.Println("time: ", time.Since(n))
@@ -20,10 +20,10 @@ func TestSearchBookByString(t *testing.T) {
 }
 
 func TestGetBookByKey(t *testing.T) {
-	client := book.NewOpenLibraryClient()
+	client := library.NewOpenLibraryClient()
 	n := time.Now()
-	book, err := client.GetBookByKey("OL10263W")
+	b, err := client.GetBookByKey("OL10263W")
 	log.Println("time: ", time.Since(n))
 	assert.Nil(t, err)
-	fmt.Println("> ", book)
+	fmt.Println("> ", b)
 }

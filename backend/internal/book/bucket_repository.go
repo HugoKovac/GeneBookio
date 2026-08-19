@@ -13,6 +13,15 @@ import (
 	"github.com/minio/minio-go/v7"
 )
 
+type BucketRepo interface {
+	UploadString(ctx context.Context, bucketName primitive.Bucket, path, content string, ctype pbucket.ContentType) error
+	GetBucketFileAsString(ctx context.Context, bucket primitive.Bucket, path string) (string, error)
+	GetBucketFileAsBytes(ctx context.Context, bucket primitive.Bucket, path string) ([]byte, error)
+	GetBucketObjectAsReader(ctx context.Context, bucket primitive.Bucket, path string) (io.Reader, int64, string, error)
+	GetFilesIteratorOfDir(ctx context.Context, bucket primitive.Bucket, path string) iter.Seq[minio.ObjectInfo]
+	UploadReader(ctx context.Context, bucketName primitive.Bucket, path string, content io.ReadCloser, len int64, ctype pbucket.ContentType) error
+}
+
 type BucketRepoImpl struct {
 	client *minio.Client
 }

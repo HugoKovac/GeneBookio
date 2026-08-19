@@ -2,9 +2,12 @@ package main
 
 import (
 	"hkorpo/book/internal/book"
+	"hkorpo/book/internal/catalog"
+	"hkorpo/book/internal/library"
 	"hkorpo/book/internal/platform/bucket"
 	"hkorpo/book/internal/platform/queue"
 	"hkorpo/book/internal/primitive"
+	"hkorpo/book/internal/upload"
 	"hkorpo/book/pkg/env"
 	"hkorpo/book/pkg/errorpkg"
 
@@ -46,12 +49,14 @@ func main() {
 		errorpkg.ExitTrace(err)
 	}
 
-	book.NewUploadHandlers(app, book.NewService(
-		book.WithRepository(book.NewRepositoryImpl(dbClient)),
-		book.WithQueueRepo(book.NewQueueRepoImpl(q, ch)),
-		book.WithBucketRepo(book.NewBucketRepoImpl(bucketClient)),
-		book.WithLibraryAPI(book.NewOpenLibraryClient()),
-	))
+	repo := book.NewRepositoryImpl(dbClient)
+	bucketRepo := book.NewBucketRepoImpl(bucketClient)
+
+	libraryService := library.NewService(library.NewOpenLibraryClient())
+	catalogService := catalog.NewService(repo, bucketRepo)
+	uploadService := upload.NewService(repo, bucketRepo, book.NewQueueRepoImpl(q, ch))
+
+	newUploadHandlers(app, libraryService, catalogService, uploadService)
 
 	errorpkg.ExitTrace(app.Listen(":3001"))
 }

@@ -1,4 +1,4 @@
-package book
+package parsing
 
 import (
 	"archive/zip"

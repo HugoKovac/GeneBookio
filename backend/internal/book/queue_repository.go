@@ -8,6 +8,10 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
+type QueueRepo interface {
+	PostMessage(msg string) error
+}
+
 type QueueRepoImpl struct {
 	q  *amqp.Queue
 	ch *amqp.Channel

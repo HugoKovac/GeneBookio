@@ -7,6 +7,7 @@ import (
 	"syscall"
 
 	"hkorpo/book/internal/book"
+	"hkorpo/book/internal/parsing"
 	"hkorpo/book/internal/platform/bucket"
 	"hkorpo/book/internal/platform/database"
 	"hkorpo/book/internal/platform/queue"
@@ -50,22 +51,22 @@ func main() {
 		errorpkg.ExitTrace(err)
 	}
 
-	bookService := book.NewService(
-		book.WithQueueRepo(book.NewQueueRepoImpl(q, ch)),
-		book.WithBucketRepo(book.NewBucketRepoImpl(cClient)),
-		book.WithEpubParser(book.NewEpubParserImpl()),
-		book.WithRepository(book.NewRepositoryImpl(dbClient)),
+	parsingService := parsing.NewService(
+		book.NewRepositoryImpl(dbClient),
+		book.NewBucketRepoImpl(cClient),
+		book.NewQueueRepoImpl(q, ch),
+		parsing.NewEpubParserImpl(),
 	)
 
 	err = queue.InitConsumer(&cfg.ConfigQueue, primitive.Split, func(d amqp091.Delivery) error {
 		bookID := string(d.Body)
 
-		chunks, err := bookService.GetBookAsChunks(ctx, bookID)
+		chunks, err := parsingService.GetBookAsChunks(ctx, bookID)
 		if err != nil {
 			return err
 		}
 
-		if err := bookService.UploadBookChunks(ctx, bookID, chunks); err != nil {
+		if err := parsingService.UploadBookChunks(ctx, bookID, chunks); err != nil {
 			return err
 		}
 		return nil

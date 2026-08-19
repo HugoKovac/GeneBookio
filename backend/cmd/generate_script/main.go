@@ -12,6 +12,7 @@ import (
 	"hkorpo/book/internal/platform/database"
 	"hkorpo/book/internal/platform/queue"
 	"hkorpo/book/internal/primitive"
+	"hkorpo/book/internal/script"
 	"hkorpo/book/pkg/env"
 	"hkorpo/book/pkg/errorpkg"
 
@@ -52,17 +53,17 @@ func main() {
 		errorpkg.ExitTrace(err)
 	}
 
-	bookService := book.NewService(
-		book.WithRepository(book.NewRepositoryImpl(dbClient)),
-		book.WithBucketRepo(book.NewBucketRepoImpl(cClient)),
-		book.WithAiAPI(book.NewOpenAiClient(openai.NewClient())),
-		book.WithQueueRepo(book.NewQueueRepoImpl(q, ch)),
+	scriptService := script.NewService(
+		book.NewRepositoryImpl(dbClient),
+		book.NewBucketRepoImpl(cClient),
+		book.NewQueueRepoImpl(q, ch),
+		book.NewOpenAiClient(openai.NewClient()),
 	)
 
 	err = queue.InitConsumer(&cfg.ConfigQueue, primitive.GenerateScript, func(d amqp091.Delivery) error {
 		bookID := string(d.Body)
 
-		if err := bookService.GenerateScript(ctx, bookID); err != nil {
+		if err := scriptService.GenerateScript(ctx, bookID); err != nil {
 			return err
 		}
 

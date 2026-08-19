@@ -11,6 +11,7 @@ import (
 	"hkorpo/book/internal/platform/bucket"
 	"hkorpo/book/internal/platform/database"
 	"hkorpo/book/internal/platform/queue"
+	"hkorpo/book/internal/preparation"
 	"hkorpo/book/internal/primitive"
 	"hkorpo/book/pkg/env"
 	"hkorpo/book/pkg/errorpkg"
@@ -52,17 +53,17 @@ func main() {
 		errorpkg.ExitTrace(err)
 	}
 
-	bookService := book.NewService(
-		book.WithRepository(book.NewRepositoryImpl(dbClient)),
-		book.WithQueueRepo(book.NewQueueRepoImpl(q, ch)),
-		book.WithBucketRepo(book.NewBucketRepoImpl(cClient)),
-		book.WithAiAPI(book.NewOpenAiClient(openai.NewClient())),
+	preparationService := preparation.NewService(
+		book.NewRepositoryImpl(dbClient),
+		book.NewBucketRepoImpl(cClient),
+		book.NewQueueRepoImpl(q, ch),
+		book.NewOpenAiClient(openai.NewClient()),
 	)
 
 	err = queue.InitConsumer(&cfg.ConfigQueue, primitive.Prepare, func(d amqp091.Delivery) error {
 		bookID := string(d.Body)
 
-		err = bookService.MapOnChunks(ctx, bookID, bookService.GenerateChapterPreparation)
+		err = preparationService.MapOnChunks(ctx, bookID, preparationService.GenerateChapterPreparation)
 		if err != nil {
 			return err
 		}

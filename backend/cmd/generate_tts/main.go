@@ -13,6 +13,7 @@ import (
 	"hkorpo/book/internal/platform/localai"
 	"hkorpo/book/internal/platform/queue"
 	"hkorpo/book/internal/primitive"
+	"hkorpo/book/internal/tts"
 	"hkorpo/book/pkg/env"
 	"hkorpo/book/pkg/errorpkg"
 
@@ -48,16 +49,16 @@ func main() {
 		errorpkg.ExitTrace(err)
 	}
 
-	bookService := book.NewService(
-		book.WithRepository(book.NewRepositoryImpl(dbClient)),
-		book.WithBucketRepo(book.NewBucketRepoImpl(cClient)),
-		book.WithTTSAPI(book.NewLocalAiClient(localai.Init(&cfg.ConfigLocalAI))),
+	ttsService := tts.NewService(
+		book.NewRepositoryImpl(dbClient),
+		book.NewBucketRepoImpl(cClient),
+		tts.NewLocalAiClient(localai.Init(&cfg.ConfigLocalAI)),
 	)
 
 	err = queue.InitConsumer(&cfg.ConfigQueue, primitive.GenerateTTS, func(d amqp091.Delivery) error {
 		bookID := string(d.Body)
 
-		if err := bookService.CreateAudioFromScript(ctx, bookID); err != nil {
+		if err := ttsService.CreateAudioFromScript(ctx, bookID); err != nil {
 			return err
 		}
 

@@ -12,6 +12,15 @@ import (
 	"github.com/google/uuid"
 )
 
+type Repository interface {
+	GetByID(ctx context.Context, id uuid.UUID) (*User, error)
+	GetByEmail(ctx context.Context, email string) (*User, error)
+	List(ctx context.Context) ([]*User, error)
+	Create(ctx context.Context, user *User) (*User, error)
+	Update(ctx context.Context, id uuid.UUID, firstname, lastname string) (*User, error)
+	SoftDelete(ctx context.Context, id uuid.UUID) error
+}
+
 type RepositoryImpl struct {
 	dbClient *ent.Client
 }
