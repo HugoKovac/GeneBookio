@@ -20,6 +20,7 @@ COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build /app/server /server
 
 ADD ./keys ./keys
+ADD ./docs ./docs
 
 ENTRYPOINT [ "/server" ]
 

@@ -5,6 +5,7 @@ import AboutPage from './pages/AboutPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
+import BookDetailPage from './pages/BookDetailPage';
 import ProfilePage from './pages/ProfilePage';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -17,7 +18,7 @@ export const router = createBrowserRouter([
       { path: 'about', element: <AboutPage /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'register', element: <RegisterPage /> },
-      { element: <ProtectedRoute />, children: [{ path: 'dashboard', element: <DashboardPage /> }, { path: 'profile', element: <ProfilePage /> }] },
+      { element: <ProtectedRoute />, children: [{ path: 'dashboard', element: <DashboardPage /> }, { path: 'books/:id', element: <BookDetailPage /> }, { path: 'profile', element: <ProfilePage /> }] },
     ],
   },
 ]);

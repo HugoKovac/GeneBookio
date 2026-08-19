@@ -121,6 +121,7 @@ services:
     env_file:
       - cmd/generate_script/.env
     environment:
+      - MYSQL_HOST=db:3306
       - MINIO_ENPOINT=minio:9000
       - RABBITMQ_HOST=rabbitmq:5672
       - AI_TEST_MODE=${AI_TEST_MODE:-true}
@@ -136,7 +137,8 @@ services:
     environment:
       - MINIO_ENPOINT=minio:9000
       - RABBITMQ_HOST=rabbitmq:5672
-      - LOCAL_AI_HOST="http://localai:8080"
+      - MYSQL_HOST=db:3306
+      - LOCAL_AI_HOST=http://localai:8080
 
       
   

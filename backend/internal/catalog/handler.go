@@ -36,7 +36,7 @@ func NewHandler(router fiber.Router, service *Service) {
 // GetBooks returns the first page of saved books from the local database.
 //
 // @Summary      List saved books
-// @Description  Returns up to 5 books saved in the local database
+// @Description  Returns up to 100 books saved in the local database
 // @Tags         books
 // @Security     BearerAuth
 // @Produce      json
@@ -44,7 +44,7 @@ func NewHandler(router fiber.Router, service *Service) {
 // @Failure      500  {object}  map[string]string
 // @Router       /books/ [get]
 func (h *Handler) GetBooks(c fiber.Ctx) error {
-	books, err := h.service.GetBooks(c.RequestCtx(), 0, 5)
+	books, err := h.service.GetBooks(c.RequestCtx(), 0, 100)
 	if err != nil {
 		return err
 	}
