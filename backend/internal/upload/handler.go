@@ -1,9 +1,8 @@
-package main
+package upload
 
 import (
 	"hkorpo/book/internal/catalog"
 	"hkorpo/book/internal/library"
-	"hkorpo/book/internal/upload"
 	"hkorpo/book/pkg/ent"
 	"io"
 	"net/http"
@@ -13,21 +12,21 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-type uploadHandlers struct {
+type Handler struct {
 	router fiber.Router
 
 	libraryService *library.Service
 	catalogService *catalog.Service
-	uploadService  *upload.Service
+	service        *Service
 }
 
-func newUploadHandlers(router fiber.Router, libraryService *library.Service, catalogService *catalog.Service, uploadService *upload.Service) {
-	h := &uploadHandlers{
+func NewHandler(router fiber.Router, libraryService *library.Service, catalogService *catalog.Service, service *Service) {
+	h := &Handler{
 		router: router,
 
 		libraryService: libraryService,
 		catalogService: catalogService,
-		uploadService:  uploadService,
+		service:        service,
 	}
 
 	h.router.Get("/",
@@ -46,12 +45,12 @@ func newUploadHandlers(router fiber.Router, libraryService *library.Service, cat
 //go:embed  html/upload.html
 var uploadHTML string
 
-func (uploadHandlers) UploadPage(c fiber.Ctx) error {
+func (Handler) UploadPage(c fiber.Ctx) error {
 	c.Set("Content-Type", "text/html; charset=utf-8")
 	return c.SendString(uploadHTML)
 }
 
-func (h *uploadHandlers) Search(c fiber.Ctx) error {
+func (h *Handler) Search(c fiber.Ctx) error {
 	q := c.FormValue("q")
 
 	if q == "" {
@@ -66,7 +65,7 @@ func (h *uploadHandlers) Search(c fiber.Ctx) error {
 	return c.JSON(books)
 }
 
-func (h *uploadHandlers) Upload(c fiber.Ctx) error {
+func (h *Handler) Upload(c fiber.Ctx) error {
 	file, err := c.FormFile("epub")
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).SendString("no file received (" + err.Error() + ")")
@@ -106,7 +105,7 @@ func (h *uploadHandlers) Upload(c fiber.Ctx) error {
 		return err
 	}
 
-	if err := h.uploadService.UploadNewBook(c.RequestCtx(), bookData.ID.String(), string(data)); err != nil {
+	if err := h.service.UploadNewBook(c.RequestCtx(), bookData.ID.String(), string(data)); err != nil {
 		return err
 	}
 

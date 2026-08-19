@@ -9,6 +9,10 @@ import (
 	"github.com/openai/openai-go/v3/responses"
 )
 
+type ConfigAi struct {
+	TEST_MODE bool `envconfig:"AI_TEST_MODE"`
+}
+
 type OpenAiClient struct {
 	client openai.Client
 }
@@ -17,6 +21,18 @@ func NewOpenAiClient(client openai.Client) *OpenAiClient {
 	return &OpenAiClient{
 		client: client,
 	}
+}
+
+// SubstitutionAiClient stands in for OpenAiClient when ConfigAi.TEST_MODE is
+// enabled, so pipeline stages can be exercised without spending real AI tokens.
+type SubstitutionAiClient struct{}
+
+func NewSubstitutionAiClient() *SubstitutionAiClient {
+	return &SubstitutionAiClient{}
+}
+
+func (sc *SubstitutionAiClient) Request(_ context.Context, request string) (string, error) {
+	return fmt.Sprintf("==START OF REQUEST==\n%s\n==END OF REQUEST==", request), nil
 }
 
 func (oc *OpenAiClient) Request(ctx context.Context, request string) (string, error) {

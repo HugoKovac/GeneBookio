@@ -25,6 +25,7 @@ type Config struct {
 	queue.ConfigQueue
 	bucket.ConfigBucket
 	database.ConfigDB
+	book.ConfigAi
 }
 
 func main() {
@@ -53,11 +54,18 @@ func main() {
 		errorpkg.ExitTrace(err)
 	}
 
+	var aiAPI script.AiAPI
+	if cfg.ConfigAi.TEST_MODE {
+		aiAPI = book.NewSubstitutionAiClient()
+	} else {
+		aiAPI = book.NewOpenAiClient(openai.NewClient())
+	}
+
 	scriptService := script.NewService(
 		book.NewRepositoryImpl(dbClient),
 		book.NewBucketRepoImpl(cClient),
 		book.NewQueueRepoImpl(q, ch),
-		book.NewOpenAiClient(openai.NewClient()),
+		aiAPI,
 	)
 
 	err = queue.InitConsumer(&cfg.ConfigQueue, primitive.GenerateScript, func(d amqp091.Delivery) error {

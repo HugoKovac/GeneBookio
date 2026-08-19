@@ -56,7 +56,7 @@ func main() {
 	catalogService := catalog.NewService(repo, bucketRepo)
 	uploadService := upload.NewService(repo, bucketRepo, book.NewQueueRepoImpl(q, ch))
 
-	newUploadHandlers(app, libraryService, catalogService, uploadService)
+	upload.NewHandler(app, libraryService, catalogService, uploadService)
 
 	errorpkg.ExitTrace(app.Listen(":3001"))
 }
