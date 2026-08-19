@@ -82,18 +82,18 @@ func main() {
 
 	app := httpserver.Init()
 
-	user.NewHandler(app.Group("/users"),
-		user.NewService(
-			user.NewRepositoryImpl(dbClient),
-			&cfg.ConfigJWT,
-		),
+	userService := user.NewService(
+		user.NewRepositoryImpl(dbClient),
+		&cfg.ConfigJWT,
 	)
+
+	user.NewHandler(app.Group("/users"), userService)
 
 	book.NewHandlers(app.Group("/books"), book.NewService(
 		book.WithLibraryAPI(book.NewOpenLibraryClient()),
 		book.WithRepository(book.NewRepositoryImpl(dbClient)),
 		book.WithBucketRepo(book.NewBucketRepoImpl(cClient)),
-	))
+	), userService)
 
 	if err := app.Listen(":3000"); err != nil {
 		log.Fatalf("fiber listen failed: %v", err)

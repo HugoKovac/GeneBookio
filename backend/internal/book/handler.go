@@ -2,6 +2,7 @@ package book
 
 import (
 	"hkorpo/book/internal/primitive"
+	"hkorpo/book/internal/user"
 	"hkorpo/book/pkg/ent"
 	"hkorpo/book/pkg/errorwrapper"
 	"io"
@@ -20,13 +21,15 @@ type Handlers struct {
 	bookService *Service
 }
 
-func NewHandlers(router fiber.Router, bookService *Service) {
+func NewHandlers(router fiber.Router, bookService *Service, userService *user.Service) {
 	h := &Handlers{
 		validate: validator.New(validator.WithRequiredStructEnabled()),
 		router:   router,
 
 		bookService: bookService,
 	}
+
+	h.router.Use(user.MiddlewareAuth(userService))
 
 	h.router.Get("/search/:query",
 		h.Search,
@@ -51,6 +54,7 @@ func NewHandlers(router fiber.Router, bookService *Service) {
 // @Summary      Search books
 // @Description  Search for books on OpenLibrary by title or keyword
 // @Tags         books
+// @Security     BearerAuth
 // @Produce      json
 // @Param        query  path  string  true  "Search query"
 // @Success      200  {array}   BookDTO
@@ -91,6 +95,7 @@ func (h *Handlers) Search(c fiber.Ctx) error {
 // @Summary      Get book by key
 // @Description  Fetch a book from OpenLibrary by its key (e.g. /works/OL12345W)
 // @Tags         books
+// @Security     BearerAuth
 // @Produce      json
 // @Param        query  path  string  true  "OpenLibrary book key"
 // @Success      200  {object}  BookDTO
@@ -126,6 +131,7 @@ func (h *Handlers) GetBookByKey(c fiber.Ctx) error {
 // @Summary      List saved books
 // @Description  Returns up to 5 books saved in the local database
 // @Tags         books
+// @Security     BearerAuth
 // @Produce      json
 // @Success      200  {array}   BookDTO
 // @Failure      500  {object}  map[string]string
@@ -143,6 +149,7 @@ func (h *Handlers) GetBooks(c fiber.Ctx) error {
 // @Summary      Stream audio book
 // @Description  Streams the synthesized audio file for the given book ID from MinIO
 // @Tags         books
+// @Security     BearerAuth
 // @Produce      octet-stream
 // @Param        query  path  string  true  "Book ID (UUID)"
 // @Success      200  {file}    binary

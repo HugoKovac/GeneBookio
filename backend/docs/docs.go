@@ -17,6 +17,11 @@ const docTemplate = `{
     "paths": {
         "/books/": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Returns up to 5 books saved in the local database",
                 "produces": [
                     "application/json"
@@ -49,6 +54,11 @@ const docTemplate = `{
         },
         "/books/audio/{query}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Streams the synthesized audio file for the given book ID from MinIO",
                 "produces": [
                     "application/octet-stream"
@@ -96,6 +106,11 @@ const docTemplate = `{
         },
         "/books/search/{query}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Search for books on OpenLibrary by title or keyword",
                 "produces": [
                     "application/json"
@@ -137,6 +152,11 @@ const docTemplate = `{
         },
         "/books/{query}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Fetch a book from OpenLibrary by its key (e.g. /works/OL12345W)",
                 "produces": [
                     "application/json"
