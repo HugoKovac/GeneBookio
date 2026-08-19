@@ -14,7 +14,10 @@ import (
 type Repository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*User, error)
 	GetByEmail(ctx context.Context, email string) (*User, error)
+	List(ctx context.Context) ([]*User, error)
 	Create(ctx context.Context, user *User) (*User, error)
+	Update(ctx context.Context, id uuid.UUID, firstname, lastname string) (*User, error)
+	SoftDelete(ctx context.Context, id uuid.UUID) error
 }
 
 type Service struct {
@@ -37,8 +40,20 @@ func (s *Service) GetByEmail(ctx context.Context, email string) (*User, error) {
 	return s.repo.GetByEmail(ctx, email)
 }
 
+func (s *Service) List(ctx context.Context) ([]*User, error) {
+	return s.repo.List(ctx)
+}
+
 func (s *Service) Create(ctx context.Context, user *User) (*User, error) {
 	return s.repo.Create(ctx, user)
+}
+
+func (s *Service) Update(ctx context.Context, id uuid.UUID, firstname, lastname string) (*User, error) {
+	return s.repo.Update(ctx, id, firstname, lastname)
+}
+
+func (s *Service) SoftDelete(ctx context.Context, id uuid.UUID) error {
+	return s.repo.SoftDelete(ctx, id)
 }
 
 func (s *Service) GenerateToken(ctx context.Context, user *User, privateKey *rsa.PrivateKey, exp time.Duration) (string, error) {

@@ -41,6 +41,7 @@ var (
 		{Name: "email", Type: field.TypeString, Unique: true, Size: 200},
 		{Name: "role", Type: field.TypeEnum, Enums: []string{"basic"}, Default: "basic"},
 		{Name: "password_hash", Type: field.TypeBytes},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{

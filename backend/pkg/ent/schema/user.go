@@ -32,6 +32,9 @@ func (User) Fields() []ent.Field {
 			Default(primitive.Basic.String()),
 		field.Bytes("password_hash").
 			Sensitive(),
+		field.Time("deleted_at").
+			Optional().
+			Nillable(),
 	}
 }
 

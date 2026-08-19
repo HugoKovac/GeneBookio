@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"hkorpo/book/pkg/ent"
+	"time"
 
 	"hkorpo/book/pkg/ent/user"
 
@@ -24,43 +25,44 @@ func NewRepositoryImpl(dbClient *ent.Client) *RepositoryImpl {
 func (r *RepositoryImpl) GetByID(ctx context.Context, id uuid.UUID) (*User, error) {
 	e, err := r.dbClient.User.Query().Where(
 		user.ID(id),
+		user.DeletedAtIsNil(),
 	).First(ctx)
 
 	if err != nil {
 		return nil, errorwrapper.Wrap(err)
 	}
 
-	return &User{
-		ID:           e.ID,
-		Email:        e.Email,
-		CreatedAt:    e.CreatedAt,
-		UpdatedAt:    e.UpdatedAt,
-		Firstname:    e.Firstname,
-		Lastname:     e.Lastname,
-		Role:         e.Role,
-		PasswordHash: e.PasswordHash,
-	}, nil
+	return toDomainUser(e), nil
 }
 
 func (r *RepositoryImpl) GetByEmail(ctx context.Context, email string) (*User, error) {
 	e, err := r.dbClient.User.Query().Where(
 		user.EmailEQ(email),
+		user.DeletedAtIsNil(),
 	).First(ctx)
 
 	if err != nil {
 		return nil, errorwrapper.Wrap(err)
 	}
 
-	return &User{
-		ID:           e.ID,
-		Email:        e.Email,
-		CreatedAt:    e.CreatedAt,
-		UpdatedAt:    e.UpdatedAt,
-		Firstname:    e.Firstname,
-		Lastname:     e.Lastname,
-		Role:         e.Role,
-		PasswordHash: e.PasswordHash,
-	}, nil
+	return toDomainUser(e), nil
+}
+
+func (r *RepositoryImpl) List(ctx context.Context) ([]*User, error) {
+	entities, err := r.dbClient.User.Query().Where(
+		user.DeletedAtIsNil(),
+	).All(ctx)
+
+	if err != nil {
+		return nil, errorwrapper.Wrap(err)
+	}
+
+	users := make([]*User, 0, len(entities))
+	for _, e := range entities {
+		users = append(users, toDomainUser(e))
+	}
+
+	return users, nil
 }
 
 func (r *RepositoryImpl) Create(ctx context.Context, user *User) (*User, error) {
@@ -75,14 +77,40 @@ func (r *RepositoryImpl) Create(ctx context.Context, user *User) (*User, error) 
 		return nil, errorwrapper.Wrap(err)
 	}
 
+	return toDomainUser(e), nil
+}
+
+func (r *RepositoryImpl) Update(ctx context.Context, id uuid.UUID, firstname, lastname string) (*User, error) {
+	e, err := r.dbClient.User.UpdateOneID(id).
+		SetFirstname(firstname).
+		SetLastname(lastname).
+		Save(ctx)
+
+	if err != nil {
+		return nil, errorwrapper.Wrap(err)
+	}
+
+	return toDomainUser(e), nil
+}
+
+func (r *RepositoryImpl) SoftDelete(ctx context.Context, id uuid.UUID) error {
+	err := r.dbClient.User.UpdateOneID(id).
+		SetDeletedAt(time.Now()).
+		Exec(ctx)
+
+	return errorwrapper.Wrap(err)
+}
+
+func toDomainUser(e *ent.User) *User {
 	return &User{
 		ID:           e.ID,
 		Email:        e.Email,
 		CreatedAt:    e.CreatedAt,
 		UpdatedAt:    e.UpdatedAt,
+		DeletedAt:    e.DeletedAt,
 		Firstname:    e.Firstname,
 		Lastname:     e.Lastname,
 		Role:         e.Role,
 		PasswordHash: e.PasswordHash,
-	}, nil
+	}
 }

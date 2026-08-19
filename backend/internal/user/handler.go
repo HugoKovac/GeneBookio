@@ -23,9 +23,27 @@ func NewHandler(router fiber.Router, userService *Service) {
 		userService: userService,
 	}
 
+	h.router.Get("/",
+		h.List,
+	)
+
 	h.router.Get("/:id",
 		MiddlewareUserExists(userService),
 		h.Get,
+	)
+
+	h.router.Patch("/:id",
+		MiddlewareUserExists(userService),
+		MiddlewareAuth(userService),
+		MiddlewareRequireSelf,
+		h.Update,
+	)
+
+	h.router.Delete("/:id",
+		MiddlewareUserExists(userService),
+		MiddlewareAuth(userService),
+		MiddlewareRequireSelf,
+		h.Delete,
 	)
 
 	h.router.Post("/register",
@@ -50,6 +68,82 @@ func NewHandler(router fiber.Router, userService *Service) {
 // @Router       /users/{id} [get]
 func (h *Handler) Get(c fiber.Ctx) error {
 	return c.JSON(c.Locals("user").(*User))
+}
+
+// List returns all users.
+//
+// @Summary      List users
+// @Description  Fetch all non-deleted user records
+// @Tags         users
+// @Produce      json
+// @Success      200  {array}   User
+// @Router       /users [get]
+func (h *Handler) List(c fiber.Ctx) error {
+	users, err := h.userService.List(c.RequestCtx())
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(users)
+}
+
+// Update updates a user's firstname and lastname.
+//
+// @Summary      Update user
+// @Description  Update a user's firstname and lastname; requires a bearer token for the same user
+// @Tags         users
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id    path      string               true  "User UUID"
+// @Param        body  body      UpdateUserRequestDTO  true  "Update payload"
+// @Success      200   {object}  User
+// @Failure      400   {object}  map[string]string
+// @Failure      401   {object}  map[string]string
+// @Failure      403   {object}  map[string]string
+// @Failure      404   {object}  map[string]string
+// @Router       /users/{id} [patch]
+func (h *Handler) Update(c fiber.Ctx) error {
+	user := c.Locals("user").(*User)
+
+	var body UpdateUserRequestDTO
+
+	if err := c.Bind().Body(&body); err != nil {
+		return errorwrapper.Wrap(err)
+	}
+
+	if err := h.validate.Struct(&body); err != nil {
+		return errorwrapper.Wrap(err)
+	}
+
+	updatedUser, err := h.userService.Update(c.RequestCtx(), user.ID, body.Firstname, body.Lastname)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(updatedUser)
+}
+
+// Delete soft-deletes a user account, preventing future logins.
+//
+// @Summary      Delete user
+// @Description  Soft-delete a user account; requires a bearer token for the same user; the account can no longer log in
+// @Tags         users
+// @Security     BearerAuth
+// @Param        id  path  string  true  "User UUID"
+// @Success      204
+// @Failure      401  {object}  map[string]string
+// @Failure      403  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Router       /users/{id} [delete]
+func (h *Handler) Delete(c fiber.Ctx) error {
+	user := c.Locals("user").(*User)
+
+	if err := h.userService.SoftDelete(c.RequestCtx(), user.ID); err != nil {
+		return err
+	}
+
+	return c.SendStatus(http.StatusNoContent)
 }
 
 // Register creates a new user account and returns JWT tokens.

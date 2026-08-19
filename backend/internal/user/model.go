@@ -14,6 +14,7 @@ type User struct {
 	Email        string
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
+	DeletedAt    *time.Time
 	Firstname    string
 	Lastname     string
 	Role         primitive.UserRole
@@ -45,6 +46,11 @@ type RegisterRequestDTO struct {
 type LoginRequestDTO struct {
 	Email    string `json:"email" validate:"required,email,max=200"`
 	Password string `json:"password" validate:"required,min=12,max=100"`
+}
+
+type UpdateUserRequestDTO struct {
+	Firstname string `json:"firstname" validate:"required,max=100"`
+	Lastname  string `json:"lastname" validate:"required,max=100"`
 }
 
 type UserTokenClaims struct {
