@@ -38,10 +38,31 @@ func NewHandler(router fiber.Router, userService *Service) {
 
 }
 
+// Get returns a user by UUID.
+//
+// @Summary      Get user
+// @Description  Fetch a user record by their UUID
+// @Tags         users
+// @Produce      json
+// @Param        id  path  string  true  "User UUID"
+// @Success      200  {object}  User
+// @Failure      404  {object}  map[string]string
+// @Router       /users/{id} [get]
 func (h *Handler) Get(c fiber.Ctx) error {
 	return c.JSON(c.Locals("user").(*User))
 }
 
+// Register creates a new user account and returns JWT tokens.
+//
+// @Summary      Register user
+// @Description  Create a new user account; returns JWT access and refresh tokens
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        body  body      RegisterRequestDTO  true  "Registration payload"
+// @Success      201   {object}  map[string]string
+// @Failure      400   {object}  map[string]string
+// @Router       /users/register [post]
 func (h *Handler) Register(c fiber.Ctx) error {
 	var body RegisterRequestDTO
 
@@ -84,6 +105,18 @@ func (h *Handler) Register(c fiber.Ctx) error {
 	})
 }
 
+// Login authenticates a user and returns JWT tokens.
+//
+// @Summary      Login user
+// @Description  Authenticate with email and password; returns JWT access and refresh tokens
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        body  body      LoginRequestDTO  true  "Login credentials"
+// @Success      200   {object}  map[string]string
+// @Failure      400   {object}  map[string]string
+// @Failure      403   {string}  string
+// @Router       /users/login [post]
 func (h *Handler) Login(c fiber.Ctx) error {
 	var body LoginRequestDTO
 

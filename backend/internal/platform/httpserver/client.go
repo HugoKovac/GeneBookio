@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"github.com/gofiber/contrib/v3/swaggerui"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/logger"
 
@@ -17,6 +18,12 @@ func Init() *fiber.App {
 		},
 	}))
 
-	return app
+	app.Use(swaggerui.New(swaggerui.Config{
+		BasePath: "/",
+		FilePath: "./docs/swagger.json",
+		Path:     "docs",
+		Title:    "Book Narration API",
+	}))
 
+	return app
 }

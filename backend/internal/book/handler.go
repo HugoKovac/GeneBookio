@@ -46,6 +46,16 @@ func NewHandlers(router fiber.Router, bookService *Service) {
 
 }
 
+// Search searches books on OpenLibrary by keyword or title.
+//
+// @Summary      Search books
+// @Description  Search for books on OpenLibrary by title or keyword
+// @Tags         books
+// @Produce      json
+// @Param        query  path  string  true  "Search query"
+// @Success      200  {array}   BookDTO
+// @Failure      400  {object}  map[string]string
+// @Router       /books/search/{query} [get]
 func (h *Handlers) Search(c fiber.Ctx) error {
 	var queryURI QueryURI
 
@@ -76,6 +86,16 @@ func (h *Handlers) Search(c fiber.Ctx) error {
 	return c.JSON(books)
 }
 
+// GetBookByKey fetches a single book from OpenLibrary by its key.
+//
+// @Summary      Get book by key
+// @Description  Fetch a book from OpenLibrary by its key (e.g. /works/OL12345W)
+// @Tags         books
+// @Produce      json
+// @Param        query  path  string  true  "OpenLibrary book key"
+// @Success      200  {object}  BookDTO
+// @Failure      400  {object}  map[string]string
+// @Router       /books/{query} [get]
 func (h *Handlers) GetBookByKey(c fiber.Ctx) error {
 	var queryURI QueryURI
 
@@ -101,6 +121,15 @@ func (h *Handlers) GetBookByKey(c fiber.Ctx) error {
 	})
 }
 
+// GetBooks returns the first page of saved books from the local database.
+//
+// @Summary      List saved books
+// @Description  Returns up to 5 books saved in the local database
+// @Tags         books
+// @Produce      json
+// @Success      200  {array}   BookDTO
+// @Failure      500  {object}  map[string]string
+// @Router       /books/ [get]
 func (h *Handlers) GetBooks(c fiber.Ctx) error {
 	books, err := h.bookService.GetBooks(c.RequestCtx(), 0, 5)
 	if err != nil {
@@ -109,6 +138,17 @@ func (h *Handlers) GetBooks(c fiber.Ctx) error {
 	return c.JSON(books)
 }
 
+// GetAudioBook streams the TTS-synthesized audio for a book.
+//
+// @Summary      Stream audio book
+// @Description  Streams the synthesized audio file for the given book ID from MinIO
+// @Tags         books
+// @Produce      octet-stream
+// @Param        query  path  string  true  "Book ID (UUID)"
+// @Success      200  {file}    binary
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Router       /books/audio/{query} [get]
 func (h *Handlers) GetAudioBook(c fiber.Ctx) error {
 	var queryURI QueryURI
 

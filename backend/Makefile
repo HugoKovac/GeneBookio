@@ -22,6 +22,8 @@ generate_script:
 generate_tts:
 	go run cmd/generate_tts/main.go
 
+swag:
+	swag init -g cmd/api/main.go -o docs/
 
 docker-hybrid:
 	docker compose up -d db rabbitmq minio

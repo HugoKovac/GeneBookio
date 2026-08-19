@@ -1,0 +1,285 @@
+basePath: /
+definitions:
+  book.BookDTO:
+    properties:
+      author_names:
+        items:
+          type: string
+        type: array
+      authors:
+        items:
+          type: string
+        type: array
+      cover_url:
+        type: string
+      description:
+        type: string
+      key:
+        type: string
+      title:
+        type: string
+    type: object
+  primitive.UserRole:
+    enum:
+    - basic
+    type: string
+    x-enum-varnames:
+    - Basic
+  user.LoginRequestDTO:
+    properties:
+      email:
+        maxLength: 200
+        type: string
+      password:
+        maxLength: 100
+        minLength: 12
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  user.RegisterRequestDTO:
+    properties:
+      email:
+        maxLength: 200
+        type: string
+      firstname:
+        maxLength: 100
+        type: string
+      lastname:
+        maxLength: 100
+        type: string
+      password:
+        maxLength: 100
+        minLength: 12
+        type: string
+    required:
+    - email
+    - firstname
+    - lastname
+    - password
+    type: object
+  user.User:
+    properties:
+      createdAt:
+        type: string
+      email:
+        type: string
+      firstname:
+        type: string
+      id:
+        type: string
+      lastname:
+        type: string
+      passwordHash:
+        items:
+          format: int32
+          type: integer
+        type: array
+      role:
+        $ref: '#/definitions/primitive.UserRole'
+      updatedAt:
+        type: string
+    type: object
+host: localhost:3000
+info:
+  contact: {}
+  description: Queue-driven pipeline API that converts EPUBs into narrated audio.
+  title: Book Narration API
+  version: "1.0"
+paths:
+  /books/:
+    get:
+      description: Returns up to 5 books saved in the local database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/book.BookDTO'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List saved books
+      tags:
+      - books
+  /books/{query}:
+    get:
+      description: Fetch a book from OpenLibrary by its key (e.g. /works/OL12345W)
+      parameters:
+      - description: OpenLibrary book key
+        in: path
+        name: query
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/book.BookDTO'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get book by key
+      tags:
+      - books
+  /books/audio/{query}:
+    get:
+      description: Streams the synthesized audio file for the given book ID from MinIO
+      parameters:
+      - description: Book ID (UUID)
+        in: path
+        name: query
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Stream audio book
+      tags:
+      - books
+  /books/search/{query}:
+    get:
+      description: Search for books on OpenLibrary by title or keyword
+      parameters:
+      - description: Search query
+        in: path
+        name: query
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/book.BookDTO'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Search books
+      tags:
+      - books
+  /users/{id}:
+    get:
+      description: Fetch a user record by their UUID
+      parameters:
+      - description: User UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.User'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get user
+      tags:
+      - users
+  /users/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate with email and password; returns JWT access and refresh
+        tokens
+      parameters:
+      - description: Login credentials
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/user.LoginRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            type: string
+      summary: Login user
+      tags:
+      - users
+  /users/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account; returns JWT access and refresh tokens
+      parameters:
+      - description: Registration payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/user.RegisterRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register user
+      tags:
+      - users
+swagger: "2.0"

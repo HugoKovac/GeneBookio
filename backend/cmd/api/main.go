@@ -1,3 +1,9 @@
+// @title           Book Narration API
+// @version         1.0
+// @description     Queue-driven pipeline API that converts EPUBs into narrated audio.
+// @host            localhost:3000
+// @BasePath        /
+
 package main
 
 import (
