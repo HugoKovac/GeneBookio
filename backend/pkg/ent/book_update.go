@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"hkorpo/book/internal/primitive"
 	"hkorpo/book/pkg/ent/book"
 	"hkorpo/book/pkg/ent/predicate"
 	"time"
@@ -209,6 +210,20 @@ func (_u *BookUpdate) SetNillableTtsGenerated(v *bool) *BookUpdate {
 	return _u
 }
 
+// SetLanguage sets the "language" field.
+func (_u *BookUpdate) SetLanguage(v primitive.Language) *BookUpdate {
+	_u.mutation.SetLanguage(v)
+	return _u
+}
+
+// SetNillableLanguage sets the "language" field if the given value is not nil.
+func (_u *BookUpdate) SetNillableLanguage(v *primitive.Language) *BookUpdate {
+	if v != nil {
+		_u.SetLanguage(*v)
+	}
+	return _u
+}
+
 // Mutation returns the BookMutation object of the builder.
 func (_u *BookUpdate) Mutation() *BookMutation {
 	return _u.mutation
@@ -265,6 +280,11 @@ func (_u *BookUpdate) check() error {
 	if v, ok := _u.mutation.CoverURL(); ok {
 		if err := book.CoverURLValidator(v); err != nil {
 			return &ValidationError{Name: "cover_url", err: fmt.Errorf(`ent: validator failed for field "Book.cover_url": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Language(); ok {
+		if err := book.LanguageValidator(v); err != nil {
+			return &ValidationError{Name: "language", err: fmt.Errorf(`ent: validator failed for field "Book.language": %w`, err)}
 		}
 	}
 	return nil
@@ -339,6 +359,9 @@ func (_u *BookUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.TtsGenerated(); ok {
 		_spec.SetField(book.FieldTtsGenerated, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Language(); ok {
+		_spec.SetField(book.FieldLanguage, field.TypeEnum, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -540,6 +563,20 @@ func (_u *BookUpdateOne) SetNillableTtsGenerated(v *bool) *BookUpdateOne {
 	return _u
 }
 
+// SetLanguage sets the "language" field.
+func (_u *BookUpdateOne) SetLanguage(v primitive.Language) *BookUpdateOne {
+	_u.mutation.SetLanguage(v)
+	return _u
+}
+
+// SetNillableLanguage sets the "language" field if the given value is not nil.
+func (_u *BookUpdateOne) SetNillableLanguage(v *primitive.Language) *BookUpdateOne {
+	if v != nil {
+		_u.SetLanguage(*v)
+	}
+	return _u
+}
+
 // Mutation returns the BookMutation object of the builder.
 func (_u *BookUpdateOne) Mutation() *BookMutation {
 	return _u.mutation
@@ -609,6 +646,11 @@ func (_u *BookUpdateOne) check() error {
 	if v, ok := _u.mutation.CoverURL(); ok {
 		if err := book.CoverURLValidator(v); err != nil {
 			return &ValidationError{Name: "cover_url", err: fmt.Errorf(`ent: validator failed for field "Book.cover_url": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Language(); ok {
+		if err := book.LanguageValidator(v); err != nil {
+			return &ValidationError{Name: "language", err: fmt.Errorf(`ent: validator failed for field "Book.language": %w`, err)}
 		}
 	}
 	return nil
@@ -700,6 +742,9 @@ func (_u *BookUpdateOne) sqlSave(ctx context.Context) (_node *Book, err error) {
 	}
 	if value, ok := _u.mutation.TtsGenerated(); ok {
 		_spec.SetField(book.FieldTtsGenerated, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Language(); ok {
+		_spec.SetField(book.FieldLanguage, field.TypeEnum, value)
 	}
 	_node = &Book{config: _u.config}
 	_spec.Assign = _node.assignValues

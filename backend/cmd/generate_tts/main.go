@@ -10,8 +10,8 @@ import (
 	"hkorpo/book/internal/book"
 	"hkorpo/book/internal/platform/bucket"
 	"hkorpo/book/internal/platform/database"
-	"hkorpo/book/internal/platform/localai"
 	"hkorpo/book/internal/platform/queue"
+	"hkorpo/book/internal/platform/ttsapi"
 	"hkorpo/book/internal/primitive"
 	"hkorpo/book/internal/tts"
 	"hkorpo/book/pkg/env"
@@ -25,7 +25,7 @@ type Config struct {
 	queue.ConfigQueue
 	bucket.ConfigBucket
 	database.ConfigDB
-	localai.ConfigLocalAI
+	ttsapi.ConfigTTSAPI
 }
 
 func main() {
@@ -52,7 +52,7 @@ func main() {
 	ttsService := tts.NewService(
 		book.NewRepositoryImpl(dbClient),
 		book.NewBucketRepoImpl(cClient),
-		tts.NewLocalAiClient(localai.Init(&cfg.ConfigLocalAI)),
+		tts.NewTTSApiClient(ttsapi.Init(&cfg.ConfigTTSAPI)),
 	)
 
 	err = queue.InitConsumer(&cfg.ConfigQueue, primitive.GenerateTTS, func(d amqp091.Delivery) error {

@@ -116,7 +116,7 @@ func (h *Handler) Update(c fiber.Ctx) error {
 		return errorwrapper.Wrap(err)
 	}
 
-	updatedUser, err := h.userService.Update(c.RequestCtx(), user.ID, body.Firstname, body.Lastname)
+	updatedUser, err := h.userService.Update(c.RequestCtx(), user.ID, body.Firstname, body.Lastname, body.Language)
 	if err != nil {
 		return err
 	}

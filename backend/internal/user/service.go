@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"crypto/rsa"
+	"hkorpo/book/internal/primitive"
 	"hkorpo/book/pkg/errorwrapper"
 	"time"
 
@@ -39,8 +40,8 @@ func (s *Service) Create(ctx context.Context, user *User) (*User, error) {
 	return s.repo.Create(ctx, user)
 }
 
-func (s *Service) Update(ctx context.Context, id uuid.UUID, firstname, lastname string) (*User, error) {
-	return s.repo.Update(ctx, id, firstname, lastname)
+func (s *Service) Update(ctx context.Context, id uuid.UUID, firstname, lastname string, language primitive.Language) (*User, error) {
+	return s.repo.Update(ctx, id, firstname, lastname, language)
 }
 
 func (s *Service) SoftDelete(ctx context.Context, id uuid.UUID) error {

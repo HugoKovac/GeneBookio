@@ -13,6 +13,7 @@ type Repository interface {
 	CreateBook(ctx context.Context, book *Book) (*Book, error)
 	UpdateBookStage(ctx context.Context, bookID uuid.UUID, s Stage) error
 	GetSavedBookByKey(ctx context.Context, bookKey string) (*Book, error)
+	GetBookByID(ctx context.Context, bookID uuid.UUID) (*Book, error)
 	GetBooks(ctx context.Context, page, limit int) ([]*Book, error)
 }
 
@@ -27,14 +28,19 @@ func NewRepositoryImpl(dbClient *ent.Client) *RepositoryImpl {
 }
 
 func (r *RepositoryImpl) CreateBook(ctx context.Context, book *Book) (*Book, error) {
-	e, err := r.dbClient.Book.Create().
+	query := r.dbClient.Book.Create().
 		SetTitle(book.Title).
 		SetKey(book.Key).
 		SetCoverURL(book.CoverURL).
 		SetAuthorKeys(book.AuthorKeys).
 		SetAuthorNames(book.AuthorNames).
-		SetDescription(book.Description).
-		Save(ctx)
+		SetDescription(book.Description)
+
+	if book.Language != "" {
+		query.SetLanguage(book.Language)
+	}
+
+	e, err := query.Save(ctx)
 	if err != nil {
 		return nil, errorwrapper.Wrap(err)
 	}
@@ -46,6 +52,7 @@ func (r *RepositoryImpl) CreateBook(ctx context.Context, book *Book) (*Book, err
 		Key:         e.Key,
 		AuthorKeys:  e.AuthorKeys,
 		Description: e.Description,
+		Language:    e.Language,
 	}, nil
 }
 
@@ -83,6 +90,28 @@ func (r *RepositoryImpl) GetSavedBookByKey(ctx context.Context, bookKey string) 
 		Key:             e.Key,
 		AuthorKeys:      e.AuthorKeys,
 		Description:     e.Description,
+		Language:        e.Language,
+		Uploaded:        e.Uploaded,
+		Parsed:          e.Parsed,
+		Prepared:        e.Prepared,
+		ScriptGenerated: e.ScriptGenerated,
+	}, nil
+}
+
+func (r *RepositoryImpl) GetBookByID(ctx context.Context, bookID uuid.UUID) (*Book, error) {
+	e, err := r.dbClient.Book.Get(ctx, bookID)
+	if err != nil {
+		return nil, errorwrapper.Wrap(err)
+	}
+	return &Book{
+		ID:              e.ID,
+		Title:           e.Title,
+		AuthorNames:     e.AuthorNames,
+		CoverURL:        e.CoverURL,
+		Key:             e.Key,
+		AuthorKeys:      e.AuthorKeys,
+		Description:     e.Description,
+		Language:        e.Language,
 		Uploaded:        e.Uploaded,
 		Parsed:          e.Parsed,
 		Prepared:        e.Prepared,
@@ -110,6 +139,7 @@ func (r *RepositoryImpl) GetBooks(ctx context.Context, page, limit int) ([]*Book
 			Key:             b.Key,
 			AuthorKeys:      b.AuthorKeys,
 			Description:     b.Description,
+			Language:        b.Language,
 			Uploaded:        b.Uploaded,
 			Parsed:          b.Parsed,
 			Prepared:        b.Prepared,

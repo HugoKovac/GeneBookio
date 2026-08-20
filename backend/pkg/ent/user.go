@@ -31,6 +31,8 @@ type User struct {
 	Email string `json:"email,omitempty"`
 	// Role holds the value of the "role" field.
 	Role primitive.UserRole `json:"role,omitempty"`
+	// Language holds the value of the "language" field.
+	Language primitive.Language `json:"language,omitempty"`
 	// PasswordHash holds the value of the "password_hash" field.
 	PasswordHash []byte `json:"-"`
 	// DeletedAt holds the value of the "deleted_at" field.
@@ -45,7 +47,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldPasswordHash:
 			values[i] = new([]byte)
-		case user.FieldFirstname, user.FieldLastname, user.FieldEmail, user.FieldRole:
+		case user.FieldFirstname, user.FieldLastname, user.FieldEmail, user.FieldRole, user.FieldLanguage:
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt, user.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -107,6 +109,12 @@ func (_m *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field role", values[i])
 			} else if value.Valid {
 				_m.Role = primitive.UserRole(value.String)
+			}
+		case user.FieldLanguage:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field language", values[i])
+			} else if value.Valid {
+				_m.Language = primitive.Language(value.String)
 			}
 		case user.FieldPasswordHash:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -174,6 +182,9 @@ func (_m *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("role=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Role))
+	builder.WriteString(", ")
+	builder.WriteString("language=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Language))
 	builder.WriteString(", ")
 	builder.WriteString("password_hash=<sensitive>")
 	builder.WriteString(", ")

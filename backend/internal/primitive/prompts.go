@@ -1,10 +1,16 @@
 package primitive
 
-type Prompts string
+type PromptKind string
 
 const (
-	FictionGenerateScript     = "fiction-generate-script.md"
-	FictionPrepareChapter     = "fiction-prepare-chapter.md"
-	NoneFictionGenerateScript = "none-fiction-generate-script.md"
-	NoneFictionPrepareChapter = "none-fiction-prepare-chapter.md"
+	FictionPrepareChapter     PromptKind = "fiction-prepare-chapter"
+	FictionGenerateScript     PromptKind = "fiction-generate-script"
+	NoneFictionPrepareChapter PromptKind = "none-fiction-prepare-chapter"
+	NoneFictionGenerateScript PromptKind = "none-fiction-generate-script"
 )
+
+// PromptFile returns the prompts-bucket object key for a prompt kind in a
+// given language, e.g. "none-fiction-generate-script.en.md".
+func PromptFile(kind PromptKind, language Language) string {
+	return string(kind) + "." + language.String() + ".md"
+}

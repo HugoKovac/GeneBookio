@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
+	"github.com/minio/minio-go/v7"
 )
 
 func EntError(err error) (status int, msg string) {
@@ -30,6 +31,14 @@ func ValidateError(err error) (status int, msg string) {
 			msg += e.Error()
 		}
 		return http.StatusUnprocessableEntity, msg
+	}
+	return 0, ""
+}
+
+func MinioError(err error) (status int, msg string) {
+	var resp minio.ErrorResponse
+	if errors.As(err, &resp) && resp.Code == minio.NoSuchKey {
+		return http.StatusNotFound, http.StatusText(http.StatusNotFound)
 	}
 	return 0, ""
 }

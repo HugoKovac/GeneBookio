@@ -3,6 +3,8 @@
 package book
 
 import (
+	"fmt"
+	"hkorpo/book/internal/primitive"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -40,6 +42,8 @@ const (
 	FieldScriptGenerated = "script_generated"
 	// FieldTtsGenerated holds the string denoting the tts_generated field in the database.
 	FieldTtsGenerated = "tts_generated"
+	// FieldLanguage holds the string denoting the language field in the database.
+	FieldLanguage = "language"
 	// Table holds the table name of the book in the database.
 	Table = "books"
 )
@@ -60,6 +64,7 @@ var Columns = []string{
 	FieldPrepared,
 	FieldScriptGenerated,
 	FieldTtsGenerated,
+	FieldLanguage,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -98,6 +103,18 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+const DefaultLanguage primitive.Language = "fr"
+
+// LanguageValidator is a validator for the "language" field enum values. It is called by the builders before save.
+func LanguageValidator(l primitive.Language) error {
+	switch l.String() {
+	case "fr", "en":
+		return nil
+	default:
+		return fmt.Errorf("book: invalid enum value for language field: %q", l)
+	}
+}
 
 // OrderOption defines the ordering options for the Book queries.
 type OrderOption func(*sql.Selector)
@@ -160,4 +177,9 @@ func ByScriptGenerated(opts ...sql.OrderTermOption) OrderOption {
 // ByTtsGenerated orders the results by the tts_generated field.
 func ByTtsGenerated(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTtsGenerated, opts...).ToFunc()
+}
+
+// ByLanguage orders the results by the language field.
+func ByLanguage(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLanguage, opts...).ToFunc()
 }

@@ -70,7 +70,7 @@ func (bc *BucketRepoImpl) GetBucketObjectAsReader(ctx context.Context, bucket pr
 	stat, err := obj.Stat()
 	if err != nil {
 		obj.Close()
-		return nil, 0, "", err
+		return nil, 0, "", errorwrapper.Wrap(err)
 	}
 	return obj, stat.Size, stat.ContentType, nil
 }

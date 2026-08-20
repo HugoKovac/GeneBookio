@@ -24,6 +24,7 @@ var (
 		{Name: "prepared", Type: field.TypeBool, Default: false},
 		{Name: "script_generated", Type: field.TypeBool, Default: false},
 		{Name: "tts_generated", Type: field.TypeBool, Default: false},
+		{Name: "language", Type: field.TypeEnum, Enums: []string{"fr", "en"}, Default: "fr"},
 	}
 	// BooksTable holds the schema information for the "books" table.
 	BooksTable = &schema.Table{
@@ -40,6 +41,7 @@ var (
 		{Name: "lastname", Type: field.TypeString, Size: 100},
 		{Name: "email", Type: field.TypeString, Unique: true, Size: 200},
 		{Name: "role", Type: field.TypeEnum, Enums: []string{"basic"}, Default: "basic"},
+		{Name: "language", Type: field.TypeEnum, Enums: []string{"fr", "en"}, Default: "fr"},
 		{Name: "password_hash", Type: field.TypeBytes},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 	}

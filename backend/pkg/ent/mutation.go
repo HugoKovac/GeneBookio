@@ -52,6 +52,7 @@ type BookMutation struct {
 	prepared           *bool
 	script_generated   *bool
 	tts_generated      *bool
+	language           *primitive.Language
 	clearedFields      map[string]struct{}
 	done               bool
 	oldValue           func(context.Context) (*Book, error)
@@ -714,6 +715,42 @@ func (m *BookMutation) ResetTtsGenerated() {
 	m.tts_generated = nil
 }
 
+// SetLanguage sets the "language" field.
+func (m *BookMutation) SetLanguage(pr primitive.Language) {
+	m.language = &pr
+}
+
+// Language returns the value of the "language" field in the mutation.
+func (m *BookMutation) Language() (r primitive.Language, exists bool) {
+	v := m.language
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLanguage returns the old "language" field's value of the Book entity.
+// If the Book object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BookMutation) OldLanguage(ctx context.Context) (v primitive.Language, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLanguage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLanguage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLanguage: %w", err)
+	}
+	return oldValue.Language, nil
+}
+
+// ResetLanguage resets all changes to the "language" field.
+func (m *BookMutation) ResetLanguage() {
+	m.language = nil
+}
+
 // Where appends a list predicates to the BookMutation builder.
 func (m *BookMutation) Where(ps ...predicate.Book) {
 	m.predicates = append(m.predicates, ps...)
@@ -748,7 +785,7 @@ func (m *BookMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *BookMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 14)
 	if m.created_at != nil {
 		fields = append(fields, book.FieldCreatedAt)
 	}
@@ -788,6 +825,9 @@ func (m *BookMutation) Fields() []string {
 	if m.tts_generated != nil {
 		fields = append(fields, book.FieldTtsGenerated)
 	}
+	if m.language != nil {
+		fields = append(fields, book.FieldLanguage)
+	}
 	return fields
 }
 
@@ -822,6 +862,8 @@ func (m *BookMutation) Field(name string) (ent.Value, bool) {
 		return m.ScriptGenerated()
 	case book.FieldTtsGenerated:
 		return m.TtsGenerated()
+	case book.FieldLanguage:
+		return m.Language()
 	}
 	return nil, false
 }
@@ -857,6 +899,8 @@ func (m *BookMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldScriptGenerated(ctx)
 	case book.FieldTtsGenerated:
 		return m.OldTtsGenerated(ctx)
+	case book.FieldLanguage:
+		return m.OldLanguage(ctx)
 	}
 	return nil, fmt.Errorf("unknown Book field %s", name)
 }
@@ -956,6 +1000,13 @@ func (m *BookMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTtsGenerated(v)
+		return nil
+	case book.FieldLanguage:
+		v, ok := value.(primitive.Language)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLanguage(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Book field %s", name)
@@ -1072,6 +1123,9 @@ func (m *BookMutation) ResetField(name string) error {
 	case book.FieldTtsGenerated:
 		m.ResetTtsGenerated()
 		return nil
+	case book.FieldLanguage:
+		m.ResetLanguage()
+		return nil
 	}
 	return fmt.Errorf("unknown Book field %s", name)
 }
@@ -1136,6 +1190,7 @@ type UserMutation struct {
 	lastname      *string
 	email         *string
 	role          *primitive.UserRole
+	language      *primitive.Language
 	password_hash *[]byte
 	deleted_at    *time.Time
 	clearedFields map[string]struct{}
@@ -1464,6 +1519,42 @@ func (m *UserMutation) ResetRole() {
 	m.role = nil
 }
 
+// SetLanguage sets the "language" field.
+func (m *UserMutation) SetLanguage(pr primitive.Language) {
+	m.language = &pr
+}
+
+// Language returns the value of the "language" field in the mutation.
+func (m *UserMutation) Language() (r primitive.Language, exists bool) {
+	v := m.language
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLanguage returns the old "language" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldLanguage(ctx context.Context) (v primitive.Language, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLanguage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLanguage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLanguage: %w", err)
+	}
+	return oldValue.Language, nil
+}
+
+// ResetLanguage resets all changes to the "language" field.
+func (m *UserMutation) ResetLanguage() {
+	m.language = nil
+}
+
 // SetPasswordHash sets the "password_hash" field.
 func (m *UserMutation) SetPasswordHash(b []byte) {
 	m.password_hash = &b
@@ -1583,7 +1674,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
 	}
@@ -1601,6 +1692,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.role != nil {
 		fields = append(fields, user.FieldRole)
+	}
+	if m.language != nil {
+		fields = append(fields, user.FieldLanguage)
 	}
 	if m.password_hash != nil {
 		fields = append(fields, user.FieldPasswordHash)
@@ -1628,6 +1722,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Email()
 	case user.FieldRole:
 		return m.Role()
+	case user.FieldLanguage:
+		return m.Language()
 	case user.FieldPasswordHash:
 		return m.PasswordHash()
 	case user.FieldDeletedAt:
@@ -1653,6 +1749,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldEmail(ctx)
 	case user.FieldRole:
 		return m.OldRole(ctx)
+	case user.FieldLanguage:
+		return m.OldLanguage(ctx)
 	case user.FieldPasswordHash:
 		return m.OldPasswordHash(ctx)
 	case user.FieldDeletedAt:
@@ -1707,6 +1805,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetRole(v)
+		return nil
+	case user.FieldLanguage:
+		v, ok := value.(primitive.Language)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLanguage(v)
 		return nil
 	case user.FieldPasswordHash:
 		v, ok := value.([]byte)
@@ -1797,6 +1902,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldRole:
 		m.ResetRole()
+		return nil
+	case user.FieldLanguage:
+		m.ResetLanguage()
 		return nil
 	case user.FieldPasswordHash:
 		m.ResetPasswordHash()

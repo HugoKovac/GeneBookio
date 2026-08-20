@@ -15,11 +15,13 @@ type ConfigAi struct {
 
 type OpenAiClient struct {
 	client openai.Client
+	model  openai.ChatModel
 }
 
-func NewOpenAiClient(client openai.Client) *OpenAiClient {
+func NewOpenAiClient(client openai.Client, model openai.ChatModel) *OpenAiClient {
 	return &OpenAiClient{
 		client: client,
+		model:  model,
 	}
 }
 
@@ -37,7 +39,7 @@ func (sc *SubstitutionAiClient) Request(_ context.Context, request string) (stri
 
 func (oc *OpenAiClient) Request(ctx context.Context, request string) (string, error) {
 	preparation, err := oc.client.Responses.New(ctx, responses.ResponseNewParams{
-		Model: openai.ChatModelGPT5_2,
+		Model: oc.model,
 		Input: responses.ResponseNewParamsInputUnion{OfString: openai.String(
 			request,
 		)},

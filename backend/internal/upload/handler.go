@@ -3,6 +3,7 @@ package upload
 import (
 	"hkorpo/book/internal/catalog"
 	"hkorpo/book/internal/library"
+	"hkorpo/book/internal/user"
 	"hkorpo/book/pkg/ent"
 	"io"
 	"net/http"
@@ -17,15 +18,17 @@ type Handler struct {
 
 	libraryService *library.Service
 	catalogService *catalog.Service
+	userService    *user.Service
 	service        *Service
 }
 
-func NewHandler(router fiber.Router, libraryService *library.Service, catalogService *catalog.Service, service *Service) {
+func NewHandler(router fiber.Router, libraryService *library.Service, catalogService *catalog.Service, service *Service, userService *user.Service) {
 	h := &Handler{
 		router: router,
 
 		libraryService: libraryService,
 		catalogService: catalogService,
+		userService:    userService,
 		service:        service,
 	}
 

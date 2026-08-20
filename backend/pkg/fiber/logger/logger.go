@@ -17,6 +17,9 @@ func ErrorTraceLoggerTags(output logger.Buffer, c fiber.Ctx, data *logger.Data, 
 			status, msg = errorwrapper.EntError(data.ChainErr)
 		}
 		if status == 0 {
+			status, msg = errorwrapper.MinioError(data.ChainErr)
+		}
+		if status == 0 {
 			status, msg = errorwrapper.FiberError(data.ChainErr)
 		}
 

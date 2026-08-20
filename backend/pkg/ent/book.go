@@ -5,6 +5,7 @@ package ent
 import (
 	"encoding/json"
 	"fmt"
+	"hkorpo/book/internal/primitive"
 	"hkorpo/book/pkg/ent/book"
 	"strings"
 	"time"
@@ -45,6 +46,8 @@ type Book struct {
 	ScriptGenerated bool `json:"script_generated,omitempty"`
 	// TtsGenerated holds the value of the "tts_generated" field.
 	TtsGenerated bool `json:"tts_generated,omitempty"`
+	// Language holds the value of the "language" field.
+	Language     primitive.Language `json:"language,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -57,7 +60,7 @@ func (*Book) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case book.FieldUploaded, book.FieldParsed, book.FieldPrepared, book.FieldScriptGenerated, book.FieldTtsGenerated:
 			values[i] = new(sql.NullBool)
-		case book.FieldKey, book.FieldTitle, book.FieldDescription, book.FieldCoverURL:
+		case book.FieldKey, book.FieldTitle, book.FieldDescription, book.FieldCoverURL, book.FieldLanguage:
 			values[i] = new(sql.NullString)
 		case book.FieldCreatedAt, book.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -166,6 +169,12 @@ func (_m *Book) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.TtsGenerated = value.Bool
 			}
+		case book.FieldLanguage:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field language", values[i])
+			} else if value.Valid {
+				_m.Language = primitive.Language(value.String)
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -240,6 +249,9 @@ func (_m *Book) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("tts_generated=")
 	builder.WriteString(fmt.Sprintf("%v", _m.TtsGenerated))
+	builder.WriteString(", ")
+	builder.WriteString("language=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Language))
 	builder.WriteByte(')')
 	return builder.String()
 }

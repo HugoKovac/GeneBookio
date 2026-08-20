@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"hkorpo/book/internal/primitive"
 	"hkorpo/book/pkg/ent/mixin"
 
 	"entgo.io/ent"
@@ -33,6 +34,8 @@ func (Book) Fields() []ent.Field {
 		field.Bool("prepared").Default(false),
 		field.Bool("script_generated").Default(false),
 		field.Bool("tts_generated").Default(false),
+		field.Enum("language").GoType(primitive.Language("")).
+			Default(primitive.French.String()),
 	}
 }
 

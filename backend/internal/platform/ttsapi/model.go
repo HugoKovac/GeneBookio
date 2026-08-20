@@ -1,9 +1,9 @@
-package localai
+package ttsapi
 
 import "net/http"
 
-type ConfigLocalAI struct {
-	LOCAL_AI_HOST string `envconfig:"LOCAL_AI_HOST"`
+type ConfigTTSAPI struct {
+	TTS_API_HOST string `envconfig:"TTS_API_HOST"`
 }
 
 type Client struct {

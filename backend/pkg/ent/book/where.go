@@ -3,6 +3,7 @@
 package book
 
 import (
+	"hkorpo/book/internal/primitive"
 	"hkorpo/book/pkg/ent/predicate"
 	"time"
 
@@ -538,6 +539,36 @@ func TtsGeneratedEQ(v bool) predicate.Book {
 // TtsGeneratedNEQ applies the NEQ predicate on the "tts_generated" field.
 func TtsGeneratedNEQ(v bool) predicate.Book {
 	return predicate.Book(sql.FieldNEQ(FieldTtsGenerated, v))
+}
+
+// LanguageEQ applies the EQ predicate on the "language" field.
+func LanguageEQ(v primitive.Language) predicate.Book {
+	vc := v
+	return predicate.Book(sql.FieldEQ(FieldLanguage, vc))
+}
+
+// LanguageNEQ applies the NEQ predicate on the "language" field.
+func LanguageNEQ(v primitive.Language) predicate.Book {
+	vc := v
+	return predicate.Book(sql.FieldNEQ(FieldLanguage, vc))
+}
+
+// LanguageIn applies the In predicate on the "language" field.
+func LanguageIn(vs ...primitive.Language) predicate.Book {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Book(sql.FieldIn(FieldLanguage, v...))
+}
+
+// LanguageNotIn applies the NotIn predicate on the "language" field.
+func LanguageNotIn(vs ...primitive.Language) predicate.Book {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Book(sql.FieldNotIn(FieldLanguage, v...))
 }
 
 // And groups predicates with the AND operator between them.

@@ -85,6 +85,20 @@ func (_c *UserCreate) SetNillableRole(v *primitive.UserRole) *UserCreate {
 	return _c
 }
 
+// SetLanguage sets the "language" field.
+func (_c *UserCreate) SetLanguage(v primitive.Language) *UserCreate {
+	_c.mutation.SetLanguage(v)
+	return _c
+}
+
+// SetNillableLanguage sets the "language" field if the given value is not nil.
+func (_c *UserCreate) SetNillableLanguage(v *primitive.Language) *UserCreate {
+	if v != nil {
+		_c.SetLanguage(*v)
+	}
+	return _c
+}
+
 // SetPasswordHash sets the "password_hash" field.
 func (_c *UserCreate) SetPasswordHash(v []byte) *UserCreate {
 	_c.mutation.SetPasswordHash(v)
@@ -166,6 +180,10 @@ func (_c *UserCreate) defaults() {
 		v := user.DefaultRole
 		_c.mutation.SetRole(v)
 	}
+	if _, ok := _c.mutation.Language(); !ok {
+		v := user.DefaultLanguage
+		_c.mutation.SetLanguage(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := user.DefaultID()
 		_c.mutation.SetID(v)
@@ -210,6 +228,14 @@ func (_c *UserCreate) check() error {
 	if v, ok := _c.mutation.Role(); ok {
 		if err := user.RoleValidator(v); err != nil {
 			return &ValidationError{Name: "role", err: fmt.Errorf(`ent: validator failed for field "User.role": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.Language(); !ok {
+		return &ValidationError{Name: "language", err: errors.New(`ent: missing required field "User.language"`)}
+	}
+	if v, ok := _c.mutation.Language(); ok {
+		if err := user.LanguageValidator(v); err != nil {
+			return &ValidationError{Name: "language", err: fmt.Errorf(`ent: validator failed for field "User.language": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.PasswordHash(); !ok {
@@ -274,6 +300,10 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Role(); ok {
 		_spec.SetField(user.FieldRole, field.TypeEnum, value)
 		_node.Role = value
+	}
+	if value, ok := _c.mutation.Language(); ok {
+		_spec.SetField(user.FieldLanguage, field.TypeEnum, value)
+		_node.Language = value
 	}
 	if value, ok := _c.mutation.PasswordHash(); ok {
 		_spec.SetField(user.FieldPasswordHash, field.TypeBytes, value)
@@ -392,6 +422,18 @@ func (u *UserUpsert) SetRole(v primitive.UserRole) *UserUpsert {
 // UpdateRole sets the "role" field to the value that was provided on create.
 func (u *UserUpsert) UpdateRole() *UserUpsert {
 	u.SetExcluded(user.FieldRole)
+	return u
+}
+
+// SetLanguage sets the "language" field.
+func (u *UserUpsert) SetLanguage(v primitive.Language) *UserUpsert {
+	u.Set(user.FieldLanguage, v)
+	return u
+}
+
+// UpdateLanguage sets the "language" field to the value that was provided on create.
+func (u *UserUpsert) UpdateLanguage() *UserUpsert {
+	u.SetExcluded(user.FieldLanguage)
 	return u
 }
 
@@ -543,6 +585,20 @@ func (u *UserUpsertOne) SetRole(v primitive.UserRole) *UserUpsertOne {
 func (u *UserUpsertOne) UpdateRole() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateRole()
+	})
+}
+
+// SetLanguage sets the "language" field.
+func (u *UserUpsertOne) SetLanguage(v primitive.Language) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetLanguage(v)
+	})
+}
+
+// UpdateLanguage sets the "language" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateLanguage() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateLanguage()
 	})
 }
 
@@ -866,6 +922,20 @@ func (u *UserUpsertBulk) SetRole(v primitive.UserRole) *UserUpsertBulk {
 func (u *UserUpsertBulk) UpdateRole() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateRole()
+	})
+}
+
+// SetLanguage sets the "language" field.
+func (u *UserUpsertBulk) SetLanguage(v primitive.Language) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetLanguage(v)
+	})
+}
+
+// UpdateLanguage sets the "language" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateLanguage() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateLanguage()
 	})
 }
 

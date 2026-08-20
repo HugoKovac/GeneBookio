@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"hkorpo/book/internal/primitive"
 	"hkorpo/book/pkg/ent/book"
 	"time"
 
@@ -174,6 +175,20 @@ func (_c *BookCreate) SetNillableTtsGenerated(v *bool) *BookCreate {
 	return _c
 }
 
+// SetLanguage sets the "language" field.
+func (_c *BookCreate) SetLanguage(v primitive.Language) *BookCreate {
+	_c.mutation.SetLanguage(v)
+	return _c
+}
+
+// SetNillableLanguage sets the "language" field if the given value is not nil.
+func (_c *BookCreate) SetNillableLanguage(v *primitive.Language) *BookCreate {
+	if v != nil {
+		_c.SetLanguage(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *BookCreate) SetID(v uuid.UUID) *BookCreate {
 	_c.mutation.SetID(v)
@@ -251,6 +266,10 @@ func (_c *BookCreate) defaults() {
 		v := book.DefaultTtsGenerated
 		_c.mutation.SetTtsGenerated(v)
 	}
+	if _, ok := _c.mutation.Language(); !ok {
+		v := book.DefaultLanguage
+		_c.mutation.SetLanguage(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := book.DefaultID()
 		_c.mutation.SetID(v)
@@ -300,6 +319,14 @@ func (_c *BookCreate) check() error {
 	}
 	if _, ok := _c.mutation.TtsGenerated(); !ok {
 		return &ValidationError{Name: "tts_generated", err: errors.New(`ent: missing required field "Book.tts_generated"`)}
+	}
+	if _, ok := _c.mutation.Language(); !ok {
+		return &ValidationError{Name: "language", err: errors.New(`ent: missing required field "Book.language"`)}
+	}
+	if v, ok := _c.mutation.Language(); ok {
+		if err := book.LanguageValidator(v); err != nil {
+			return &ValidationError{Name: "language", err: fmt.Errorf(`ent: validator failed for field "Book.language": %w`, err)}
+		}
 	}
 	return nil
 }
@@ -388,6 +415,10 @@ func (_c *BookCreate) createSpec() (*Book, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.TtsGenerated(); ok {
 		_spec.SetField(book.FieldTtsGenerated, field.TypeBool, value)
 		_node.TtsGenerated = value
+	}
+	if value, ok := _c.mutation.Language(); ok {
+		_spec.SetField(book.FieldLanguage, field.TypeEnum, value)
+		_node.Language = value
 	}
 	return _node, _spec
 }
@@ -606,6 +637,18 @@ func (u *BookUpsert) SetTtsGenerated(v bool) *BookUpsert {
 // UpdateTtsGenerated sets the "tts_generated" field to the value that was provided on create.
 func (u *BookUpsert) UpdateTtsGenerated() *BookUpsert {
 	u.SetExcluded(book.FieldTtsGenerated)
+	return u
+}
+
+// SetLanguage sets the "language" field.
+func (u *BookUpsert) SetLanguage(v primitive.Language) *BookUpsert {
+	u.Set(book.FieldLanguage, v)
+	return u
+}
+
+// UpdateLanguage sets the "language" field to the value that was provided on create.
+func (u *BookUpsert) UpdateLanguage() *BookUpsert {
+	u.SetExcluded(book.FieldLanguage)
 	return u
 }
 
@@ -853,6 +896,20 @@ func (u *BookUpsertOne) SetTtsGenerated(v bool) *BookUpsertOne {
 func (u *BookUpsertOne) UpdateTtsGenerated() *BookUpsertOne {
 	return u.Update(func(s *BookUpsert) {
 		s.UpdateTtsGenerated()
+	})
+}
+
+// SetLanguage sets the "language" field.
+func (u *BookUpsertOne) SetLanguage(v primitive.Language) *BookUpsertOne {
+	return u.Update(func(s *BookUpsert) {
+		s.SetLanguage(v)
+	})
+}
+
+// UpdateLanguage sets the "language" field to the value that was provided on create.
+func (u *BookUpsertOne) UpdateLanguage() *BookUpsertOne {
+	return u.Update(func(s *BookUpsert) {
+		s.UpdateLanguage()
 	})
 }
 
@@ -1267,6 +1324,20 @@ func (u *BookUpsertBulk) SetTtsGenerated(v bool) *BookUpsertBulk {
 func (u *BookUpsertBulk) UpdateTtsGenerated() *BookUpsertBulk {
 	return u.Update(func(s *BookUpsert) {
 		s.UpdateTtsGenerated()
+	})
+}
+
+// SetLanguage sets the "language" field.
+func (u *BookUpsertBulk) SetLanguage(v primitive.Language) *BookUpsertBulk {
+	return u.Update(func(s *BookUpsert) {
+		s.SetLanguage(v)
+	})
+}
+
+// UpdateLanguage sets the "language" field to the value that was provided on create.
+func (u *BookUpsertBulk) UpdateLanguage() *BookUpsertBulk {
+	return u.Update(func(s *BookUpsert) {
+		s.UpdateLanguage()
 	})
 }
 

@@ -1,6 +1,8 @@
 package book
 
 import (
+	"hkorpo/book/internal/primitive"
+
 	"github.com/google/uuid"
 )
 
@@ -12,6 +14,7 @@ type Book struct {
 	Key                                         string
 	AuthorKeys                                  []string
 	Description                                 string
+	Language                                    primitive.Language
 	Uploaded, Parsed, Prepared, ScriptGenerated bool
 }
 

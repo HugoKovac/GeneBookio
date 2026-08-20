@@ -91,6 +91,20 @@ func (_u *UserUpdate) SetNillableRole(v *primitive.UserRole) *UserUpdate {
 	return _u
 }
 
+// SetLanguage sets the "language" field.
+func (_u *UserUpdate) SetLanguage(v primitive.Language) *UserUpdate {
+	_u.mutation.SetLanguage(v)
+	return _u
+}
+
+// SetNillableLanguage sets the "language" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableLanguage(v *primitive.Language) *UserUpdate {
+	if v != nil {
+		_u.SetLanguage(*v)
+	}
+	return _u
+}
+
 // SetPasswordHash sets the "password_hash" field.
 func (_u *UserUpdate) SetPasswordHash(v []byte) *UserUpdate {
 	_u.mutation.SetPasswordHash(v)
@@ -180,6 +194,11 @@ func (_u *UserUpdate) check() error {
 			return &ValidationError{Name: "role", err: fmt.Errorf(`ent: validator failed for field "User.role": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Language(); ok {
+		if err := user.LanguageValidator(v); err != nil {
+			return &ValidationError{Name: "language", err: fmt.Errorf(`ent: validator failed for field "User.language": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -209,6 +228,9 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Role(); ok {
 		_spec.SetField(user.FieldRole, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Language(); ok {
+		_spec.SetField(user.FieldLanguage, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.PasswordHash(); ok {
 		_spec.SetField(user.FieldPasswordHash, field.TypeBytes, value)
@@ -297,6 +319,20 @@ func (_u *UserUpdateOne) SetRole(v primitive.UserRole) *UserUpdateOne {
 func (_u *UserUpdateOne) SetNillableRole(v *primitive.UserRole) *UserUpdateOne {
 	if v != nil {
 		_u.SetRole(*v)
+	}
+	return _u
+}
+
+// SetLanguage sets the "language" field.
+func (_u *UserUpdateOne) SetLanguage(v primitive.Language) *UserUpdateOne {
+	_u.mutation.SetLanguage(v)
+	return _u
+}
+
+// SetNillableLanguage sets the "language" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableLanguage(v *primitive.Language) *UserUpdateOne {
+	if v != nil {
+		_u.SetLanguage(*v)
 	}
 	return _u
 }
@@ -403,6 +439,11 @@ func (_u *UserUpdateOne) check() error {
 			return &ValidationError{Name: "role", err: fmt.Errorf(`ent: validator failed for field "User.role": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Language(); ok {
+		if err := user.LanguageValidator(v); err != nil {
+			return &ValidationError{Name: "language", err: fmt.Errorf(`ent: validator failed for field "User.language": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -449,6 +490,9 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if value, ok := _u.mutation.Role(); ok {
 		_spec.SetField(user.FieldRole, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Language(); ok {
+		_spec.SetField(user.FieldLanguage, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.PasswordHash(); ok {
 		_spec.SetField(user.FieldPasswordHash, field.TypeBytes, value)

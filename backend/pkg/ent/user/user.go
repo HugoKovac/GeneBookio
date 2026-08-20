@@ -28,6 +28,8 @@ const (
 	FieldEmail = "email"
 	// FieldRole holds the string denoting the role field in the database.
 	FieldRole = "role"
+	// FieldLanguage holds the string denoting the language field in the database.
+	FieldLanguage = "language"
 	// FieldPasswordHash holds the string denoting the password_hash field in the database.
 	FieldPasswordHash = "password_hash"
 	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
@@ -45,6 +47,7 @@ var Columns = []string{
 	FieldLastname,
 	FieldEmail,
 	FieldRole,
+	FieldLanguage,
 	FieldPasswordHash,
 	FieldDeletedAt,
 }
@@ -88,6 +91,18 @@ func RoleValidator(r primitive.UserRole) error {
 	}
 }
 
+const DefaultLanguage primitive.Language = "fr"
+
+// LanguageValidator is a validator for the "language" field enum values. It is called by the builders before save.
+func LanguageValidator(l primitive.Language) error {
+	switch l.String() {
+	case "fr", "en":
+		return nil
+	default:
+		return fmt.Errorf("user: invalid enum value for language field: %q", l)
+	}
+}
+
 // OrderOption defines the ordering options for the User queries.
 type OrderOption func(*sql.Selector)
 
@@ -124,6 +139,11 @@ func ByEmail(opts ...sql.OrderTermOption) OrderOption {
 // ByRole orders the results by the role field.
 func ByRole(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRole, opts...).ToFunc()
+}
+
+// ByLanguage orders the results by the language field.
+func ByLanguage(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLanguage, opts...).ToFunc()
 }
 
 // ByDeletedAt orders the results by the deleted_at field.

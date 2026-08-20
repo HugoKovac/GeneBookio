@@ -1,4 +1,4 @@
-package localai
+package ttsapi
 
 import (
 	"bytes"
@@ -10,12 +10,12 @@ import (
 	"time"
 )
 
-func Init(cfg *ConfigLocalAI) *Client {
+func Init(cfg *ConfigTTSAPI) *Client {
 	return &Client{
 		client: &http.Client{
 			Timeout: time.Minute * 5,
 		},
-		host: cfg.LOCAL_AI_HOST,
+		host: cfg.TTS_API_HOST,
 	}
 }
 

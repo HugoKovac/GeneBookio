@@ -396,6 +396,36 @@ func RoleNotIn(vs ...primitive.UserRole) predicate.User {
 	return predicate.User(sql.FieldNotIn(FieldRole, v...))
 }
 
+// LanguageEQ applies the EQ predicate on the "language" field.
+func LanguageEQ(v primitive.Language) predicate.User {
+	vc := v
+	return predicate.User(sql.FieldEQ(FieldLanguage, vc))
+}
+
+// LanguageNEQ applies the NEQ predicate on the "language" field.
+func LanguageNEQ(v primitive.Language) predicate.User {
+	vc := v
+	return predicate.User(sql.FieldNEQ(FieldLanguage, vc))
+}
+
+// LanguageIn applies the In predicate on the "language" field.
+func LanguageIn(vs ...primitive.Language) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(sql.FieldIn(FieldLanguage, v...))
+}
+
+// LanguageNotIn applies the NotIn predicate on the "language" field.
+func LanguageNotIn(vs ...primitive.Language) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(sql.FieldNotIn(FieldLanguage, v...))
+}
+
 // PasswordHashEQ applies the EQ predicate on the "password_hash" field.
 func PasswordHashEQ(v []byte) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldPasswordHash, v))

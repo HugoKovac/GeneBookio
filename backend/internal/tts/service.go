@@ -12,7 +12,7 @@ import (
 )
 
 type TTSAPI interface {
-	CreateAudioFromString(ctx context.Context, content string) (io.ReadCloser, int64, error)
+	CreateAudioFromString(ctx context.Context, content string, language primitive.Language) (io.ReadCloser, int64, error)
 }
 
 // Service synthesizes a book's narration script into audio.
@@ -27,16 +27,21 @@ func NewService(repo book.Repository, bucketRepo book.BucketRepo, ttsAPI TTSAPI)
 }
 
 func (s *Service) CreateAudioFromScript(ctx context.Context, bookID string) error {
+	b, err := s.repo.GetBookByID(ctx, uuid.MustParse(bookID))
+	if err != nil {
+		return err
+	}
+
 	bookContent, err := s.bucketRepo.GetBucketFileAsString(ctx, primitive.ScriptsBucket, fmt.Sprintf("%s/script.txt", bookID))
 	if err != nil {
 		return err
 	}
-	audio, len, err := s.ttsAPI.CreateAudioFromString(ctx, bookContent)
+	audio, len, err := s.ttsAPI.CreateAudioFromString(ctx, bookContent, b.Language)
 	if err != nil {
 		return err
 	}
 	if err := s.bucketRepo.UploadReader(ctx, primitive.AudioBucket, bookID, audio, len, pbucket.WAV); err != nil {
 		return err
 	}
-	return s.repo.UpdateBookStage(ctx, uuid.MustParse(bookID), book.ScriptGenerated)
+	return s.repo.UpdateBookStage(ctx, uuid.MustParse(bookID), book.TTSGenerated)
 }

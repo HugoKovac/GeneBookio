@@ -38,21 +38,26 @@ func (s *Service) GenerateChapterPreparation(ctx context.Context, count int, boo
 		return err
 	}
 
-	if err := s.bucketRepo.UploadString(ctx, primitive.ScriptsBucket, fmt.Sprintf("%s/preparation/%d.txt", bookID, count), output, pbucket.TEXT); err != nil {
+	if err := s.bucketRepo.UploadString(ctx, primitive.ScriptsBucket, fmt.Sprintf("%s/preparation/%03d.txt", bookID, count), output, pbucket.TEXT); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (s *Service) MapOnChunks(ctx context.Context, bookID string, fn func(ctx context.Context, count int, bookID, chunkName, prompt string) error) error {
-	promptPrepareChapter, err := s.bucketRepo.GetBucketFileAsString(ctx, primitive.PromptsBucket, primitive.NoneFictionPrepareChapter)
+	b, err := s.repo.GetBookByID(ctx, uuid.MustParse(bookID))
+	if err != nil {
+		return err
+	}
+
+	promptPrepareChapter, err := s.bucketRepo.GetBucketFileAsString(ctx, primitive.PromptsBucket, primitive.PromptFile(primitive.NoneFictionPrepareChapter, b.Language))
 	if err != nil {
 		return err
 	}
 
 	iter := s.bucketRepo.GetFilesIteratorOfDir(ctx, primitive.BooksBucket, "chunks/"+bookID+"/")
 
-	g, ctx := errgroup.WithContext(ctx)
+	g, gctx := errgroup.WithContext(ctx)
 	g.SetLimit(10)
 
 	count := 0
@@ -61,7 +66,7 @@ func (s *Service) MapOnChunks(ctx context.Context, bookID string, fn func(ctx co
 		chunkKey := i.Key
 
 		g.Go(func() error {
-			return fn(ctx, c, bookID, chunkKey, promptPrepareChapter)
+			return fn(gctx, c, bookID, chunkKey, promptPrepareChapter)
 		})
 
 		count++

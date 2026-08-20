@@ -58,7 +58,7 @@ func main() {
 	if cfg.ConfigAi.TEST_MODE {
 		aiAPI = book.NewSubstitutionAiClient()
 	} else {
-		aiAPI = book.NewOpenAiClient(openai.NewClient())
+		aiAPI = book.NewOpenAiClient(openai.NewClient(), openai.ChatModelGPT5_2)
 	}
 
 	scriptService := script.NewService(

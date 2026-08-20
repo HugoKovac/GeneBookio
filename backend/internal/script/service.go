@@ -28,7 +28,18 @@ func NewService(repo book.Repository, bucketRepo book.BucketRepo, queueRepo book
 }
 
 func (s *Service) GenerateScript(ctx context.Context, bookID string) error {
+	b, err := s.repo.GetBookByID(ctx, uuid.MustParse(bookID))
+	if err != nil {
+		return err
+	}
+
 	var builder strings.Builder
+	if b.Language == primitive.English {
+		fmt.Fprintf(&builder, "Title: %s\nAuthor(s): %s\nDescription: %s\n\n", b.Title, strings.Join(b.AuthorNames, ", "), b.Description)
+	} else {
+		fmt.Fprintf(&builder, "Titre : %s\nAuteur(s) : %s\nDescription : %s\n\n", b.Title, strings.Join(b.AuthorNames, ", "), b.Description)
+	}
+
 	iter := s.bucketRepo.GetFilesIteratorOfDir(ctx, primitive.ScriptsBucket, bookID+"/preparation/")
 	for i := range iter {
 		content, err := s.bucketRepo.GetBucketFileAsString(ctx, primitive.ScriptsBucket, i.Key)
@@ -41,7 +52,7 @@ func (s *Service) GenerateScript(ctx context.Context, bookID string) error {
 	}
 	result := builder.String()
 
-	promptGenerateScript, err := s.bucketRepo.GetBucketFileAsString(ctx, primitive.PromptsBucket, primitive.NoneFictionGenerateScript)
+	promptGenerateScript, err := s.bucketRepo.GetBucketFileAsString(ctx, primitive.PromptsBucket, primitive.PromptFile(primitive.NoneFictionGenerateScript, b.Language))
 	if err != nil {
 		return err
 	}

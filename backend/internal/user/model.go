@@ -18,6 +18,7 @@ type User struct {
 	Firstname    string
 	Lastname     string
 	Role         primitive.UserRole
+	Language     primitive.Language
 	PasswordHash []byte
 }
 
@@ -49,8 +50,9 @@ type LoginRequestDTO struct {
 }
 
 type UpdateUserRequestDTO struct {
-	Firstname string `json:"firstname" validate:"required,max=100"`
-	Lastname  string `json:"lastname" validate:"required,max=100"`
+	Firstname string             `json:"firstname" validate:"required,max=100"`
+	Lastname  string             `json:"lastname" validate:"required,max=100"`
+	Language  primitive.Language `json:"language" validate:"required,oneof=en fr"`
 }
 
 type UserTokenClaims struct {
