@@ -18,13 +18,16 @@ var (
 		{Name: "author_names", Type: field.TypeJSON, Nullable: true},
 		{Name: "author_keys", Type: field.TypeJSON, Nullable: true},
 		{Name: "description", Type: field.TypeString, Nullable: true, Size: 2147483647},
-		{Name: "cover_url", Type: field.TypeString, Nullable: true, Size: 100},
+		{Name: "cover_url", Type: field.TypeString, Nullable: true, Size: 1000},
 		{Name: "uploaded", Type: field.TypeBool, Default: false},
 		{Name: "parsed", Type: field.TypeBool, Default: false},
 		{Name: "prepared", Type: field.TypeBool, Default: false},
 		{Name: "script_generated", Type: field.TypeBool, Default: false},
 		{Name: "tts_generated", Type: field.TypeBool, Default: false},
 		{Name: "language", Type: field.TypeEnum, Enums: []string{"fr", "en"}, Default: "fr"},
+		{Name: "failed", Type: field.TypeBool, Default: false},
+		{Name: "failed_stage", Type: field.TypeString, Nullable: true, Size: 20},
+		{Name: "error_message", Type: field.TypeString, Nullable: true, Size: 2147483647},
 	}
 	// BooksTable holds the schema information for the "books" table.
 	BooksTable = &schema.Table{

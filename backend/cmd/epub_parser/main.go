@@ -51,8 +51,9 @@ func main() {
 		errorpkg.ExitTrace(err)
 	}
 
+	repo := book.NewRepositoryImpl(dbClient)
 	parsingService := parsing.NewService(
-		book.NewRepositoryImpl(dbClient),
+		repo,
 		book.NewBucketRepoImpl(cClient),
 		book.NewQueueRepoImpl(q, ch),
 		parsing.NewEpubParserImpl(),
@@ -63,11 +64,11 @@ func main() {
 
 		chunks, err := parsingService.GetBookAsChunks(ctx, bookID)
 		if err != nil {
-			return err
+			return book.RecordFailure(ctx, repo, bookID, primitive.Split, err)
 		}
 
 		if err := parsingService.UploadBookChunks(ctx, bookID, chunks); err != nil {
-			return err
+			return book.RecordFailure(ctx, repo, bookID, primitive.Split, err)
 		}
 		return nil
 	})

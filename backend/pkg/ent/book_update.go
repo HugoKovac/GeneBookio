@@ -224,6 +224,60 @@ func (_u *BookUpdate) SetNillableLanguage(v *primitive.Language) *BookUpdate {
 	return _u
 }
 
+// SetFailed sets the "failed" field.
+func (_u *BookUpdate) SetFailed(v bool) *BookUpdate {
+	_u.mutation.SetFailed(v)
+	return _u
+}
+
+// SetNillableFailed sets the "failed" field if the given value is not nil.
+func (_u *BookUpdate) SetNillableFailed(v *bool) *BookUpdate {
+	if v != nil {
+		_u.SetFailed(*v)
+	}
+	return _u
+}
+
+// SetFailedStage sets the "failed_stage" field.
+func (_u *BookUpdate) SetFailedStage(v string) *BookUpdate {
+	_u.mutation.SetFailedStage(v)
+	return _u
+}
+
+// SetNillableFailedStage sets the "failed_stage" field if the given value is not nil.
+func (_u *BookUpdate) SetNillableFailedStage(v *string) *BookUpdate {
+	if v != nil {
+		_u.SetFailedStage(*v)
+	}
+	return _u
+}
+
+// ClearFailedStage clears the value of the "failed_stage" field.
+func (_u *BookUpdate) ClearFailedStage() *BookUpdate {
+	_u.mutation.ClearFailedStage()
+	return _u
+}
+
+// SetErrorMessage sets the "error_message" field.
+func (_u *BookUpdate) SetErrorMessage(v string) *BookUpdate {
+	_u.mutation.SetErrorMessage(v)
+	return _u
+}
+
+// SetNillableErrorMessage sets the "error_message" field if the given value is not nil.
+func (_u *BookUpdate) SetNillableErrorMessage(v *string) *BookUpdate {
+	if v != nil {
+		_u.SetErrorMessage(*v)
+	}
+	return _u
+}
+
+// ClearErrorMessage clears the value of the "error_message" field.
+func (_u *BookUpdate) ClearErrorMessage() *BookUpdate {
+	_u.mutation.ClearErrorMessage()
+	return _u
+}
+
 // Mutation returns the BookMutation object of the builder.
 func (_u *BookUpdate) Mutation() *BookMutation {
 	return _u.mutation
@@ -285,6 +339,11 @@ func (_u *BookUpdate) check() error {
 	if v, ok := _u.mutation.Language(); ok {
 		if err := book.LanguageValidator(v); err != nil {
 			return &ValidationError{Name: "language", err: fmt.Errorf(`ent: validator failed for field "Book.language": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.FailedStage(); ok {
+		if err := book.FailedStageValidator(v); err != nil {
+			return &ValidationError{Name: "failed_stage", err: fmt.Errorf(`ent: validator failed for field "Book.failed_stage": %w`, err)}
 		}
 	}
 	return nil
@@ -362,6 +421,21 @@ func (_u *BookUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Language(); ok {
 		_spec.SetField(book.FieldLanguage, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Failed(); ok {
+		_spec.SetField(book.FieldFailed, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.FailedStage(); ok {
+		_spec.SetField(book.FieldFailedStage, field.TypeString, value)
+	}
+	if _u.mutation.FailedStageCleared() {
+		_spec.ClearField(book.FieldFailedStage, field.TypeString)
+	}
+	if value, ok := _u.mutation.ErrorMessage(); ok {
+		_spec.SetField(book.FieldErrorMessage, field.TypeString, value)
+	}
+	if _u.mutation.ErrorMessageCleared() {
+		_spec.ClearField(book.FieldErrorMessage, field.TypeString)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -577,6 +651,60 @@ func (_u *BookUpdateOne) SetNillableLanguage(v *primitive.Language) *BookUpdateO
 	return _u
 }
 
+// SetFailed sets the "failed" field.
+func (_u *BookUpdateOne) SetFailed(v bool) *BookUpdateOne {
+	_u.mutation.SetFailed(v)
+	return _u
+}
+
+// SetNillableFailed sets the "failed" field if the given value is not nil.
+func (_u *BookUpdateOne) SetNillableFailed(v *bool) *BookUpdateOne {
+	if v != nil {
+		_u.SetFailed(*v)
+	}
+	return _u
+}
+
+// SetFailedStage sets the "failed_stage" field.
+func (_u *BookUpdateOne) SetFailedStage(v string) *BookUpdateOne {
+	_u.mutation.SetFailedStage(v)
+	return _u
+}
+
+// SetNillableFailedStage sets the "failed_stage" field if the given value is not nil.
+func (_u *BookUpdateOne) SetNillableFailedStage(v *string) *BookUpdateOne {
+	if v != nil {
+		_u.SetFailedStage(*v)
+	}
+	return _u
+}
+
+// ClearFailedStage clears the value of the "failed_stage" field.
+func (_u *BookUpdateOne) ClearFailedStage() *BookUpdateOne {
+	_u.mutation.ClearFailedStage()
+	return _u
+}
+
+// SetErrorMessage sets the "error_message" field.
+func (_u *BookUpdateOne) SetErrorMessage(v string) *BookUpdateOne {
+	_u.mutation.SetErrorMessage(v)
+	return _u
+}
+
+// SetNillableErrorMessage sets the "error_message" field if the given value is not nil.
+func (_u *BookUpdateOne) SetNillableErrorMessage(v *string) *BookUpdateOne {
+	if v != nil {
+		_u.SetErrorMessage(*v)
+	}
+	return _u
+}
+
+// ClearErrorMessage clears the value of the "error_message" field.
+func (_u *BookUpdateOne) ClearErrorMessage() *BookUpdateOne {
+	_u.mutation.ClearErrorMessage()
+	return _u
+}
+
 // Mutation returns the BookMutation object of the builder.
 func (_u *BookUpdateOne) Mutation() *BookMutation {
 	return _u.mutation
@@ -651,6 +779,11 @@ func (_u *BookUpdateOne) check() error {
 	if v, ok := _u.mutation.Language(); ok {
 		if err := book.LanguageValidator(v); err != nil {
 			return &ValidationError{Name: "language", err: fmt.Errorf(`ent: validator failed for field "Book.language": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.FailedStage(); ok {
+		if err := book.FailedStageValidator(v); err != nil {
+			return &ValidationError{Name: "failed_stage", err: fmt.Errorf(`ent: validator failed for field "Book.failed_stage": %w`, err)}
 		}
 	}
 	return nil
@@ -745,6 +878,21 @@ func (_u *BookUpdateOne) sqlSave(ctx context.Context) (_node *Book, err error) {
 	}
 	if value, ok := _u.mutation.Language(); ok {
 		_spec.SetField(book.FieldLanguage, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Failed(); ok {
+		_spec.SetField(book.FieldFailed, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.FailedStage(); ok {
+		_spec.SetField(book.FieldFailedStage, field.TypeString, value)
+	}
+	if _u.mutation.FailedStageCleared() {
+		_spec.ClearField(book.FieldFailedStage, field.TypeString)
+	}
+	if value, ok := _u.mutation.ErrorMessage(); ok {
+		_spec.SetField(book.FieldErrorMessage, field.TypeString, value)
+	}
+	if _u.mutation.ErrorMessageCleared() {
+		_spec.ClearField(book.FieldErrorMessage, field.TypeString)
 	}
 	_node = &Book{config: _u.config}
 	_spec.Assign = _node.assignValues

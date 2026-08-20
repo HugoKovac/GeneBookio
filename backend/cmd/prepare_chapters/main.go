@@ -61,8 +61,9 @@ func main() {
 		aiAPI = book.NewOpenAiClient(openai.NewClient(), openai.ChatModelGPT5Mini)
 	}
 
+	repo := book.NewRepositoryImpl(dbClient)
 	preparationService := preparation.NewService(
-		book.NewRepositoryImpl(dbClient),
+		repo,
 		book.NewBucketRepoImpl(cClient),
 		book.NewQueueRepoImpl(q, ch),
 		aiAPI,
@@ -73,7 +74,7 @@ func main() {
 
 		err = preparationService.MapOnChunks(ctx, bookID, preparationService.GenerateChapterPreparation)
 		if err != nil {
-			return err
+			return book.RecordFailure(ctx, repo, bookID, primitive.Prepare, err)
 		}
 		return nil
 

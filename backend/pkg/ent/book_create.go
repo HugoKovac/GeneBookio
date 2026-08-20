@@ -189,6 +189,48 @@ func (_c *BookCreate) SetNillableLanguage(v *primitive.Language) *BookCreate {
 	return _c
 }
 
+// SetFailed sets the "failed" field.
+func (_c *BookCreate) SetFailed(v bool) *BookCreate {
+	_c.mutation.SetFailed(v)
+	return _c
+}
+
+// SetNillableFailed sets the "failed" field if the given value is not nil.
+func (_c *BookCreate) SetNillableFailed(v *bool) *BookCreate {
+	if v != nil {
+		_c.SetFailed(*v)
+	}
+	return _c
+}
+
+// SetFailedStage sets the "failed_stage" field.
+func (_c *BookCreate) SetFailedStage(v string) *BookCreate {
+	_c.mutation.SetFailedStage(v)
+	return _c
+}
+
+// SetNillableFailedStage sets the "failed_stage" field if the given value is not nil.
+func (_c *BookCreate) SetNillableFailedStage(v *string) *BookCreate {
+	if v != nil {
+		_c.SetFailedStage(*v)
+	}
+	return _c
+}
+
+// SetErrorMessage sets the "error_message" field.
+func (_c *BookCreate) SetErrorMessage(v string) *BookCreate {
+	_c.mutation.SetErrorMessage(v)
+	return _c
+}
+
+// SetNillableErrorMessage sets the "error_message" field if the given value is not nil.
+func (_c *BookCreate) SetNillableErrorMessage(v *string) *BookCreate {
+	if v != nil {
+		_c.SetErrorMessage(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *BookCreate) SetID(v uuid.UUID) *BookCreate {
 	_c.mutation.SetID(v)
@@ -270,6 +312,10 @@ func (_c *BookCreate) defaults() {
 		v := book.DefaultLanguage
 		_c.mutation.SetLanguage(v)
 	}
+	if _, ok := _c.mutation.Failed(); !ok {
+		v := book.DefaultFailed
+		_c.mutation.SetFailed(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := book.DefaultID()
 		_c.mutation.SetID(v)
@@ -326,6 +372,14 @@ func (_c *BookCreate) check() error {
 	if v, ok := _c.mutation.Language(); ok {
 		if err := book.LanguageValidator(v); err != nil {
 			return &ValidationError{Name: "language", err: fmt.Errorf(`ent: validator failed for field "Book.language": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.Failed(); !ok {
+		return &ValidationError{Name: "failed", err: errors.New(`ent: missing required field "Book.failed"`)}
+	}
+	if v, ok := _c.mutation.FailedStage(); ok {
+		if err := book.FailedStageValidator(v); err != nil {
+			return &ValidationError{Name: "failed_stage", err: fmt.Errorf(`ent: validator failed for field "Book.failed_stage": %w`, err)}
 		}
 	}
 	return nil
@@ -419,6 +473,18 @@ func (_c *BookCreate) createSpec() (*Book, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Language(); ok {
 		_spec.SetField(book.FieldLanguage, field.TypeEnum, value)
 		_node.Language = value
+	}
+	if value, ok := _c.mutation.Failed(); ok {
+		_spec.SetField(book.FieldFailed, field.TypeBool, value)
+		_node.Failed = value
+	}
+	if value, ok := _c.mutation.FailedStage(); ok {
+		_spec.SetField(book.FieldFailedStage, field.TypeString, value)
+		_node.FailedStage = value
+	}
+	if value, ok := _c.mutation.ErrorMessage(); ok {
+		_spec.SetField(book.FieldErrorMessage, field.TypeString, value)
+		_node.ErrorMessage = value
 	}
 	return _node, _spec
 }
@@ -649,6 +715,54 @@ func (u *BookUpsert) SetLanguage(v primitive.Language) *BookUpsert {
 // UpdateLanguage sets the "language" field to the value that was provided on create.
 func (u *BookUpsert) UpdateLanguage() *BookUpsert {
 	u.SetExcluded(book.FieldLanguage)
+	return u
+}
+
+// SetFailed sets the "failed" field.
+func (u *BookUpsert) SetFailed(v bool) *BookUpsert {
+	u.Set(book.FieldFailed, v)
+	return u
+}
+
+// UpdateFailed sets the "failed" field to the value that was provided on create.
+func (u *BookUpsert) UpdateFailed() *BookUpsert {
+	u.SetExcluded(book.FieldFailed)
+	return u
+}
+
+// SetFailedStage sets the "failed_stage" field.
+func (u *BookUpsert) SetFailedStage(v string) *BookUpsert {
+	u.Set(book.FieldFailedStage, v)
+	return u
+}
+
+// UpdateFailedStage sets the "failed_stage" field to the value that was provided on create.
+func (u *BookUpsert) UpdateFailedStage() *BookUpsert {
+	u.SetExcluded(book.FieldFailedStage)
+	return u
+}
+
+// ClearFailedStage clears the value of the "failed_stage" field.
+func (u *BookUpsert) ClearFailedStage() *BookUpsert {
+	u.SetNull(book.FieldFailedStage)
+	return u
+}
+
+// SetErrorMessage sets the "error_message" field.
+func (u *BookUpsert) SetErrorMessage(v string) *BookUpsert {
+	u.Set(book.FieldErrorMessage, v)
+	return u
+}
+
+// UpdateErrorMessage sets the "error_message" field to the value that was provided on create.
+func (u *BookUpsert) UpdateErrorMessage() *BookUpsert {
+	u.SetExcluded(book.FieldErrorMessage)
+	return u
+}
+
+// ClearErrorMessage clears the value of the "error_message" field.
+func (u *BookUpsert) ClearErrorMessage() *BookUpsert {
+	u.SetNull(book.FieldErrorMessage)
 	return u
 }
 
@@ -910,6 +1024,62 @@ func (u *BookUpsertOne) SetLanguage(v primitive.Language) *BookUpsertOne {
 func (u *BookUpsertOne) UpdateLanguage() *BookUpsertOne {
 	return u.Update(func(s *BookUpsert) {
 		s.UpdateLanguage()
+	})
+}
+
+// SetFailed sets the "failed" field.
+func (u *BookUpsertOne) SetFailed(v bool) *BookUpsertOne {
+	return u.Update(func(s *BookUpsert) {
+		s.SetFailed(v)
+	})
+}
+
+// UpdateFailed sets the "failed" field to the value that was provided on create.
+func (u *BookUpsertOne) UpdateFailed() *BookUpsertOne {
+	return u.Update(func(s *BookUpsert) {
+		s.UpdateFailed()
+	})
+}
+
+// SetFailedStage sets the "failed_stage" field.
+func (u *BookUpsertOne) SetFailedStage(v string) *BookUpsertOne {
+	return u.Update(func(s *BookUpsert) {
+		s.SetFailedStage(v)
+	})
+}
+
+// UpdateFailedStage sets the "failed_stage" field to the value that was provided on create.
+func (u *BookUpsertOne) UpdateFailedStage() *BookUpsertOne {
+	return u.Update(func(s *BookUpsert) {
+		s.UpdateFailedStage()
+	})
+}
+
+// ClearFailedStage clears the value of the "failed_stage" field.
+func (u *BookUpsertOne) ClearFailedStage() *BookUpsertOne {
+	return u.Update(func(s *BookUpsert) {
+		s.ClearFailedStage()
+	})
+}
+
+// SetErrorMessage sets the "error_message" field.
+func (u *BookUpsertOne) SetErrorMessage(v string) *BookUpsertOne {
+	return u.Update(func(s *BookUpsert) {
+		s.SetErrorMessage(v)
+	})
+}
+
+// UpdateErrorMessage sets the "error_message" field to the value that was provided on create.
+func (u *BookUpsertOne) UpdateErrorMessage() *BookUpsertOne {
+	return u.Update(func(s *BookUpsert) {
+		s.UpdateErrorMessage()
+	})
+}
+
+// ClearErrorMessage clears the value of the "error_message" field.
+func (u *BookUpsertOne) ClearErrorMessage() *BookUpsertOne {
+	return u.Update(func(s *BookUpsert) {
+		s.ClearErrorMessage()
 	})
 }
 
@@ -1338,6 +1508,62 @@ func (u *BookUpsertBulk) SetLanguage(v primitive.Language) *BookUpsertBulk {
 func (u *BookUpsertBulk) UpdateLanguage() *BookUpsertBulk {
 	return u.Update(func(s *BookUpsert) {
 		s.UpdateLanguage()
+	})
+}
+
+// SetFailed sets the "failed" field.
+func (u *BookUpsertBulk) SetFailed(v bool) *BookUpsertBulk {
+	return u.Update(func(s *BookUpsert) {
+		s.SetFailed(v)
+	})
+}
+
+// UpdateFailed sets the "failed" field to the value that was provided on create.
+func (u *BookUpsertBulk) UpdateFailed() *BookUpsertBulk {
+	return u.Update(func(s *BookUpsert) {
+		s.UpdateFailed()
+	})
+}
+
+// SetFailedStage sets the "failed_stage" field.
+func (u *BookUpsertBulk) SetFailedStage(v string) *BookUpsertBulk {
+	return u.Update(func(s *BookUpsert) {
+		s.SetFailedStage(v)
+	})
+}
+
+// UpdateFailedStage sets the "failed_stage" field to the value that was provided on create.
+func (u *BookUpsertBulk) UpdateFailedStage() *BookUpsertBulk {
+	return u.Update(func(s *BookUpsert) {
+		s.UpdateFailedStage()
+	})
+}
+
+// ClearFailedStage clears the value of the "failed_stage" field.
+func (u *BookUpsertBulk) ClearFailedStage() *BookUpsertBulk {
+	return u.Update(func(s *BookUpsert) {
+		s.ClearFailedStage()
+	})
+}
+
+// SetErrorMessage sets the "error_message" field.
+func (u *BookUpsertBulk) SetErrorMessage(v string) *BookUpsertBulk {
+	return u.Update(func(s *BookUpsert) {
+		s.SetErrorMessage(v)
+	})
+}
+
+// UpdateErrorMessage sets the "error_message" field to the value that was provided on create.
+func (u *BookUpsertBulk) UpdateErrorMessage() *BookUpsertBulk {
+	return u.Update(func(s *BookUpsert) {
+		s.UpdateErrorMessage()
+	})
+}
+
+// ClearErrorMessage clears the value of the "error_message" field.
+func (u *BookUpsertBulk) ClearErrorMessage() *BookUpsertBulk {
+	return u.Update(func(s *BookUpsert) {
+		s.ClearErrorMessage()
 	})
 }
 

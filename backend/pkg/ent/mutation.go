@@ -53,6 +53,9 @@ type BookMutation struct {
 	script_generated   *bool
 	tts_generated      *bool
 	language           *primitive.Language
+	failed             *bool
+	failed_stage       *string
+	error_message      *string
 	clearedFields      map[string]struct{}
 	done               bool
 	oldValue           func(context.Context) (*Book, error)
@@ -751,6 +754,140 @@ func (m *BookMutation) ResetLanguage() {
 	m.language = nil
 }
 
+// SetFailed sets the "failed" field.
+func (m *BookMutation) SetFailed(b bool) {
+	m.failed = &b
+}
+
+// Failed returns the value of the "failed" field in the mutation.
+func (m *BookMutation) Failed() (r bool, exists bool) {
+	v := m.failed
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFailed returns the old "failed" field's value of the Book entity.
+// If the Book object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BookMutation) OldFailed(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFailed is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFailed requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFailed: %w", err)
+	}
+	return oldValue.Failed, nil
+}
+
+// ResetFailed resets all changes to the "failed" field.
+func (m *BookMutation) ResetFailed() {
+	m.failed = nil
+}
+
+// SetFailedStage sets the "failed_stage" field.
+func (m *BookMutation) SetFailedStage(s string) {
+	m.failed_stage = &s
+}
+
+// FailedStage returns the value of the "failed_stage" field in the mutation.
+func (m *BookMutation) FailedStage() (r string, exists bool) {
+	v := m.failed_stage
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFailedStage returns the old "failed_stage" field's value of the Book entity.
+// If the Book object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BookMutation) OldFailedStage(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFailedStage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFailedStage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFailedStage: %w", err)
+	}
+	return oldValue.FailedStage, nil
+}
+
+// ClearFailedStage clears the value of the "failed_stage" field.
+func (m *BookMutation) ClearFailedStage() {
+	m.failed_stage = nil
+	m.clearedFields[book.FieldFailedStage] = struct{}{}
+}
+
+// FailedStageCleared returns if the "failed_stage" field was cleared in this mutation.
+func (m *BookMutation) FailedStageCleared() bool {
+	_, ok := m.clearedFields[book.FieldFailedStage]
+	return ok
+}
+
+// ResetFailedStage resets all changes to the "failed_stage" field.
+func (m *BookMutation) ResetFailedStage() {
+	m.failed_stage = nil
+	delete(m.clearedFields, book.FieldFailedStage)
+}
+
+// SetErrorMessage sets the "error_message" field.
+func (m *BookMutation) SetErrorMessage(s string) {
+	m.error_message = &s
+}
+
+// ErrorMessage returns the value of the "error_message" field in the mutation.
+func (m *BookMutation) ErrorMessage() (r string, exists bool) {
+	v := m.error_message
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldErrorMessage returns the old "error_message" field's value of the Book entity.
+// If the Book object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BookMutation) OldErrorMessage(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldErrorMessage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldErrorMessage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldErrorMessage: %w", err)
+	}
+	return oldValue.ErrorMessage, nil
+}
+
+// ClearErrorMessage clears the value of the "error_message" field.
+func (m *BookMutation) ClearErrorMessage() {
+	m.error_message = nil
+	m.clearedFields[book.FieldErrorMessage] = struct{}{}
+}
+
+// ErrorMessageCleared returns if the "error_message" field was cleared in this mutation.
+func (m *BookMutation) ErrorMessageCleared() bool {
+	_, ok := m.clearedFields[book.FieldErrorMessage]
+	return ok
+}
+
+// ResetErrorMessage resets all changes to the "error_message" field.
+func (m *BookMutation) ResetErrorMessage() {
+	m.error_message = nil
+	delete(m.clearedFields, book.FieldErrorMessage)
+}
+
 // Where appends a list predicates to the BookMutation builder.
 func (m *BookMutation) Where(ps ...predicate.Book) {
 	m.predicates = append(m.predicates, ps...)
@@ -785,7 +922,7 @@ func (m *BookMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *BookMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 17)
 	if m.created_at != nil {
 		fields = append(fields, book.FieldCreatedAt)
 	}
@@ -828,6 +965,15 @@ func (m *BookMutation) Fields() []string {
 	if m.language != nil {
 		fields = append(fields, book.FieldLanguage)
 	}
+	if m.failed != nil {
+		fields = append(fields, book.FieldFailed)
+	}
+	if m.failed_stage != nil {
+		fields = append(fields, book.FieldFailedStage)
+	}
+	if m.error_message != nil {
+		fields = append(fields, book.FieldErrorMessage)
+	}
 	return fields
 }
 
@@ -864,6 +1010,12 @@ func (m *BookMutation) Field(name string) (ent.Value, bool) {
 		return m.TtsGenerated()
 	case book.FieldLanguage:
 		return m.Language()
+	case book.FieldFailed:
+		return m.Failed()
+	case book.FieldFailedStage:
+		return m.FailedStage()
+	case book.FieldErrorMessage:
+		return m.ErrorMessage()
 	}
 	return nil, false
 }
@@ -901,6 +1053,12 @@ func (m *BookMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldTtsGenerated(ctx)
 	case book.FieldLanguage:
 		return m.OldLanguage(ctx)
+	case book.FieldFailed:
+		return m.OldFailed(ctx)
+	case book.FieldFailedStage:
+		return m.OldFailedStage(ctx)
+	case book.FieldErrorMessage:
+		return m.OldErrorMessage(ctx)
 	}
 	return nil, fmt.Errorf("unknown Book field %s", name)
 }
@@ -1008,6 +1166,27 @@ func (m *BookMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetLanguage(v)
 		return nil
+	case book.FieldFailed:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFailed(v)
+		return nil
+	case book.FieldFailedStage:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFailedStage(v)
+		return nil
+	case book.FieldErrorMessage:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetErrorMessage(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Book field %s", name)
 }
@@ -1050,6 +1229,12 @@ func (m *BookMutation) ClearedFields() []string {
 	if m.FieldCleared(book.FieldCoverURL) {
 		fields = append(fields, book.FieldCoverURL)
 	}
+	if m.FieldCleared(book.FieldFailedStage) {
+		fields = append(fields, book.FieldFailedStage)
+	}
+	if m.FieldCleared(book.FieldErrorMessage) {
+		fields = append(fields, book.FieldErrorMessage)
+	}
 	return fields
 }
 
@@ -1075,6 +1260,12 @@ func (m *BookMutation) ClearField(name string) error {
 		return nil
 	case book.FieldCoverURL:
 		m.ClearCoverURL()
+		return nil
+	case book.FieldFailedStage:
+		m.ClearFailedStage()
+		return nil
+	case book.FieldErrorMessage:
+		m.ClearErrorMessage()
 		return nil
 	}
 	return fmt.Errorf("unknown Book nullable field %s", name)
@@ -1125,6 +1316,15 @@ func (m *BookMutation) ResetField(name string) error {
 		return nil
 	case book.FieldLanguage:
 		m.ResetLanguage()
+		return nil
+	case book.FieldFailed:
+		m.ResetFailed()
+		return nil
+	case book.FieldFailedStage:
+		m.ResetFailedStage()
+		return nil
+	case book.FieldErrorMessage:
+		m.ResetErrorMessage()
 		return nil
 	}
 	return fmt.Errorf("unknown Book field %s", name)

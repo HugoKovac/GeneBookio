@@ -17,8 +17,8 @@ epub_split:
 prepare_chapters:
 	AI_TEST_MODE=$(TEST_MODE) go run cmd/prepare_chapters/main.go
 
-upload_service:
-	go run cmd/upload_book/main.go
+admin:
+	go run cmd/admin/main.go
 
 generate_script:
 	AI_TEST_MODE=$(TEST_MODE) go run cmd/generate_script/main.go

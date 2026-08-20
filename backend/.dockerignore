@@ -1,0 +1,13 @@
+# The Go services' Dockerfile only ever ADDs cmd/, internal/, pkg/, go.mod,
+# go.sum, keys/, and docs/ — everything else (models, models-tts, and
+# minio-data alone are several GB) was still being sent to the Docker daemon
+# as build context on every build. Ignore everything, then allowlist just
+# what the Dockerfile actually needs.
+*
+!cmd
+!internal
+!pkg
+!go.mod
+!go.sum
+!keys
+!docs

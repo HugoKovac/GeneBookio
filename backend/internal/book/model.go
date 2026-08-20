@@ -7,15 +7,18 @@ import (
 )
 
 type Book struct {
-	ID                                          uuid.UUID
-	Title                                       string
-	AuthorNames                                 []string
-	CoverURL                                    string
-	Key                                         string
-	AuthorKeys                                  []string
-	Description                                 string
-	Language                                    primitive.Language
-	Uploaded, Parsed, Prepared, ScriptGenerated bool
+	ID                                                        uuid.UUID
+	Title                                                     string
+	AuthorNames                                               []string
+	CoverURL                                                  string
+	Key                                                       string
+	AuthorKeys                                                []string
+	Description                                               string
+	Language                                                  primitive.Language
+	Uploaded, Parsed, Prepared, ScriptGenerated, TTSGenerated bool
+	Failed                                                    bool
+	FailedStage                                               string
+	ErrorMessage                                              string
 }
 
 type QueryURI struct {

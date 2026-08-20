@@ -49,8 +49,9 @@ func main() {
 		errorpkg.ExitTrace(err)
 	}
 
+	repo := book.NewRepositoryImpl(dbClient)
 	ttsService := tts.NewService(
-		book.NewRepositoryImpl(dbClient),
+		repo,
 		book.NewBucketRepoImpl(cClient),
 		tts.NewTTSApiClient(ttsapi.Init(&cfg.ConfigTTSAPI)),
 	)
@@ -59,7 +60,7 @@ func main() {
 		bookID := string(d.Body)
 
 		if err := ttsService.CreateAudioFromScript(ctx, bookID); err != nil {
-			return err
+			return book.RecordFailure(ctx, repo, bookID, primitive.GenerateTTS, err)
 		}
 
 		return nil

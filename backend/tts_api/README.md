@@ -20,5 +20,8 @@ logs for the "no XTTS speaker reference" warning if French requests fail.
 docker compose up -d --build tts_api
 ```
 
-Model weights (Kokoro + XTTS, several GB total) are cached in `../models`
-(mounted at `/root/.cache`) so they only download once.
+Model weights are cached on the host so they only download once: Kokoro under
+`../models` (mounted at `/root/.cache`, HuggingFace hub's cache convention),
+and XTTS-v2 (~1.8GB) under `../models-tts` (mounted at `/root/.local/share/tts`,
+where Coqui TTS's own `ModelManager` downloads to — it does not honor
+`/root/.cache`).

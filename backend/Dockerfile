@@ -1,18 +1,27 @@
+# syntax=docker/dockerfile:1.7
 FROM golang:1.26.4 AS build
-
-RUN mkdir /app
 
 WORKDIR /app
 
-ADD ./cmd/ ./cmd
-ADD ./internal ./internal
-ADD ./pkg ./pkg
-ADD ./go.mod .
-ADD ./go.sum .
+# Deps layer: only invalidated by go.mod/go.sum changes, and shared by every
+# service built from this Dockerfile (they all pass the same go.mod/go.sum).
+COPY go.mod go.sum ./
+RUN --mount=type=cache,target=/go/pkg/mod \
+    go mod download
+
+COPY cmd ./cmd
+COPY internal ./internal
+COPY pkg ./pkg
 
 ARG CMD="api"
 
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /app/server /app/cmd/${CMD}/main.go
+# Cache mounts persist across builds (including --no-cache ones) and are
+# shared by every service, so only the actually-changed packages recompile.
+# No -a/-installsuffix: unnecessary with CGO_ENABLED=0 and just forces a full
+# stdlib rebuild every time.
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 GOOS=linux go build -o /app/server ./cmd/${CMD}
 
 FROM scratch
 
@@ -23,4 +32,3 @@ ADD ./keys ./keys
 ADD ./docs ./docs
 
 ENTRYPOINT [ "/server" ]
-

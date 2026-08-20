@@ -16,7 +16,11 @@ type Handler struct {
 	service *Service
 }
 
-func NewHandler(router fiber.Router, service *Service) {
+// NewHandler mounts catalog's routes on router. enableRetry gates the
+// admin-only POST /:query/retry route — it's only wired up by cmd/admin
+// (see its Service's queueRepos), not the user-facing cmd/api, since
+// retrying a pipeline stage isn't a regular-user action.
+func NewHandler(router fiber.Router, service *Service, enableRetry bool) {
 	h := &Handler{
 		validate: validator.New(validator.WithRequiredStructEnabled()),
 		router:   router,
@@ -31,6 +35,12 @@ func NewHandler(router fiber.Router, service *Service) {
 	h.router.Get("/audio/:query",
 		h.GetAudioBook,
 	)
+
+	if enableRetry {
+		h.router.Post("/:query/retry",
+			h.RetryFailedStage,
+		)
+	}
 }
 
 // GetBooks returns the first page of saved books from the local database.
@@ -82,4 +92,33 @@ func (h *Handler) GetAudioBook(c fiber.Ctx) error {
 	c.Set("Content-Type", ctype)
 
 	return c.SendStream(audioReader, int(len))
+}
+
+// RetryFailedStage re-queues a book from the pipeline stage it last failed
+// at.
+//
+// @Summary      Retry a failed book
+// @Description  Re-publishes the book onto the queue for the stage it last failed at, and clears the failure
+// @Tags         books
+// @Security     BearerAuth
+// @Param        query  path  string  true  "Book ID (UUID)"
+// @Success      204
+// @Failure      400  {object}  map[string]string
+// @Router       /books/{query}/retry [post]
+func (h *Handler) RetryFailedStage(c fiber.Ctx) error {
+	var queryURI book.QueryURI
+
+	if err := c.Bind().URI(&queryURI); err != nil {
+		return errorwrapper.Wrap(err)
+	}
+
+	if err := h.validate.Struct(&queryURI); err != nil {
+		return errorwrapper.Wrap(err)
+	}
+
+	if err := h.service.RetryFailedStage(c.RequestCtx(), queryURI.Query); err != nil {
+		return err
+	}
+
+	return c.SendStatus(fiber.StatusNoContent)
 }

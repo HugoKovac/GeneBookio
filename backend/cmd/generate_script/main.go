@@ -61,8 +61,9 @@ func main() {
 		aiAPI = book.NewOpenAiClient(openai.NewClient(), openai.ChatModelGPT5_2)
 	}
 
+	repo := book.NewRepositoryImpl(dbClient)
 	scriptService := script.NewService(
-		book.NewRepositoryImpl(dbClient),
+		repo,
 		book.NewBucketRepoImpl(cClient),
 		book.NewQueueRepoImpl(q, ch),
 		aiAPI,
@@ -72,7 +73,7 @@ func main() {
 		bookID := string(d.Body)
 
 		if err := scriptService.GenerateScript(ctx, bookID); err != nil {
-			return err
+			return book.RecordFailure(ctx, repo, bookID, primitive.GenerateScript, err)
 		}
 
 		return nil

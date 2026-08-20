@@ -4,4 +4,7 @@ resources
 output
 minio-data
 models
+models-tts
 node_modules
+venv
+backend/tts_api/speaker_ref.wav

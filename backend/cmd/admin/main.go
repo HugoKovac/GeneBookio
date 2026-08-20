@@ -27,6 +27,7 @@ type Config struct {
 	bucket.ConfigBucket
 	database.ConfigDB
 	user.ConfigJWT
+	library.ConfigGoogleBooks
 }
 
 func readKeys(privatePath, publicPath string) (*rsa.PrivateKey, *rsa.PublicKey, error) {
@@ -77,6 +78,17 @@ func main() {
 		errorpkg.ExitTrace(err)
 	}
 
+	// One producer per pipeline stage, so a failed book can be retried from
+	// wherever it stopped (see catalog.Service.RetryFailedStage).
+	retryQueueRepos := make(map[string]book.QueueRepo)
+	for _, stage := range []primitive.QueueChannel{primitive.Split, primitive.Prepare, primitive.GenerateScript, primitive.GenerateTTS} {
+		rq, rch, err := queue.InitProducer(&cfg.ConfigQueue, stage)
+		if err != nil {
+			errorpkg.ExitTrace(err)
+		}
+		retryQueueRepos[string(stage)] = book.NewQueueRepoImpl(rq, rch)
+	}
+
 	dbClient, err := database.Init(&cfg.ConfigDB)
 	if err != nil {
 		errorpkg.ExitTrace(err)
@@ -90,12 +102,13 @@ func main() {
 	repo := book.NewRepositoryImpl(dbClient)
 	bucketRepo := book.NewBucketRepoImpl(bucketClient)
 
-	libraryService := library.NewService(library.NewOpenLibraryClient())
-	catalogService := catalog.NewService(repo, bucketRepo)
+	libraryService := library.NewService(library.NewGoogleBooksClient(cfg.ConfigGoogleBooks.APIKey))
+	catalogService := catalog.NewService(repo, bucketRepo, retryQueueRepos)
 	uploadService := upload.NewService(repo, bucketRepo, book.NewQueueRepoImpl(q, ch))
 	userService := user.NewService(user.NewRepositoryImpl(dbClient), &cfg.ConfigJWT)
 
 	upload.NewHandler(app, libraryService, catalogService, uploadService, userService)
+	catalog.NewHandler(app.Group("/books"), catalogService, true)
 
 	errorpkg.ExitTrace(app.Listen(":3001"))
 }

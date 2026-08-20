@@ -44,6 +44,12 @@ const (
 	FieldTtsGenerated = "tts_generated"
 	// FieldLanguage holds the string denoting the language field in the database.
 	FieldLanguage = "language"
+	// FieldFailed holds the string denoting the failed field in the database.
+	FieldFailed = "failed"
+	// FieldFailedStage holds the string denoting the failed_stage field in the database.
+	FieldFailedStage = "failed_stage"
+	// FieldErrorMessage holds the string denoting the error_message field in the database.
+	FieldErrorMessage = "error_message"
 	// Table holds the table name of the book in the database.
 	Table = "books"
 )
@@ -65,6 +71,9 @@ var Columns = []string{
 	FieldScriptGenerated,
 	FieldTtsGenerated,
 	FieldLanguage,
+	FieldFailed,
+	FieldFailedStage,
+	FieldErrorMessage,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -100,6 +109,10 @@ var (
 	DefaultScriptGenerated bool
 	// DefaultTtsGenerated holds the default value on creation for the "tts_generated" field.
 	DefaultTtsGenerated bool
+	// DefaultFailed holds the default value on creation for the "failed" field.
+	DefaultFailed bool
+	// FailedStageValidator is a validator for the "failed_stage" field. It is called by the builders before save.
+	FailedStageValidator func(string) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -182,4 +195,19 @@ func ByTtsGenerated(opts ...sql.OrderTermOption) OrderOption {
 // ByLanguage orders the results by the language field.
 func ByLanguage(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLanguage, opts...).ToFunc()
+}
+
+// ByFailed orders the results by the failed field.
+func ByFailed(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFailed, opts...).ToFunc()
+}
+
+// ByFailedStage orders the results by the failed_stage field.
+func ByFailedStage(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFailedStage, opts...).ToFunc()
+}
+
+// ByErrorMessage orders the results by the error_message field.
+func ByErrorMessage(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldErrorMessage, opts...).ToFunc()
 }

@@ -28,7 +28,7 @@ func (Book) Fields() []ent.Field {
 		field.JSON("author_names", []string{}).Optional(),
 		field.JSON("author_keys", []string{}).Optional(),
 		field.Text("description").Optional(),
-		field.String("cover_url").MaxLen(100).Optional(),
+		field.String("cover_url").MaxLen(1000).Optional(),
 		field.Bool("uploaded").Default(false),
 		field.Bool("parsed").Default(false),
 		field.Bool("prepared").Default(false),
@@ -36,6 +36,9 @@ func (Book) Fields() []ent.Field {
 		field.Bool("tts_generated").Default(false),
 		field.Enum("language").GoType(primitive.Language("")).
 			Default(primitive.French.String()),
+		field.Bool("failed").Default(false),
+		field.String("failed_stage").MaxLen(20).Optional(),
+		field.Text("error_message").Optional(),
 	}
 }
 

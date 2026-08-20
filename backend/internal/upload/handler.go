@@ -3,12 +3,12 @@ package upload
 import (
 	"hkorpo/book/internal/catalog"
 	"hkorpo/book/internal/library"
+	"hkorpo/book/internal/primitive"
 	"hkorpo/book/internal/user"
 	"hkorpo/book/pkg/ent"
 	"io"
 	"net/http"
-
-	_ "embed"
+	"slices"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -32,10 +32,6 @@ func NewHandler(router fiber.Router, libraryService *library.Service, catalogSer
 		service:        service,
 	}
 
-	h.router.Get("/",
-		h.UploadPage,
-	)
-
 	h.router.Post("/upload",
 		h.Upload,
 	)
@@ -43,14 +39,6 @@ func NewHandler(router fiber.Router, libraryService *library.Service, catalogSer
 	h.router.Get("/search",
 		h.Search,
 	)
-}
-
-//go:embed  html/upload.html
-var uploadHTML string
-
-func (Handler) UploadPage(c fiber.Ctx) error {
-	c.Set("Content-Type", "text/html; charset=utf-8")
-	return c.SendString(uploadHTML)
 }
 
 func (h *Handler) Search(c fiber.Ctx) error {
@@ -102,6 +90,12 @@ func (h *Handler) Upload(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+
+	language := primitive.Language(c.FormValue("language", string(primitive.French)))
+	if !slices.Contains(language.Values(), string(language)) {
+		return c.Status(http.StatusUnprocessableEntity).SendString("invalid language")
+	}
+	bookData.Language = language
 
 	bookData, err = h.catalogService.SaveBook(c.RequestCtx(), bookData)
 	if err != nil {

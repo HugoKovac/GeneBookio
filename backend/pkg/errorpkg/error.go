@@ -33,6 +33,8 @@ func PrintTrace(err error) {
 	errwrap := DeepestErrorWrapper(err)
 	if errwrap != nil {
 		fmt.Println(errwrap.FormatTrace())
+	} else {
+		fmt.Println(err)
 	}
 }
 

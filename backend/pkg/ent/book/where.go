@@ -111,6 +111,21 @@ func TtsGenerated(v bool) predicate.Book {
 	return predicate.Book(sql.FieldEQ(FieldTtsGenerated, v))
 }
 
+// Failed applies equality check predicate on the "failed" field. It's identical to FailedEQ.
+func Failed(v bool) predicate.Book {
+	return predicate.Book(sql.FieldEQ(FieldFailed, v))
+}
+
+// FailedStage applies equality check predicate on the "failed_stage" field. It's identical to FailedStageEQ.
+func FailedStage(v string) predicate.Book {
+	return predicate.Book(sql.FieldEQ(FieldFailedStage, v))
+}
+
+// ErrorMessage applies equality check predicate on the "error_message" field. It's identical to ErrorMessageEQ.
+func ErrorMessage(v string) predicate.Book {
+	return predicate.Book(sql.FieldEQ(FieldErrorMessage, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Book {
 	return predicate.Book(sql.FieldEQ(FieldCreatedAt, v))
@@ -569,6 +584,166 @@ func LanguageNotIn(vs ...primitive.Language) predicate.Book {
 		v[i] = vs[i]
 	}
 	return predicate.Book(sql.FieldNotIn(FieldLanguage, v...))
+}
+
+// FailedEQ applies the EQ predicate on the "failed" field.
+func FailedEQ(v bool) predicate.Book {
+	return predicate.Book(sql.FieldEQ(FieldFailed, v))
+}
+
+// FailedNEQ applies the NEQ predicate on the "failed" field.
+func FailedNEQ(v bool) predicate.Book {
+	return predicate.Book(sql.FieldNEQ(FieldFailed, v))
+}
+
+// FailedStageEQ applies the EQ predicate on the "failed_stage" field.
+func FailedStageEQ(v string) predicate.Book {
+	return predicate.Book(sql.FieldEQ(FieldFailedStage, v))
+}
+
+// FailedStageNEQ applies the NEQ predicate on the "failed_stage" field.
+func FailedStageNEQ(v string) predicate.Book {
+	return predicate.Book(sql.FieldNEQ(FieldFailedStage, v))
+}
+
+// FailedStageIn applies the In predicate on the "failed_stage" field.
+func FailedStageIn(vs ...string) predicate.Book {
+	return predicate.Book(sql.FieldIn(FieldFailedStage, vs...))
+}
+
+// FailedStageNotIn applies the NotIn predicate on the "failed_stage" field.
+func FailedStageNotIn(vs ...string) predicate.Book {
+	return predicate.Book(sql.FieldNotIn(FieldFailedStage, vs...))
+}
+
+// FailedStageGT applies the GT predicate on the "failed_stage" field.
+func FailedStageGT(v string) predicate.Book {
+	return predicate.Book(sql.FieldGT(FieldFailedStage, v))
+}
+
+// FailedStageGTE applies the GTE predicate on the "failed_stage" field.
+func FailedStageGTE(v string) predicate.Book {
+	return predicate.Book(sql.FieldGTE(FieldFailedStage, v))
+}
+
+// FailedStageLT applies the LT predicate on the "failed_stage" field.
+func FailedStageLT(v string) predicate.Book {
+	return predicate.Book(sql.FieldLT(FieldFailedStage, v))
+}
+
+// FailedStageLTE applies the LTE predicate on the "failed_stage" field.
+func FailedStageLTE(v string) predicate.Book {
+	return predicate.Book(sql.FieldLTE(FieldFailedStage, v))
+}
+
+// FailedStageContains applies the Contains predicate on the "failed_stage" field.
+func FailedStageContains(v string) predicate.Book {
+	return predicate.Book(sql.FieldContains(FieldFailedStage, v))
+}
+
+// FailedStageHasPrefix applies the HasPrefix predicate on the "failed_stage" field.
+func FailedStageHasPrefix(v string) predicate.Book {
+	return predicate.Book(sql.FieldHasPrefix(FieldFailedStage, v))
+}
+
+// FailedStageHasSuffix applies the HasSuffix predicate on the "failed_stage" field.
+func FailedStageHasSuffix(v string) predicate.Book {
+	return predicate.Book(sql.FieldHasSuffix(FieldFailedStage, v))
+}
+
+// FailedStageIsNil applies the IsNil predicate on the "failed_stage" field.
+func FailedStageIsNil() predicate.Book {
+	return predicate.Book(sql.FieldIsNull(FieldFailedStage))
+}
+
+// FailedStageNotNil applies the NotNil predicate on the "failed_stage" field.
+func FailedStageNotNil() predicate.Book {
+	return predicate.Book(sql.FieldNotNull(FieldFailedStage))
+}
+
+// FailedStageEqualFold applies the EqualFold predicate on the "failed_stage" field.
+func FailedStageEqualFold(v string) predicate.Book {
+	return predicate.Book(sql.FieldEqualFold(FieldFailedStage, v))
+}
+
+// FailedStageContainsFold applies the ContainsFold predicate on the "failed_stage" field.
+func FailedStageContainsFold(v string) predicate.Book {
+	return predicate.Book(sql.FieldContainsFold(FieldFailedStage, v))
+}
+
+// ErrorMessageEQ applies the EQ predicate on the "error_message" field.
+func ErrorMessageEQ(v string) predicate.Book {
+	return predicate.Book(sql.FieldEQ(FieldErrorMessage, v))
+}
+
+// ErrorMessageNEQ applies the NEQ predicate on the "error_message" field.
+func ErrorMessageNEQ(v string) predicate.Book {
+	return predicate.Book(sql.FieldNEQ(FieldErrorMessage, v))
+}
+
+// ErrorMessageIn applies the In predicate on the "error_message" field.
+func ErrorMessageIn(vs ...string) predicate.Book {
+	return predicate.Book(sql.FieldIn(FieldErrorMessage, vs...))
+}
+
+// ErrorMessageNotIn applies the NotIn predicate on the "error_message" field.
+func ErrorMessageNotIn(vs ...string) predicate.Book {
+	return predicate.Book(sql.FieldNotIn(FieldErrorMessage, vs...))
+}
+
+// ErrorMessageGT applies the GT predicate on the "error_message" field.
+func ErrorMessageGT(v string) predicate.Book {
+	return predicate.Book(sql.FieldGT(FieldErrorMessage, v))
+}
+
+// ErrorMessageGTE applies the GTE predicate on the "error_message" field.
+func ErrorMessageGTE(v string) predicate.Book {
+	return predicate.Book(sql.FieldGTE(FieldErrorMessage, v))
+}
+
+// ErrorMessageLT applies the LT predicate on the "error_message" field.
+func ErrorMessageLT(v string) predicate.Book {
+	return predicate.Book(sql.FieldLT(FieldErrorMessage, v))
+}
+
+// ErrorMessageLTE applies the LTE predicate on the "error_message" field.
+func ErrorMessageLTE(v string) predicate.Book {
+	return predicate.Book(sql.FieldLTE(FieldErrorMessage, v))
+}
+
+// ErrorMessageContains applies the Contains predicate on the "error_message" field.
+func ErrorMessageContains(v string) predicate.Book {
+	return predicate.Book(sql.FieldContains(FieldErrorMessage, v))
+}
+
+// ErrorMessageHasPrefix applies the HasPrefix predicate on the "error_message" field.
+func ErrorMessageHasPrefix(v string) predicate.Book {
+	return predicate.Book(sql.FieldHasPrefix(FieldErrorMessage, v))
+}
+
+// ErrorMessageHasSuffix applies the HasSuffix predicate on the "error_message" field.
+func ErrorMessageHasSuffix(v string) predicate.Book {
+	return predicate.Book(sql.FieldHasSuffix(FieldErrorMessage, v))
+}
+
+// ErrorMessageIsNil applies the IsNil predicate on the "error_message" field.
+func ErrorMessageIsNil() predicate.Book {
+	return predicate.Book(sql.FieldIsNull(FieldErrorMessage))
+}
+
+// ErrorMessageNotNil applies the NotNil predicate on the "error_message" field.
+func ErrorMessageNotNil() predicate.Book {
+	return predicate.Book(sql.FieldNotNull(FieldErrorMessage))
+}
+
+// ErrorMessageEqualFold applies the EqualFold predicate on the "error_message" field.
+func ErrorMessageEqualFold(v string) predicate.Book {
+	return predicate.Book(sql.FieldEqualFold(FieldErrorMessage, v))
+}
+
+// ErrorMessageContainsFold applies the ContainsFold predicate on the "error_message" field.
+func ErrorMessageContainsFold(v string) predicate.Book {
+	return predicate.Book(sql.FieldContainsFold(FieldErrorMessage, v))
 }
 
 // And groups predicates with the AND operator between them.

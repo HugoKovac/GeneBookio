@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"hkorpo/book/pkg/errorwrapper"
+	"io"
 	"net/http"
 	"time"
 )
@@ -38,9 +39,17 @@ func (c *Client) Request(ctx context.Context, endpoint Endpoint, payload any) (*
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+		defer resp.Body.Close()
+		body, _ := io.ReadAll(resp.Body)
+
+		var parsed struct {
+			Detail string `json:"detail"`
+		}
+		if err := json.Unmarshal(body, &parsed); err == nil && parsed.Detail != "" {
+			return nil, fmt.Errorf("tts_api error (%d): %s", resp.StatusCode, parsed.Detail)
+		}
+		return nil, fmt.Errorf("tts_api error (%d): %s", resp.StatusCode, string(body))
 	}
 
-	return resp, errorwrapper.Wrap(err)
-
+	return resp, nil
 }

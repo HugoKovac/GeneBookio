@@ -12,6 +12,8 @@ import (
 type Repository interface {
 	CreateBook(ctx context.Context, book *Book) (*Book, error)
 	UpdateBookStage(ctx context.Context, bookID uuid.UUID, s Stage) error
+	MarkBookFailed(ctx context.Context, bookID uuid.UUID, stage, message string) error
+	ClearBookFailure(ctx context.Context, bookID uuid.UUID) error
 	GetSavedBookByKey(ctx context.Context, bookKey string) (*Book, error)
 	GetBookByID(ctx context.Context, bookID uuid.UUID) (*Book, error)
 	GetBooks(ctx context.Context, page, limit int) ([]*Book, error)
@@ -75,6 +77,22 @@ func (r *RepositoryImpl) UpdateBookStage(ctx context.Context, bookID uuid.UUID, 
 	return query.Exec(ctx)
 }
 
+func (r *RepositoryImpl) MarkBookFailed(ctx context.Context, bookID uuid.UUID, stage, message string) error {
+	return errorwrapper.Wrap(r.dbClient.Book.UpdateOneID(bookID).
+		SetFailed(true).
+		SetFailedStage(stage).
+		SetErrorMessage(message).
+		Exec(ctx))
+}
+
+func (r *RepositoryImpl) ClearBookFailure(ctx context.Context, bookID uuid.UUID) error {
+	return errorwrapper.Wrap(r.dbClient.Book.UpdateOneID(bookID).
+		SetFailed(false).
+		ClearFailedStage().
+		ClearErrorMessage().
+		Exec(ctx))
+}
+
 func (r *RepositoryImpl) GetSavedBookByKey(ctx context.Context, bookKey string) (*Book, error) {
 	e, err := r.dbClient.Book.Query().Where(
 		book.KeyEQ(bookKey),
@@ -82,20 +100,7 @@ func (r *RepositoryImpl) GetSavedBookByKey(ctx context.Context, bookKey string) 
 	if err != nil {
 		return nil, errorwrapper.Wrap(err)
 	}
-	return &Book{
-		ID:              e.ID,
-		Title:           e.Title,
-		AuthorNames:     e.AuthorNames,
-		CoverURL:        e.CoverURL,
-		Key:             e.Key,
-		AuthorKeys:      e.AuthorKeys,
-		Description:     e.Description,
-		Language:        e.Language,
-		Uploaded:        e.Uploaded,
-		Parsed:          e.Parsed,
-		Prepared:        e.Prepared,
-		ScriptGenerated: e.ScriptGenerated,
-	}, nil
+	return fromEntBook(e), nil
 }
 
 func (r *RepositoryImpl) GetBookByID(ctx context.Context, bookID uuid.UUID) (*Book, error) {
@@ -103,20 +108,7 @@ func (r *RepositoryImpl) GetBookByID(ctx context.Context, bookID uuid.UUID) (*Bo
 	if err != nil {
 		return nil, errorwrapper.Wrap(err)
 	}
-	return &Book{
-		ID:              e.ID,
-		Title:           e.Title,
-		AuthorNames:     e.AuthorNames,
-		CoverURL:        e.CoverURL,
-		Key:             e.Key,
-		AuthorKeys:      e.AuthorKeys,
-		Description:     e.Description,
-		Language:        e.Language,
-		Uploaded:        e.Uploaded,
-		Parsed:          e.Parsed,
-		Prepared:        e.Prepared,
-		ScriptGenerated: e.ScriptGenerated,
-	}, nil
+	return fromEntBook(e), nil
 }
 
 func (r *RepositoryImpl) GetBooks(ctx context.Context, page, limit int) ([]*Book, error) {
@@ -131,20 +123,28 @@ func (r *RepositoryImpl) GetBooks(ctx context.Context, page, limit int) ([]*Book
 	}
 	rtn := make([]*Book, 0, len(e))
 	for _, b := range e {
-		rtn = append(rtn, &Book{
-			ID:              b.ID,
-			Title:           b.Title,
-			AuthorNames:     b.AuthorNames,
-			CoverURL:        b.CoverURL,
-			Key:             b.Key,
-			AuthorKeys:      b.AuthorKeys,
-			Description:     b.Description,
-			Language:        b.Language,
-			Uploaded:        b.Uploaded,
-			Parsed:          b.Parsed,
-			Prepared:        b.Prepared,
-			ScriptGenerated: b.ScriptGenerated,
-		})
+		rtn = append(rtn, fromEntBook(b))
 	}
 	return rtn, nil
+}
+
+func fromEntBook(e *ent.Book) *Book {
+	return &Book{
+		ID:              e.ID,
+		Title:           e.Title,
+		AuthorNames:     e.AuthorNames,
+		CoverURL:        e.CoverURL,
+		Key:             e.Key,
+		AuthorKeys:      e.AuthorKeys,
+		Description:     e.Description,
+		Language:        e.Language,
+		Uploaded:        e.Uploaded,
+		Parsed:          e.Parsed,
+		Prepared:        e.Prepared,
+		ScriptGenerated: e.ScriptGenerated,
+		TTSGenerated:    e.TtsGenerated,
+		Failed:          e.Failed,
+		FailedStage:     e.FailedStage,
+		ErrorMessage:    e.ErrorMessage,
+	}
 }

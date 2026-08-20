@@ -66,6 +66,7 @@ services:
       - COQUI_TOS_AGREED=1
     volumes:
       - ./models:/root/.cache
+      - ./models-tts:/root/.local/share/tts
       - ./tts_api/speaker_ref.wav:/app/speaker_ref.wav:ro
 
   api:
@@ -85,16 +86,18 @@ services:
       - 3000:3000
 
 
-  upload_book:
+  admin:
     build:
       context: .
       args:
-        CMD: upload_book
+        CMD: admin
     depends_on:
       db:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     env_file:
-      - cmd/upload_book/.env
+      - cmd/admin/.env
     environment:
       - MINIO_ENPOINT=minio:9000
       - RABBITMQ_HOST=rabbitmq:5672
@@ -110,6 +113,8 @@ services:
         CMD: epub_parser
     depends_on:
       db:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     env_file:
       - cmd/epub_parser/.env
@@ -127,6 +132,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     env_file:
       - cmd/prepare_chapters/.env
     environment:
@@ -142,6 +149,8 @@ services:
         CMD: generate_script
     depends_on:
       db:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     env_file:
       - cmd/generate_script/.env
@@ -161,6 +170,8 @@ services:
       tts_api:
         condition: service_started
       db:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     env_file:
       - cmd/generate_tts/.env

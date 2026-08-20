@@ -47,7 +47,13 @@ type Book struct {
 	// TtsGenerated holds the value of the "tts_generated" field.
 	TtsGenerated bool `json:"tts_generated,omitempty"`
 	// Language holds the value of the "language" field.
-	Language     primitive.Language `json:"language,omitempty"`
+	Language primitive.Language `json:"language,omitempty"`
+	// Failed holds the value of the "failed" field.
+	Failed bool `json:"failed,omitempty"`
+	// FailedStage holds the value of the "failed_stage" field.
+	FailedStage string `json:"failed_stage,omitempty"`
+	// ErrorMessage holds the value of the "error_message" field.
+	ErrorMessage string `json:"error_message,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -58,9 +64,9 @@ func (*Book) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case book.FieldAuthorNames, book.FieldAuthorKeys:
 			values[i] = new([]byte)
-		case book.FieldUploaded, book.FieldParsed, book.FieldPrepared, book.FieldScriptGenerated, book.FieldTtsGenerated:
+		case book.FieldUploaded, book.FieldParsed, book.FieldPrepared, book.FieldScriptGenerated, book.FieldTtsGenerated, book.FieldFailed:
 			values[i] = new(sql.NullBool)
-		case book.FieldKey, book.FieldTitle, book.FieldDescription, book.FieldCoverURL, book.FieldLanguage:
+		case book.FieldKey, book.FieldTitle, book.FieldDescription, book.FieldCoverURL, book.FieldLanguage, book.FieldFailedStage, book.FieldErrorMessage:
 			values[i] = new(sql.NullString)
 		case book.FieldCreatedAt, book.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -175,6 +181,24 @@ func (_m *Book) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Language = primitive.Language(value.String)
 			}
+		case book.FieldFailed:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field failed", values[i])
+			} else if value.Valid {
+				_m.Failed = value.Bool
+			}
+		case book.FieldFailedStage:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field failed_stage", values[i])
+			} else if value.Valid {
+				_m.FailedStage = value.String
+			}
+		case book.FieldErrorMessage:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field error_message", values[i])
+			} else if value.Valid {
+				_m.ErrorMessage = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -252,6 +276,15 @@ func (_m *Book) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("language=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Language))
+	builder.WriteString(", ")
+	builder.WriteString("failed=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Failed))
+	builder.WriteString(", ")
+	builder.WriteString("failed_stage=")
+	builder.WriteString(_m.FailedStage)
+	builder.WriteString(", ")
+	builder.WriteString("error_message=")
+	builder.WriteString(_m.ErrorMessage)
 	builder.WriteByte(')')
 	return builder.String()
 }
