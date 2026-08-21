@@ -48,6 +48,27 @@ func (r *fakeRepository) Upsert(ctx context.Context, snapshot *SubscriptionSnaps
 	return &cp, nil
 }
 
+func (r *fakeRepository) UpsertRevenueCat(ctx context.Context, snapshot *RevenueCatSnapshot) (*Subscription, error) {
+	sub, ok := r.byUser[snapshot.UserID]
+	if !ok {
+		sub = &Subscription{ID: uuid.New(), UserID: snapshot.UserID}
+		r.byUser[snapshot.UserID] = sub
+	}
+	sub.RevenueCatActive = snapshot.Active
+	sub.RevenueCatExpiresAt = snapshot.ExpiresAt
+	if snapshot.Store != "" {
+		sub.RevenueCatStore = snapshot.Store
+	}
+	if snapshot.EntitlementID != "" {
+		sub.RevenueCatEntitlementID = snapshot.EntitlementID
+	}
+	if snapshot.OriginalTransactionID != "" {
+		sub.RevenueCatOriginalTransactionID = snapshot.OriginalTransactionID
+	}
+	cp := *sub
+	return &cp, nil
+}
+
 // fakeStripeAPI stubs the Stripe port for tests that drive Service directly
 // via HandleWebhookEvent/ReconcileFromCheckoutSession rather than through
 // the real client — HMAC signature mechanics are covered separately in
@@ -79,6 +100,22 @@ func (f *fakeStripeAPI) ConstructWebhookEvent(rawBody []byte, signatureHeader st
 	return f.webhookEventType, f.webhookSnapshot, nil
 }
 
+// fakeRevenueCatAPI stubs the RevenueCat port for tests that drive Service
+// directly via HandleRevenueCatWebhookEvent/ReconcileFromRevenueCat.
+type fakeRevenueCatAPI struct {
+	webhookEventType string
+	webhookSnapshot  *RevenueCatSnapshot
+
+	entitlementSnapshot *RevenueCatSnapshot
+}
+
+func (f *fakeRevenueCatAPI) ConstructWebhookEvent(rawBody []byte, authorizationHeader string) (string, *RevenueCatSnapshot, error) {
+	return f.webhookEventType, f.webhookSnapshot, nil
+}
+func (f *fakeRevenueCatAPI) GetEntitlementSnapshot(ctx context.Context, appUserID string) (*RevenueCatSnapshot, error) {
+	return f.entitlementSnapshot, nil
+}
+
 func testPlanConfig() PlanConfig {
 	return PlanConfig{
 		PriceID:         "price_fake",
@@ -103,7 +140,7 @@ func TestHandleWebhookEvent_ActivatesFromSubscriptionSnapshot(t *testing.T) {
 			CurrentPeriodEnd:     &periodEnd,
 		},
 	}
-	svc := NewService(repo, stripeAPI, testPlanConfig())
+	svc := NewService(repo, stripeAPI, &fakeRevenueCatAPI{}, testPlanConfig())
 
 	if err := svc.HandleWebhookEvent(context.Background(), []byte("{}"), "sig"); err != nil {
 		t.Fatalf("HandleWebhookEvent() error = %v", err)
@@ -124,7 +161,7 @@ func TestHandleWebhookEvent_ActivatesFromSubscriptionSnapshot(t *testing.T) {
 func TestHandleWebhookEvent_IgnoredEventTypeIsNoop(t *testing.T) {
 	repo := newFakeRepository()
 	stripeAPI := &fakeStripeAPI{webhookEventType: "invoice.paid", webhookSnapshot: nil}
-	svc := NewService(repo, stripeAPI, testPlanConfig())
+	svc := NewService(repo, stripeAPI, &fakeRevenueCatAPI{}, testPlanConfig())
 
 	if err := svc.HandleWebhookEvent(context.Background(), []byte("{}"), "sig"); err != nil {
 		t.Fatalf("HandleWebhookEvent() error = %v", err)
@@ -145,7 +182,7 @@ func TestHandleWebhookEvent_PastDueStillGrantsAccess(t *testing.T) {
 			Status:               primitive.SubscriptionPastDue,
 		},
 	}
-	svc := NewService(repo, stripeAPI, testPlanConfig())
+	svc := NewService(repo, stripeAPI, &fakeRevenueCatAPI{}, testPlanConfig())
 
 	if err := svc.HandleWebhookEvent(context.Background(), []byte("{}"), "sig"); err != nil {
 		t.Fatalf("HandleWebhookEvent() error = %v", err)
@@ -167,7 +204,7 @@ func TestHandleWebhookEvent_CanceledRevokesAccess(t *testing.T) {
 			StripeSubscriptionID: "sub_1",
 			Status:               primitive.SubscriptionCanceled,
 		},
-	}, testPlanConfig())
+	}, &fakeRevenueCatAPI{}, testPlanConfig())
 
 	if err := svc.HandleWebhookEvent(context.Background(), []byte("{}"), "sig"); err != nil {
 		t.Fatalf("HandleWebhookEvent() error = %v", err)
@@ -193,7 +230,7 @@ func TestReconcileFromCheckoutSession_ActivatesWhenComplete(t *testing.T) {
 			Status:               primitive.SubscriptionActive,
 		},
 	}
-	svc := NewService(repo, stripeAPI, testPlanConfig())
+	svc := NewService(repo, stripeAPI, &fakeRevenueCatAPI{}, testPlanConfig())
 
 	if err := svc.ReconcileFromCheckoutSession(context.Background(), userID, "cs_1"); err != nil {
 		t.Fatalf("ReconcileFromCheckoutSession() error = %v", err)
@@ -210,7 +247,7 @@ func TestReconcileFromCheckoutSession_RejectsMismatchedUser(t *testing.T) {
 	userID := uuid.New()
 	otherUserID := uuid.New()
 	stripeAPI := &fakeStripeAPI{checkoutUserID: otherUserID, checkoutComplete: true, checkoutSubID: "sub_1"}
-	svc := NewService(repo, stripeAPI, testPlanConfig())
+	svc := NewService(repo, stripeAPI, &fakeRevenueCatAPI{}, testPlanConfig())
 
 	if err := svc.ReconcileFromCheckoutSession(context.Background(), userID, "cs_1"); err == nil {
 		t.Fatal("expected an error when the checkout session belongs to a different user")
@@ -223,7 +260,7 @@ func TestReconcileFromCheckoutSession_RejectsMismatchedUser(t *testing.T) {
 // Subscription.IsActive's nil receiver), not as a request-failing error.
 func TestGetStatus_NoSubscriptionRowIsNotAnError(t *testing.T) {
 	repo := newFakeRepository()
-	svc := NewService(repo, &fakeStripeAPI{}, testPlanConfig())
+	svc := NewService(repo, &fakeStripeAPI{}, &fakeRevenueCatAPI{}, testPlanConfig())
 
 	sub, err := svc.GetStatus(context.Background(), uuid.New())
 	if err != nil {
@@ -234,5 +271,127 @@ func TestGetStatus_NoSubscriptionRowIsNotAnError(t *testing.T) {
 	}
 	if sub.IsActive() {
 		t.Error("a nil Subscription must report IsActive() == false")
+	}
+}
+
+// TestSubscription_StripeAndRevenueCatDoNotClobberEachOther is the single
+// most important behavioral contract for this feature: a Stripe
+// cancellation must not silently revoke access for a user who is
+// independently active via RevenueCat (native purchase), and vice versa.
+// This exercises the Service methods end-to-end against fakeRepository,
+// which mirrors the real RepositoryImpl's namespace-isolated Upsert/
+// UpsertRevenueCat split (see repository.go) — that ent-level split was
+// also verified live against a running MySQL instance during development,
+// since this repo has no DB-integration test harness to encode that here.
+func TestSubscription_StripeAndRevenueCatDoNotClobberEachOther(t *testing.T) {
+	repo := newFakeRepository()
+	userID := uuid.New()
+	expiresAt := time.Now().Add(30 * 24 * time.Hour)
+
+	svc := NewService(repo, &fakeStripeAPI{}, &fakeRevenueCatAPI{
+		webhookEventType: "INITIAL_PURCHASE",
+		webhookSnapshot: &RevenueCatSnapshot{
+			UserID: userID, Active: true, ExpiresAt: &expiresAt, Store: "app_store", EntitlementID: "premium",
+		},
+	}, testPlanConfig())
+
+	if err := svc.HandleRevenueCatWebhookEvent(context.Background(), []byte("{}"), "auth"); err != nil {
+		t.Fatalf("HandleRevenueCatWebhookEvent() error = %v", err)
+	}
+
+	// A Stripe cancellation for the same user arrives next (e.g. they also
+	// once had, and canceled, an old web subscription).
+	if _, err := repo.Upsert(context.Background(), &SubscriptionSnapshot{
+		UserID: userID, Status: primitive.SubscriptionCanceled,
+	}); err != nil {
+		t.Fatalf("Upsert() error = %v", err)
+	}
+
+	got, err := svc.GetStatus(context.Background(), userID)
+	if err != nil {
+		t.Fatalf("GetStatus() error = %v", err)
+	}
+	if !got.RevenueCatActive || got.RevenueCatExpiresAt == nil {
+		t.Errorf("a Stripe cancellation must not clobber RevenueCat's independently-active state, got RevenueCatActive=%v RevenueCatExpiresAt=%v", got.RevenueCatActive, got.RevenueCatExpiresAt)
+	}
+	if !got.IsActive() {
+		t.Error("the user should still be active via RevenueCat even though Stripe reports canceled")
+	}
+}
+
+func TestHandleRevenueCatWebhookEvent_CancellationStillActiveUntilExpiry(t *testing.T) {
+	repo := newFakeRepository()
+	userID := uuid.New()
+	expiresAt := time.Now().Add(5 * 24 * time.Hour) // still in the future
+
+	svc := NewService(repo, &fakeStripeAPI{}, &fakeRevenueCatAPI{
+		webhookEventType: "CANCELLATION",
+		webhookSnapshot: &RevenueCatSnapshot{
+			UserID: userID, Active: true, ExpiresAt: &expiresAt, Store: "play_store", EntitlementID: "premium",
+		},
+	}, testPlanConfig())
+
+	if err := svc.HandleRevenueCatWebhookEvent(context.Background(), []byte("{}"), "auth"); err != nil {
+		t.Fatalf("HandleRevenueCatWebhookEvent() error = %v", err)
+	}
+
+	got, _ := svc.GetStatus(context.Background(), userID)
+	if !got.IsActive() {
+		t.Error("a CANCELLATION event (auto-renew off) must still grant access until the expiry date")
+	}
+}
+
+func TestHandleRevenueCatWebhookEvent_ExpirationRevokesAccess(t *testing.T) {
+	repo := newFakeRepository()
+	userID := uuid.New()
+	expiresAt := time.Now().Add(-1 * time.Hour) // already in the past
+
+	svc := NewService(repo, &fakeStripeAPI{}, &fakeRevenueCatAPI{
+		webhookEventType: "EXPIRATION",
+		webhookSnapshot: &RevenueCatSnapshot{
+			UserID: userID, Active: false, ExpiresAt: &expiresAt, Store: "app_store", EntitlementID: "premium",
+		},
+	}, testPlanConfig())
+
+	if err := svc.HandleRevenueCatWebhookEvent(context.Background(), []byte("{}"), "auth"); err != nil {
+		t.Fatalf("HandleRevenueCatWebhookEvent() error = %v", err)
+	}
+
+	got, _ := svc.GetStatus(context.Background(), userID)
+	if got.IsActive() {
+		t.Error("an EXPIRATION event must revoke access")
+	}
+}
+
+func TestHandleRevenueCatWebhookEvent_IgnoredEventTypeIsNoop(t *testing.T) {
+	repo := newFakeRepository()
+	svc := NewService(repo, &fakeStripeAPI{}, &fakeRevenueCatAPI{webhookEventType: "TEST", webhookSnapshot: nil}, testPlanConfig())
+
+	if err := svc.HandleRevenueCatWebhookEvent(context.Background(), []byte("{}"), "auth"); err != nil {
+		t.Fatalf("HandleRevenueCatWebhookEvent() error = %v", err)
+	}
+	if len(repo.byUser) != 0 {
+		t.Errorf("expected no subscription row to be written, got %d", len(repo.byUser))
+	}
+}
+
+func TestReconcileFromRevenueCat_SyncsEntitlement(t *testing.T) {
+	repo := newFakeRepository()
+	userID := uuid.New()
+	expiresAt := time.Now().Add(30 * 24 * time.Hour)
+
+	svc := NewService(repo, &fakeStripeAPI{}, &fakeRevenueCatAPI{
+		entitlementSnapshot: &RevenueCatSnapshot{
+			UserID: userID, Active: true, ExpiresAt: &expiresAt, Store: "app_store", EntitlementID: "premium",
+		},
+	}, testPlanConfig())
+
+	if err := svc.ReconcileFromRevenueCat(context.Background(), userID); err != nil {
+		t.Fatalf("ReconcileFromRevenueCat() error = %v", err)
+	}
+
+	got, _ := svc.GetStatus(context.Background(), userID)
+	if !got.IsActive() {
+		t.Error("expected the subscription to be active after reconciling from RevenueCat")
 	}
 }

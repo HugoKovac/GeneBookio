@@ -32,6 +32,16 @@ const (
 	FieldCurrentPeriodEnd = "current_period_end"
 	// FieldCancelAtPeriodEnd holds the string denoting the cancel_at_period_end field in the database.
 	FieldCancelAtPeriodEnd = "cancel_at_period_end"
+	// FieldRevenuecatActive holds the string denoting the revenuecat_active field in the database.
+	FieldRevenuecatActive = "revenuecat_active"
+	// FieldRevenuecatExpiresAt holds the string denoting the revenuecat_expires_at field in the database.
+	FieldRevenuecatExpiresAt = "revenuecat_expires_at"
+	// FieldRevenuecatStore holds the string denoting the revenuecat_store field in the database.
+	FieldRevenuecatStore = "revenuecat_store"
+	// FieldRevenuecatEntitlementID holds the string denoting the revenuecat_entitlement_id field in the database.
+	FieldRevenuecatEntitlementID = "revenuecat_entitlement_id"
+	// FieldRevenuecatOriginalTransactionID holds the string denoting the revenuecat_original_transaction_id field in the database.
+	FieldRevenuecatOriginalTransactionID = "revenuecat_original_transaction_id"
 	// Table holds the table name of the subscription in the database.
 	Table = "subscriptions"
 )
@@ -47,6 +57,11 @@ var Columns = []string{
 	FieldStatus,
 	FieldCurrentPeriodEnd,
 	FieldCancelAtPeriodEnd,
+	FieldRevenuecatActive,
+	FieldRevenuecatExpiresAt,
+	FieldRevenuecatStore,
+	FieldRevenuecatEntitlementID,
+	FieldRevenuecatOriginalTransactionID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -72,6 +87,14 @@ var (
 	StripeSubscriptionIDValidator func(string) error
 	// DefaultCancelAtPeriodEnd holds the default value on creation for the "cancel_at_period_end" field.
 	DefaultCancelAtPeriodEnd bool
+	// DefaultRevenuecatActive holds the default value on creation for the "revenuecat_active" field.
+	DefaultRevenuecatActive bool
+	// RevenuecatStoreValidator is a validator for the "revenuecat_store" field. It is called by the builders before save.
+	RevenuecatStoreValidator func(string) error
+	// RevenuecatEntitlementIDValidator is a validator for the "revenuecat_entitlement_id" field. It is called by the builders before save.
+	RevenuecatEntitlementIDValidator func(string) error
+	// RevenuecatOriginalTransactionIDValidator is a validator for the "revenuecat_original_transaction_id" field. It is called by the builders before save.
+	RevenuecatOriginalTransactionIDValidator func(string) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -134,4 +157,29 @@ func ByCurrentPeriodEnd(opts ...sql.OrderTermOption) OrderOption {
 // ByCancelAtPeriodEnd orders the results by the cancel_at_period_end field.
 func ByCancelAtPeriodEnd(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCancelAtPeriodEnd, opts...).ToFunc()
+}
+
+// ByRevenuecatActive orders the results by the revenuecat_active field.
+func ByRevenuecatActive(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRevenuecatActive, opts...).ToFunc()
+}
+
+// ByRevenuecatExpiresAt orders the results by the revenuecat_expires_at field.
+func ByRevenuecatExpiresAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRevenuecatExpiresAt, opts...).ToFunc()
+}
+
+// ByRevenuecatStore orders the results by the revenuecat_store field.
+func ByRevenuecatStore(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRevenuecatStore, opts...).ToFunc()
+}
+
+// ByRevenuecatEntitlementID orders the results by the revenuecat_entitlement_id field.
+func ByRevenuecatEntitlementID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRevenuecatEntitlementID, opts...).ToFunc()
+}
+
+// ByRevenuecatOriginalTransactionID orders the results by the revenuecat_original_transaction_id field.
+func ByRevenuecatOriginalTransactionID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRevenuecatOriginalTransactionID, opts...).ToFunc()
 }

@@ -1,5 +1,6 @@
 // src/layouts/AuthLayout.tsx
 import { Outlet } from 'react-router-dom';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 export default function AuthLayout() {
   return (
@@ -14,6 +15,7 @@ export default function AuthLayout() {
         paddingRight: 'env(safe-area-inset-right, 0px)',
       }}
     >
+      <LanguageSwitcher />
       <Outlet />
     </div>
   );

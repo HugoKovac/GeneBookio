@@ -1,9 +1,13 @@
 // src/layouts/MainLayout.tsx
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { AppShell, Text, UnstyledButton } from '@mantine/core';
-import { IconHome, IconHomeFilled, IconHeadphones, IconHeadphonesFilled, IconUser, IconUserFilled } from '@tabler/icons-react';
+import { IconHome, IconHomeFilled, IconBook, IconBookFilled, IconUser, IconUserFilled } from '@tabler/icons-react';
 import type { TablerIcon } from '@tabler/icons-react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../features/auth/useAuth';
+import LanguageSwitcher from '../components/LanguageSwitcher';
+import MiniPlayerBar from '../features/player/components/MiniPlayerBar';
+import NowPlayingOverlay from '../features/player/components/NowPlayingOverlay';
 
 type Tab = {
   to: string;
@@ -16,13 +20,14 @@ type Tab = {
 export default function MainLayout() {
   const location = useLocation();
   const { isAuthenticated } = useAuth();
+  const { t } = useTranslation();
 
   const tabs: Tab[] = [
-    { to: '/', label: 'Home', icon: IconHome, activeIcon: IconHomeFilled, isActive: (p) => p === '/' },
-    { to: '/dashboard', label: 'Library', icon: IconHeadphones, activeIcon: IconHeadphonesFilled, isActive: (p) => p.startsWith('/dashboard') || p.startsWith('/books') },
+    { to: '/', label: t('layout.nav.home'), icon: IconHome, activeIcon: IconHomeFilled, isActive: (p) => p === '/' },
+    { to: '/dashboard', label: t('layout.nav.library'), icon: IconBook, activeIcon: IconBookFilled, isActive: (p) => p.startsWith('/dashboard') || p.startsWith('/books') },
     {
       to: isAuthenticated ? '/profile' : '/login',
-      label: isAuthenticated ? 'Profile' : 'Sign in',
+      label: isAuthenticated ? t('layout.nav.profile') : t('layout.nav.signIn'),
       icon: IconUser,
       activeIcon: IconUserFilled,
       isActive: (p) => p === '/profile' || p === '/login' || p === '/register',
@@ -31,9 +36,13 @@ export default function MainLayout() {
 
   return (
     <AppShell footer={{ height: 64 }}>
+      <LanguageSwitcher />
       <AppShell.Main pt="env(safe-area-inset-top, 0px)" pl="env(safe-area-inset-left, 0px)" pr="env(safe-area-inset-right, 0px)">
         <Outlet />
       </AppShell.Main>
+
+      <MiniPlayerBar />
+      <NowPlayingOverlay />
 
       <AppShell.Footer>
         <nav style={{ display: 'flex', height: 64 }}>

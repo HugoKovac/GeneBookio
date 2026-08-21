@@ -5,6 +5,7 @@ import (
 	"errors"
 	"hkorpo/book/pkg/ent"
 	"hkorpo/book/pkg/errorwrapper"
+	"net/http"
 
 	"github.com/google/uuid"
 )
@@ -13,6 +14,10 @@ import (
 // Stripe-Signature header doesn't match the raw body — callers (the HTTP
 // handler) use errors.Is to map it to a 401 instead of a 500.
 var ErrInvalidWebhookSignature = errors.New("invalid stripe webhook signature")
+
+// ErrInvalidRevenueCatWebhookAuth is returned by HandleRevenueCatWebhookEvent
+// when the Authorization header doesn't match the configured secret.
+var ErrInvalidRevenueCatWebhookAuth = errors.New("invalid revenuecat webhook authorization")
 
 // StripeAPI is the port to Stripe — StripeClient is its only implementation.
 // Declared here per repo convention (cf. library.BooksAPI).
@@ -34,6 +39,19 @@ type StripeAPI interface {
 	ConstructWebhookEvent(rawBody []byte, signatureHeader string) (eventType string, snapshot *SubscriptionSnapshot, err error)
 }
 
+// RevenueCatAPI is the port to RevenueCat — RevenueCatClient is its only
+// implementation. Declared here per repo convention (cf. StripeAPI above).
+type RevenueCatAPI interface {
+	// ConstructWebhookEvent verifies the Authorization header and, for an
+	// entitlement-relevant event, returns the resulting snapshot; snapshot
+	// is nil for event types this service doesn't act on.
+	ConstructWebhookEvent(rawBody []byte, authorizationHeader string) (eventType string, snapshot *RevenueCatSnapshot, err error)
+	// GetEntitlementSnapshot is the reconcile-without-waiting-for-webhook
+	// fast path (see ReconcileFromRevenueCat) — used right after a native
+	// purchase completes client-side.
+	GetEntitlementSnapshot(ctx context.Context, appUserID string) (*RevenueCatSnapshot, error)
+}
+
 type CreateCheckoutSessionRequest struct {
 	UserID        uuid.UUID
 	CustomerEmail string
@@ -52,13 +70,14 @@ type PlanConfig struct {
 }
 
 type Service struct {
-	repo   Repository
-	stripe StripeAPI
-	cfg    PlanConfig
+	repo       Repository
+	stripe     StripeAPI
+	revenueCat RevenueCatAPI
+	cfg        PlanConfig
 }
 
-func NewService(repo Repository, stripeAPI StripeAPI, cfg PlanConfig) *Service {
-	return &Service{repo: repo, stripe: stripeAPI, cfg: cfg}
+func NewService(repo Repository, stripeAPI StripeAPI, revenueCatAPI RevenueCatAPI, cfg PlanConfig) *Service {
+	return &Service{repo: repo, stripe: stripeAPI, revenueCat: revenueCatAPI, cfg: cfg}
 }
 
 // CreateCheckoutSession returns the Stripe-hosted Checkout URL to redirect
@@ -118,12 +137,41 @@ func (s *Service) ReconcileFromCheckoutSession(ctx context.Context, userID uuid.
 func (s *Service) HandleWebhookEvent(ctx context.Context, rawBody []byte, signatureHeader string) error {
 	_, snapshot, err := s.stripe.ConstructWebhookEvent(rawBody, signatureHeader)
 	if err != nil {
-		return errorwrapper.Wrap(ErrInvalidWebhookSignature)
+		return errorwrapper.Wrap(errorwrapper.WithStatus(http.StatusUnauthorized, ErrInvalidWebhookSignature))
 	}
 	if snapshot == nil {
 		return nil // an event type this service doesn't act on
 	}
 	_, err = s.repo.Upsert(ctx, snapshot)
+	return err
+}
+
+// HandleRevenueCatWebhookEvent verifies and processes a RevenueCat webhook
+// delivery. Like Stripe's, this is idempotent-by-construction: it always
+// overwrites the revenuecat_* columns with the event's own computed
+// snapshot, so re-processing (or out-of-order delivery) is harmless.
+func (s *Service) HandleRevenueCatWebhookEvent(ctx context.Context, rawBody []byte, authorizationHeader string) error {
+	_, snapshot, err := s.revenueCat.ConstructWebhookEvent(rawBody, authorizationHeader)
+	if err != nil {
+		return errorwrapper.Wrap(errorwrapper.WithStatus(http.StatusUnauthorized, ErrInvalidRevenueCatWebhookAuth))
+	}
+	if snapshot == nil {
+		return nil // an event type this service doesn't act on
+	}
+	_, err = s.repo.UpsertRevenueCat(ctx, snapshot)
+	return err
+}
+
+// ReconcileFromRevenueCat is the native-purchase equivalent of
+// ReconcileFromCheckoutSession — called right after Purchases.purchasePackage()
+// resolves client-side, so the UI reflects the new entitlement immediately
+// instead of waiting on async webhook delivery.
+func (s *Service) ReconcileFromRevenueCat(ctx context.Context, userID uuid.UUID) error {
+	snapshot, err := s.revenueCat.GetEntitlementSnapshot(ctx, userID.String())
+	if err != nil {
+		return err
+	}
+	_, err = s.repo.UpsertRevenueCat(ctx, snapshot)
 	return err
 }
 

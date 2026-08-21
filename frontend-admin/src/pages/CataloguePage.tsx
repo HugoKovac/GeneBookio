@@ -8,8 +8,8 @@ const STAGES: { key: keyof CatalogBook; label: string }[] = [
   { key: 'Uploaded', label: 'Uploaded' },
   { key: 'Parsed', label: 'Parsed' },
   { key: 'Prepared', label: 'Prepared' },
-  { key: 'ScriptGenerated', label: 'Script' },
-  { key: 'TTSGenerated', label: 'Audio' },
+  { key: 'ScriptGenerated', label: 'Summary' },
+  { key: 'TTSGenerated', label: 'Audio summary' },
 ];
 
 // Maps a failed book's FailedStage (the backend queue channel that failed,

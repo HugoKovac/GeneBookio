@@ -1,9 +1,7 @@
 package subscription
 
 import (
-	"errors"
 	"hkorpo/book/internal/user"
-	"hkorpo/book/pkg/ent"
 	"net/http"
 
 	"github.com/gofiber/fiber/v3"
@@ -30,20 +28,8 @@ func NewHandler(router fiber.Router, service *Service, userService *user.Service
 	h.router.Get("/me", requireAuth, h.GetMe)
 	h.router.Post("/portal", requireAuth, h.CreatePortal)
 	h.router.Post("/webhook", h.HandleWebhook)
-}
-
-// respondError maps a service error to an explicit HTTP response. The
-// shared access-log error-mapping middleware (pkg/fiber/logger) only
-// recognizes validation/ent-constraint/ent-not-found/minio/fiber-bind
-// errors — anything else it logs correctly but never actually writes to the
-// response, which falls through to a misleading 200 with an empty body.
-// Stripe API failures (the dominant failure mode here) aren't in that list,
-// so these handlers set their own status rather than `return err`.
-func respondError(c fiber.Ctx, err error) error {
-	if ent.IsNotFound(err) {
-		return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": http.StatusText(http.StatusNotFound)})
-	}
-	return c.Status(http.StatusBadGateway).JSON(fiber.Map{"error": "unable to complete this request, please try again"})
+	h.router.Post("/webhook/revenuecat", h.HandleRevenueCatWebhook)
+	h.router.Post("/reconcile/revenuecat", requireAuth, h.ReconcileRevenueCat)
 }
 
 type checkoutResponseDTO struct {
@@ -67,12 +53,12 @@ func (h *Handler) CreateCheckout(c fiber.Ctx) error {
 
 	u, err := h.userService.GetByID(c.RequestCtx(), authUserID)
 	if err != nil {
-		return respondError(c, err)
+		return err
 	}
 
 	checkoutURL, err := h.service.CreateCheckoutSession(c.RequestCtx(), authUserID, u.Email)
 	if err != nil {
-		return respondError(c, err)
+		return err
 	}
 
 	return c.JSON(checkoutResponseDTO{CheckoutURL: checkoutURL})
@@ -80,6 +66,7 @@ func (h *Handler) CreateCheckout(c fiber.Ctx) error {
 
 type subscriptionStatusDTO struct {
 	Status            string  `json:"status"`
+	IsActive          bool    `json:"isActive"` // sub.IsActive() — authoritative regardless of origin (Stripe or RevenueCat)
 	CurrentPeriodEnd  *string `json:"currentPeriodEnd,omitempty"`
 	CancelAtPeriodEnd bool    `json:"cancelAtPeriodEnd"`
 }
@@ -104,21 +91,22 @@ func (h *Handler) GetMe(c fiber.Ctx) error {
 
 	if sessionID := c.Query("sessionID"); sessionID != "" {
 		if err := h.service.ReconcileFromCheckoutSession(c.RequestCtx(), authUserID, sessionID); err != nil {
-			return respondError(c, err)
+			return err
 		}
 	}
 
 	sub, err := h.service.GetStatus(c.RequestCtx(), authUserID)
 	if err != nil {
-		return respondError(c, err)
+		return err
 	}
 
 	if sub == nil {
-		return c.JSON(subscriptionStatusDTO{Status: "none"})
+		return c.JSON(subscriptionStatusDTO{Status: "none", IsActive: false})
 	}
 
 	dto := subscriptionStatusDTO{
 		Status:            sub.Status.String(),
+		IsActive:          sub.IsActive(),
 		CancelAtPeriodEnd: sub.CancelAtPeriodEnd,
 	}
 	if sub.CurrentPeriodEnd != nil {
@@ -150,7 +138,7 @@ func (h *Handler) CreatePortal(c fiber.Ctx) error {
 
 	portalURL, err := h.service.CreatePortalSession(c.RequestCtx(), authUserID)
 	if err != nil {
-		return respondError(c, err)
+		return err
 	}
 
 	return c.JSON(portalResponseDTO{PortalURL: portalURL})
@@ -170,11 +158,71 @@ func (h *Handler) HandleWebhook(c fiber.Ctx) error {
 	signature := c.Get("Stripe-Signature")
 
 	if err := h.service.HandleWebhookEvent(c.RequestCtx(), rawBody, signature); err != nil {
-		if errors.Is(err, ErrInvalidWebhookSignature) {
-			return c.SendStatus(http.StatusUnauthorized)
-		}
-		return c.SendStatus(http.StatusInternalServerError)
+		return err
 	}
 
 	return c.SendStatus(http.StatusOK)
+}
+
+// HandleRevenueCatWebhook processes a RevenueCat webhook delivery (a native
+// iOS/Android in-app purchase event) — the same 200/401/500 contract as
+// HandleWebhook above, for the same reasons.
+//
+// @Summary      RevenueCat webhook
+// @Tags         subscriptions
+// @Success      200
+// @Failure      401
+// @Router       /subscriptions/webhook/revenuecat [post]
+func (h *Handler) HandleRevenueCatWebhook(c fiber.Ctx) error {
+	rawBody := c.Body()
+	authHeader := c.Get(fiber.HeaderAuthorization)
+
+	if err := h.service.HandleRevenueCatWebhookEvent(c.RequestCtx(), rawBody, authHeader); err != nil {
+		return err
+	}
+
+	return c.SendStatus(http.StatusOK)
+}
+
+// ReconcileRevenueCat syncs the authenticated user's subscription row
+// directly from RevenueCat's current entitlement state — called by the
+// native app right after a purchase completes, so the UI doesn't have to
+// wait on async webhook delivery. Mirrors GetMe's ?sessionID= Stripe
+// reconcile path.
+//
+// @Summary      Reconcile subscription status from RevenueCat
+// @Tags         subscriptions
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {object}  subscriptionStatusDTO
+// @Router       /subscriptions/reconcile/revenuecat [post]
+func (h *Handler) ReconcileRevenueCat(c fiber.Ctx) error {
+	authUserID, ok := c.Locals("authUserID").(uuid.UUID)
+	if !ok {
+		return c.SendStatus(http.StatusUnauthorized)
+	}
+
+	if err := h.service.ReconcileFromRevenueCat(c.RequestCtx(), authUserID); err != nil {
+		return err
+	}
+
+	sub, err := h.service.GetStatus(c.RequestCtx(), authUserID)
+	if err != nil {
+		return err
+	}
+	if sub == nil {
+		return c.JSON(subscriptionStatusDTO{Status: "none", IsActive: false})
+	}
+
+	dto := subscriptionStatusDTO{
+		Status:            sub.Status.String(),
+		IsActive:          sub.IsActive(),
+		CancelAtPeriodEnd: sub.CancelAtPeriodEnd,
+	}
+	if sub.CurrentPeriodEnd != nil {
+		formatted := sub.CurrentPeriodEnd.Format(http.TimeFormat)
+		dto.CurrentPeriodEnd = &formatted
+	}
+
+	return c.JSON(dto)
 }

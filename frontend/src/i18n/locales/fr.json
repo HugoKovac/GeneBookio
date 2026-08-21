@@ -1,0 +1,110 @@
+{
+  "app": {
+    "name": "GeneBookio"
+  },
+  "layout": {
+    "nav": {
+      "home": "Accueil",
+      "library": "Bibliothèque",
+      "profile": "Profil",
+      "signIn": "Connexion"
+    }
+  },
+  "home": {
+    "guest": {
+      "tagline": "Vos livres, résumés. Connectez-vous pour reprendre où vous en étiez.",
+      "signIn": "Se connecter",
+      "createAccount": "Créer un compte"
+    },
+    "greeting": "Bonjour, {{name}}",
+    "welcomeBack": "Content de vous revoir",
+    "continueLibrary": "Continuer votre bibliothèque",
+    "seeAll": "Tout voir",
+    "noBooks": "Aucun livre dans votre bibliothèque pour l'instant.",
+    "loadError": "Impossible de charger votre bibliothèque."
+  },
+  "about": {
+    "title": "À propos",
+    "description": "GeneBookio transforme vos livres en résumés audio concis."
+  },
+  "auth": {
+    "login": {
+      "title": "Content de vous revoir",
+      "subtitle": "Connectez-vous pour accéder à votre bibliothèque.",
+      "email": "E-mail",
+      "password": "Mot de passe",
+      "submit": "Se connecter",
+      "noAccount": "Nouveau ici ?",
+      "createAccount": "Créer un compte",
+      "error": "Connexion impossible."
+    },
+    "register": {
+      "title": "Créez votre compte",
+      "subtitle": "Commencez à construire votre bibliothèque personnelle.",
+      "firstname": "Prénom",
+      "lastname": "Nom",
+      "email": "E-mail",
+      "password": "Mot de passe",
+      "passwordHint": "Au moins 12 caractères",
+      "confirmPassword": "Confirmer le mot de passe",
+      "submit": "Créer le compte",
+      "haveAccount": "Vous avez déjà un compte ?",
+      "signIn": "Se connecter",
+      "passwordMismatch": "Les mots de passe ne correspondent pas.",
+      "error": "Impossible de créer votre compte."
+    }
+  },
+  "dashboard": {
+    "title": "Votre bibliothèque",
+    "noBooks": "Aucun livre dans votre catalogue pour l'instant.",
+    "unknownAuthor": "Auteur inconnu",
+    "loadError": "Impossible de charger votre bibliothèque."
+  },
+  "bookDetail": {
+    "back": "Retour à la bibliothèque",
+    "notFound": "Ce livre est introuvable dans votre bibliothèque.",
+    "loadError": "Impossible de charger ce livre.",
+    "summaryUnavailable": "Le résumé audio n'est pas encore disponible pour ce livre.",
+    "play": "Lecture",
+    "pause": "Pause",
+    "scriptReady": "Résumé prêt",
+    "unknownAuthor": "Auteur inconnu",
+    "description": "Description"
+  },
+  "profile": {
+    "title": "Profil",
+    "updated": "Votre profil a été mis à jour.",
+    "firstname": "Prénom",
+    "lastname": "Nom",
+    "save": "Enregistrer",
+    "manageSubscription": "Gérer l'abonnement",
+    "signOut": "Se déconnecter",
+    "deleteAccount": "Supprimer le compte",
+    "deleteAccountBody": "Cette action supprimera définitivement votre compte. Vous ne pourrez plus vous connecter. Cette action est irréversible.",
+    "cancel": "Annuler",
+    "deleteConfirm": "Supprimer mon compte",
+    "language": "Langue",
+    "loadError": "Impossible de charger votre profil.",
+    "saveError": "Impossible de mettre à jour votre profil.",
+    "portalError": "Impossible d'ouvrir le portail de facturation.",
+    "deleteError": "Impossible de supprimer votre compte."
+  },
+  "subscribe": {
+    "title": "Abonnez-vous pour les résumés",
+    "subtitle": "Débloquez les résumés audio de tous les livres de votre bibliothèque.",
+    "cta": "S'abonner",
+    "error": "Impossible de démarrer le paiement. Veuillez réessayer."
+  },
+  "subscribeReturn": {
+    "confirming": "Confirmation de votre paiement…",
+    "activeTitle": "Vous êtes abonné(e) !",
+    "activeSubtitle": "Votre abonnement est actif — profitez de votre bibliothèque.",
+    "goToLibrary": "Accéder à votre bibliothèque",
+    "pendingTitle": "Presque terminé",
+    "pendingSubtitle": "Nous n'avons pas encore confirmé votre paiement — cela peut prendre un instant. Actualisez cette page dans un instant, ou consultez votre bibliothèque.",
+    "error": "Impossible de confirmer votre abonnement."
+  },
+  "subscription": {
+    "loadError": "Impossible de charger votre abonnement."
+  }
+}

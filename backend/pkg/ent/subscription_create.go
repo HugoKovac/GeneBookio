@@ -129,6 +129,76 @@ func (_c *SubscriptionCreate) SetNillableCancelAtPeriodEnd(v *bool) *Subscriptio
 	return _c
 }
 
+// SetRevenuecatActive sets the "revenuecat_active" field.
+func (_c *SubscriptionCreate) SetRevenuecatActive(v bool) *SubscriptionCreate {
+	_c.mutation.SetRevenuecatActive(v)
+	return _c
+}
+
+// SetNillableRevenuecatActive sets the "revenuecat_active" field if the given value is not nil.
+func (_c *SubscriptionCreate) SetNillableRevenuecatActive(v *bool) *SubscriptionCreate {
+	if v != nil {
+		_c.SetRevenuecatActive(*v)
+	}
+	return _c
+}
+
+// SetRevenuecatExpiresAt sets the "revenuecat_expires_at" field.
+func (_c *SubscriptionCreate) SetRevenuecatExpiresAt(v time.Time) *SubscriptionCreate {
+	_c.mutation.SetRevenuecatExpiresAt(v)
+	return _c
+}
+
+// SetNillableRevenuecatExpiresAt sets the "revenuecat_expires_at" field if the given value is not nil.
+func (_c *SubscriptionCreate) SetNillableRevenuecatExpiresAt(v *time.Time) *SubscriptionCreate {
+	if v != nil {
+		_c.SetRevenuecatExpiresAt(*v)
+	}
+	return _c
+}
+
+// SetRevenuecatStore sets the "revenuecat_store" field.
+func (_c *SubscriptionCreate) SetRevenuecatStore(v string) *SubscriptionCreate {
+	_c.mutation.SetRevenuecatStore(v)
+	return _c
+}
+
+// SetNillableRevenuecatStore sets the "revenuecat_store" field if the given value is not nil.
+func (_c *SubscriptionCreate) SetNillableRevenuecatStore(v *string) *SubscriptionCreate {
+	if v != nil {
+		_c.SetRevenuecatStore(*v)
+	}
+	return _c
+}
+
+// SetRevenuecatEntitlementID sets the "revenuecat_entitlement_id" field.
+func (_c *SubscriptionCreate) SetRevenuecatEntitlementID(v string) *SubscriptionCreate {
+	_c.mutation.SetRevenuecatEntitlementID(v)
+	return _c
+}
+
+// SetNillableRevenuecatEntitlementID sets the "revenuecat_entitlement_id" field if the given value is not nil.
+func (_c *SubscriptionCreate) SetNillableRevenuecatEntitlementID(v *string) *SubscriptionCreate {
+	if v != nil {
+		_c.SetRevenuecatEntitlementID(*v)
+	}
+	return _c
+}
+
+// SetRevenuecatOriginalTransactionID sets the "revenuecat_original_transaction_id" field.
+func (_c *SubscriptionCreate) SetRevenuecatOriginalTransactionID(v string) *SubscriptionCreate {
+	_c.mutation.SetRevenuecatOriginalTransactionID(v)
+	return _c
+}
+
+// SetNillableRevenuecatOriginalTransactionID sets the "revenuecat_original_transaction_id" field if the given value is not nil.
+func (_c *SubscriptionCreate) SetNillableRevenuecatOriginalTransactionID(v *string) *SubscriptionCreate {
+	if v != nil {
+		_c.SetRevenuecatOriginalTransactionID(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *SubscriptionCreate) SetID(v uuid.UUID) *SubscriptionCreate {
 	_c.mutation.SetID(v)
@@ -194,6 +264,10 @@ func (_c *SubscriptionCreate) defaults() {
 		v := subscription.DefaultCancelAtPeriodEnd
 		_c.mutation.SetCancelAtPeriodEnd(v)
 	}
+	if _, ok := _c.mutation.RevenuecatActive(); !ok {
+		v := subscription.DefaultRevenuecatActive
+		_c.mutation.SetRevenuecatActive(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := subscription.DefaultID()
 		_c.mutation.SetID(v)
@@ -231,6 +305,24 @@ func (_c *SubscriptionCreate) check() error {
 	}
 	if _, ok := _c.mutation.CancelAtPeriodEnd(); !ok {
 		return &ValidationError{Name: "cancel_at_period_end", err: errors.New(`ent: missing required field "Subscription.cancel_at_period_end"`)}
+	}
+	if _, ok := _c.mutation.RevenuecatActive(); !ok {
+		return &ValidationError{Name: "revenuecat_active", err: errors.New(`ent: missing required field "Subscription.revenuecat_active"`)}
+	}
+	if v, ok := _c.mutation.RevenuecatStore(); ok {
+		if err := subscription.RevenuecatStoreValidator(v); err != nil {
+			return &ValidationError{Name: "revenuecat_store", err: fmt.Errorf(`ent: validator failed for field "Subscription.revenuecat_store": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.RevenuecatEntitlementID(); ok {
+		if err := subscription.RevenuecatEntitlementIDValidator(v); err != nil {
+			return &ValidationError{Name: "revenuecat_entitlement_id", err: fmt.Errorf(`ent: validator failed for field "Subscription.revenuecat_entitlement_id": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.RevenuecatOriginalTransactionID(); ok {
+		if err := subscription.RevenuecatOriginalTransactionIDValidator(v); err != nil {
+			return &ValidationError{Name: "revenuecat_original_transaction_id", err: fmt.Errorf(`ent: validator failed for field "Subscription.revenuecat_original_transaction_id": %w`, err)}
+		}
 	}
 	return nil
 }
@@ -299,6 +391,26 @@ func (_c *SubscriptionCreate) createSpec() (*Subscription, *sqlgraph.CreateSpec)
 	if value, ok := _c.mutation.CancelAtPeriodEnd(); ok {
 		_spec.SetField(subscription.FieldCancelAtPeriodEnd, field.TypeBool, value)
 		_node.CancelAtPeriodEnd = value
+	}
+	if value, ok := _c.mutation.RevenuecatActive(); ok {
+		_spec.SetField(subscription.FieldRevenuecatActive, field.TypeBool, value)
+		_node.RevenuecatActive = value
+	}
+	if value, ok := _c.mutation.RevenuecatExpiresAt(); ok {
+		_spec.SetField(subscription.FieldRevenuecatExpiresAt, field.TypeTime, value)
+		_node.RevenuecatExpiresAt = &value
+	}
+	if value, ok := _c.mutation.RevenuecatStore(); ok {
+		_spec.SetField(subscription.FieldRevenuecatStore, field.TypeString, value)
+		_node.RevenuecatStore = value
+	}
+	if value, ok := _c.mutation.RevenuecatEntitlementID(); ok {
+		_spec.SetField(subscription.FieldRevenuecatEntitlementID, field.TypeString, value)
+		_node.RevenuecatEntitlementID = value
+	}
+	if value, ok := _c.mutation.RevenuecatOriginalTransactionID(); ok {
+		_spec.SetField(subscription.FieldRevenuecatOriginalTransactionID, field.TypeString, value)
+		_node.RevenuecatOriginalTransactionID = value
 	}
 	return _node, _spec
 }
@@ -451,6 +563,90 @@ func (u *SubscriptionUpsert) SetCancelAtPeriodEnd(v bool) *SubscriptionUpsert {
 // UpdateCancelAtPeriodEnd sets the "cancel_at_period_end" field to the value that was provided on create.
 func (u *SubscriptionUpsert) UpdateCancelAtPeriodEnd() *SubscriptionUpsert {
 	u.SetExcluded(subscription.FieldCancelAtPeriodEnd)
+	return u
+}
+
+// SetRevenuecatActive sets the "revenuecat_active" field.
+func (u *SubscriptionUpsert) SetRevenuecatActive(v bool) *SubscriptionUpsert {
+	u.Set(subscription.FieldRevenuecatActive, v)
+	return u
+}
+
+// UpdateRevenuecatActive sets the "revenuecat_active" field to the value that was provided on create.
+func (u *SubscriptionUpsert) UpdateRevenuecatActive() *SubscriptionUpsert {
+	u.SetExcluded(subscription.FieldRevenuecatActive)
+	return u
+}
+
+// SetRevenuecatExpiresAt sets the "revenuecat_expires_at" field.
+func (u *SubscriptionUpsert) SetRevenuecatExpiresAt(v time.Time) *SubscriptionUpsert {
+	u.Set(subscription.FieldRevenuecatExpiresAt, v)
+	return u
+}
+
+// UpdateRevenuecatExpiresAt sets the "revenuecat_expires_at" field to the value that was provided on create.
+func (u *SubscriptionUpsert) UpdateRevenuecatExpiresAt() *SubscriptionUpsert {
+	u.SetExcluded(subscription.FieldRevenuecatExpiresAt)
+	return u
+}
+
+// ClearRevenuecatExpiresAt clears the value of the "revenuecat_expires_at" field.
+func (u *SubscriptionUpsert) ClearRevenuecatExpiresAt() *SubscriptionUpsert {
+	u.SetNull(subscription.FieldRevenuecatExpiresAt)
+	return u
+}
+
+// SetRevenuecatStore sets the "revenuecat_store" field.
+func (u *SubscriptionUpsert) SetRevenuecatStore(v string) *SubscriptionUpsert {
+	u.Set(subscription.FieldRevenuecatStore, v)
+	return u
+}
+
+// UpdateRevenuecatStore sets the "revenuecat_store" field to the value that was provided on create.
+func (u *SubscriptionUpsert) UpdateRevenuecatStore() *SubscriptionUpsert {
+	u.SetExcluded(subscription.FieldRevenuecatStore)
+	return u
+}
+
+// ClearRevenuecatStore clears the value of the "revenuecat_store" field.
+func (u *SubscriptionUpsert) ClearRevenuecatStore() *SubscriptionUpsert {
+	u.SetNull(subscription.FieldRevenuecatStore)
+	return u
+}
+
+// SetRevenuecatEntitlementID sets the "revenuecat_entitlement_id" field.
+func (u *SubscriptionUpsert) SetRevenuecatEntitlementID(v string) *SubscriptionUpsert {
+	u.Set(subscription.FieldRevenuecatEntitlementID, v)
+	return u
+}
+
+// UpdateRevenuecatEntitlementID sets the "revenuecat_entitlement_id" field to the value that was provided on create.
+func (u *SubscriptionUpsert) UpdateRevenuecatEntitlementID() *SubscriptionUpsert {
+	u.SetExcluded(subscription.FieldRevenuecatEntitlementID)
+	return u
+}
+
+// ClearRevenuecatEntitlementID clears the value of the "revenuecat_entitlement_id" field.
+func (u *SubscriptionUpsert) ClearRevenuecatEntitlementID() *SubscriptionUpsert {
+	u.SetNull(subscription.FieldRevenuecatEntitlementID)
+	return u
+}
+
+// SetRevenuecatOriginalTransactionID sets the "revenuecat_original_transaction_id" field.
+func (u *SubscriptionUpsert) SetRevenuecatOriginalTransactionID(v string) *SubscriptionUpsert {
+	u.Set(subscription.FieldRevenuecatOriginalTransactionID, v)
+	return u
+}
+
+// UpdateRevenuecatOriginalTransactionID sets the "revenuecat_original_transaction_id" field to the value that was provided on create.
+func (u *SubscriptionUpsert) UpdateRevenuecatOriginalTransactionID() *SubscriptionUpsert {
+	u.SetExcluded(subscription.FieldRevenuecatOriginalTransactionID)
+	return u
+}
+
+// ClearRevenuecatOriginalTransactionID clears the value of the "revenuecat_original_transaction_id" field.
+func (u *SubscriptionUpsert) ClearRevenuecatOriginalTransactionID() *SubscriptionUpsert {
+	u.SetNull(subscription.FieldRevenuecatOriginalTransactionID)
 	return u
 }
 
@@ -621,6 +817,104 @@ func (u *SubscriptionUpsertOne) SetCancelAtPeriodEnd(v bool) *SubscriptionUpsert
 func (u *SubscriptionUpsertOne) UpdateCancelAtPeriodEnd() *SubscriptionUpsertOne {
 	return u.Update(func(s *SubscriptionUpsert) {
 		s.UpdateCancelAtPeriodEnd()
+	})
+}
+
+// SetRevenuecatActive sets the "revenuecat_active" field.
+func (u *SubscriptionUpsertOne) SetRevenuecatActive(v bool) *SubscriptionUpsertOne {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.SetRevenuecatActive(v)
+	})
+}
+
+// UpdateRevenuecatActive sets the "revenuecat_active" field to the value that was provided on create.
+func (u *SubscriptionUpsertOne) UpdateRevenuecatActive() *SubscriptionUpsertOne {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.UpdateRevenuecatActive()
+	})
+}
+
+// SetRevenuecatExpiresAt sets the "revenuecat_expires_at" field.
+func (u *SubscriptionUpsertOne) SetRevenuecatExpiresAt(v time.Time) *SubscriptionUpsertOne {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.SetRevenuecatExpiresAt(v)
+	})
+}
+
+// UpdateRevenuecatExpiresAt sets the "revenuecat_expires_at" field to the value that was provided on create.
+func (u *SubscriptionUpsertOne) UpdateRevenuecatExpiresAt() *SubscriptionUpsertOne {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.UpdateRevenuecatExpiresAt()
+	})
+}
+
+// ClearRevenuecatExpiresAt clears the value of the "revenuecat_expires_at" field.
+func (u *SubscriptionUpsertOne) ClearRevenuecatExpiresAt() *SubscriptionUpsertOne {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.ClearRevenuecatExpiresAt()
+	})
+}
+
+// SetRevenuecatStore sets the "revenuecat_store" field.
+func (u *SubscriptionUpsertOne) SetRevenuecatStore(v string) *SubscriptionUpsertOne {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.SetRevenuecatStore(v)
+	})
+}
+
+// UpdateRevenuecatStore sets the "revenuecat_store" field to the value that was provided on create.
+func (u *SubscriptionUpsertOne) UpdateRevenuecatStore() *SubscriptionUpsertOne {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.UpdateRevenuecatStore()
+	})
+}
+
+// ClearRevenuecatStore clears the value of the "revenuecat_store" field.
+func (u *SubscriptionUpsertOne) ClearRevenuecatStore() *SubscriptionUpsertOne {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.ClearRevenuecatStore()
+	})
+}
+
+// SetRevenuecatEntitlementID sets the "revenuecat_entitlement_id" field.
+func (u *SubscriptionUpsertOne) SetRevenuecatEntitlementID(v string) *SubscriptionUpsertOne {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.SetRevenuecatEntitlementID(v)
+	})
+}
+
+// UpdateRevenuecatEntitlementID sets the "revenuecat_entitlement_id" field to the value that was provided on create.
+func (u *SubscriptionUpsertOne) UpdateRevenuecatEntitlementID() *SubscriptionUpsertOne {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.UpdateRevenuecatEntitlementID()
+	})
+}
+
+// ClearRevenuecatEntitlementID clears the value of the "revenuecat_entitlement_id" field.
+func (u *SubscriptionUpsertOne) ClearRevenuecatEntitlementID() *SubscriptionUpsertOne {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.ClearRevenuecatEntitlementID()
+	})
+}
+
+// SetRevenuecatOriginalTransactionID sets the "revenuecat_original_transaction_id" field.
+func (u *SubscriptionUpsertOne) SetRevenuecatOriginalTransactionID(v string) *SubscriptionUpsertOne {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.SetRevenuecatOriginalTransactionID(v)
+	})
+}
+
+// UpdateRevenuecatOriginalTransactionID sets the "revenuecat_original_transaction_id" field to the value that was provided on create.
+func (u *SubscriptionUpsertOne) UpdateRevenuecatOriginalTransactionID() *SubscriptionUpsertOne {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.UpdateRevenuecatOriginalTransactionID()
+	})
+}
+
+// ClearRevenuecatOriginalTransactionID clears the value of the "revenuecat_original_transaction_id" field.
+func (u *SubscriptionUpsertOne) ClearRevenuecatOriginalTransactionID() *SubscriptionUpsertOne {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.ClearRevenuecatOriginalTransactionID()
 	})
 }
 
@@ -958,6 +1252,104 @@ func (u *SubscriptionUpsertBulk) SetCancelAtPeriodEnd(v bool) *SubscriptionUpser
 func (u *SubscriptionUpsertBulk) UpdateCancelAtPeriodEnd() *SubscriptionUpsertBulk {
 	return u.Update(func(s *SubscriptionUpsert) {
 		s.UpdateCancelAtPeriodEnd()
+	})
+}
+
+// SetRevenuecatActive sets the "revenuecat_active" field.
+func (u *SubscriptionUpsertBulk) SetRevenuecatActive(v bool) *SubscriptionUpsertBulk {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.SetRevenuecatActive(v)
+	})
+}
+
+// UpdateRevenuecatActive sets the "revenuecat_active" field to the value that was provided on create.
+func (u *SubscriptionUpsertBulk) UpdateRevenuecatActive() *SubscriptionUpsertBulk {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.UpdateRevenuecatActive()
+	})
+}
+
+// SetRevenuecatExpiresAt sets the "revenuecat_expires_at" field.
+func (u *SubscriptionUpsertBulk) SetRevenuecatExpiresAt(v time.Time) *SubscriptionUpsertBulk {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.SetRevenuecatExpiresAt(v)
+	})
+}
+
+// UpdateRevenuecatExpiresAt sets the "revenuecat_expires_at" field to the value that was provided on create.
+func (u *SubscriptionUpsertBulk) UpdateRevenuecatExpiresAt() *SubscriptionUpsertBulk {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.UpdateRevenuecatExpiresAt()
+	})
+}
+
+// ClearRevenuecatExpiresAt clears the value of the "revenuecat_expires_at" field.
+func (u *SubscriptionUpsertBulk) ClearRevenuecatExpiresAt() *SubscriptionUpsertBulk {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.ClearRevenuecatExpiresAt()
+	})
+}
+
+// SetRevenuecatStore sets the "revenuecat_store" field.
+func (u *SubscriptionUpsertBulk) SetRevenuecatStore(v string) *SubscriptionUpsertBulk {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.SetRevenuecatStore(v)
+	})
+}
+
+// UpdateRevenuecatStore sets the "revenuecat_store" field to the value that was provided on create.
+func (u *SubscriptionUpsertBulk) UpdateRevenuecatStore() *SubscriptionUpsertBulk {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.UpdateRevenuecatStore()
+	})
+}
+
+// ClearRevenuecatStore clears the value of the "revenuecat_store" field.
+func (u *SubscriptionUpsertBulk) ClearRevenuecatStore() *SubscriptionUpsertBulk {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.ClearRevenuecatStore()
+	})
+}
+
+// SetRevenuecatEntitlementID sets the "revenuecat_entitlement_id" field.
+func (u *SubscriptionUpsertBulk) SetRevenuecatEntitlementID(v string) *SubscriptionUpsertBulk {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.SetRevenuecatEntitlementID(v)
+	})
+}
+
+// UpdateRevenuecatEntitlementID sets the "revenuecat_entitlement_id" field to the value that was provided on create.
+func (u *SubscriptionUpsertBulk) UpdateRevenuecatEntitlementID() *SubscriptionUpsertBulk {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.UpdateRevenuecatEntitlementID()
+	})
+}
+
+// ClearRevenuecatEntitlementID clears the value of the "revenuecat_entitlement_id" field.
+func (u *SubscriptionUpsertBulk) ClearRevenuecatEntitlementID() *SubscriptionUpsertBulk {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.ClearRevenuecatEntitlementID()
+	})
+}
+
+// SetRevenuecatOriginalTransactionID sets the "revenuecat_original_transaction_id" field.
+func (u *SubscriptionUpsertBulk) SetRevenuecatOriginalTransactionID(v string) *SubscriptionUpsertBulk {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.SetRevenuecatOriginalTransactionID(v)
+	})
+}
+
+// UpdateRevenuecatOriginalTransactionID sets the "revenuecat_original_transaction_id" field to the value that was provided on create.
+func (u *SubscriptionUpsertBulk) UpdateRevenuecatOriginalTransactionID() *SubscriptionUpsertBulk {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.UpdateRevenuecatOriginalTransactionID()
+	})
+}
+
+// ClearRevenuecatOriginalTransactionID clears the value of the "revenuecat_original_transaction_id" field.
+func (u *SubscriptionUpsertBulk) ClearRevenuecatOriginalTransactionID() *SubscriptionUpsertBulk {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.ClearRevenuecatOriginalTransactionID()
 	})
 }
 

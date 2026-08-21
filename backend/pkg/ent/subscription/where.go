@@ -91,6 +91,31 @@ func CancelAtPeriodEnd(v bool) predicate.Subscription {
 	return predicate.Subscription(sql.FieldEQ(FieldCancelAtPeriodEnd, v))
 }
 
+// RevenuecatActive applies equality check predicate on the "revenuecat_active" field. It's identical to RevenuecatActiveEQ.
+func RevenuecatActive(v bool) predicate.Subscription {
+	return predicate.Subscription(sql.FieldEQ(FieldRevenuecatActive, v))
+}
+
+// RevenuecatExpiresAt applies equality check predicate on the "revenuecat_expires_at" field. It's identical to RevenuecatExpiresAtEQ.
+func RevenuecatExpiresAt(v time.Time) predicate.Subscription {
+	return predicate.Subscription(sql.FieldEQ(FieldRevenuecatExpiresAt, v))
+}
+
+// RevenuecatStore applies equality check predicate on the "revenuecat_store" field. It's identical to RevenuecatStoreEQ.
+func RevenuecatStore(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldEQ(FieldRevenuecatStore, v))
+}
+
+// RevenuecatEntitlementID applies equality check predicate on the "revenuecat_entitlement_id" field. It's identical to RevenuecatEntitlementIDEQ.
+func RevenuecatEntitlementID(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldEQ(FieldRevenuecatEntitlementID, v))
+}
+
+// RevenuecatOriginalTransactionID applies equality check predicate on the "revenuecat_original_transaction_id" field. It's identical to RevenuecatOriginalTransactionIDEQ.
+func RevenuecatOriginalTransactionID(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldEQ(FieldRevenuecatOriginalTransactionID, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Subscription {
 	return predicate.Subscription(sql.FieldEQ(FieldCreatedAt, v))
@@ -449,6 +474,291 @@ func CancelAtPeriodEndEQ(v bool) predicate.Subscription {
 // CancelAtPeriodEndNEQ applies the NEQ predicate on the "cancel_at_period_end" field.
 func CancelAtPeriodEndNEQ(v bool) predicate.Subscription {
 	return predicate.Subscription(sql.FieldNEQ(FieldCancelAtPeriodEnd, v))
+}
+
+// RevenuecatActiveEQ applies the EQ predicate on the "revenuecat_active" field.
+func RevenuecatActiveEQ(v bool) predicate.Subscription {
+	return predicate.Subscription(sql.FieldEQ(FieldRevenuecatActive, v))
+}
+
+// RevenuecatActiveNEQ applies the NEQ predicate on the "revenuecat_active" field.
+func RevenuecatActiveNEQ(v bool) predicate.Subscription {
+	return predicate.Subscription(sql.FieldNEQ(FieldRevenuecatActive, v))
+}
+
+// RevenuecatExpiresAtEQ applies the EQ predicate on the "revenuecat_expires_at" field.
+func RevenuecatExpiresAtEQ(v time.Time) predicate.Subscription {
+	return predicate.Subscription(sql.FieldEQ(FieldRevenuecatExpiresAt, v))
+}
+
+// RevenuecatExpiresAtNEQ applies the NEQ predicate on the "revenuecat_expires_at" field.
+func RevenuecatExpiresAtNEQ(v time.Time) predicate.Subscription {
+	return predicate.Subscription(sql.FieldNEQ(FieldRevenuecatExpiresAt, v))
+}
+
+// RevenuecatExpiresAtIn applies the In predicate on the "revenuecat_expires_at" field.
+func RevenuecatExpiresAtIn(vs ...time.Time) predicate.Subscription {
+	return predicate.Subscription(sql.FieldIn(FieldRevenuecatExpiresAt, vs...))
+}
+
+// RevenuecatExpiresAtNotIn applies the NotIn predicate on the "revenuecat_expires_at" field.
+func RevenuecatExpiresAtNotIn(vs ...time.Time) predicate.Subscription {
+	return predicate.Subscription(sql.FieldNotIn(FieldRevenuecatExpiresAt, vs...))
+}
+
+// RevenuecatExpiresAtGT applies the GT predicate on the "revenuecat_expires_at" field.
+func RevenuecatExpiresAtGT(v time.Time) predicate.Subscription {
+	return predicate.Subscription(sql.FieldGT(FieldRevenuecatExpiresAt, v))
+}
+
+// RevenuecatExpiresAtGTE applies the GTE predicate on the "revenuecat_expires_at" field.
+func RevenuecatExpiresAtGTE(v time.Time) predicate.Subscription {
+	return predicate.Subscription(sql.FieldGTE(FieldRevenuecatExpiresAt, v))
+}
+
+// RevenuecatExpiresAtLT applies the LT predicate on the "revenuecat_expires_at" field.
+func RevenuecatExpiresAtLT(v time.Time) predicate.Subscription {
+	return predicate.Subscription(sql.FieldLT(FieldRevenuecatExpiresAt, v))
+}
+
+// RevenuecatExpiresAtLTE applies the LTE predicate on the "revenuecat_expires_at" field.
+func RevenuecatExpiresAtLTE(v time.Time) predicate.Subscription {
+	return predicate.Subscription(sql.FieldLTE(FieldRevenuecatExpiresAt, v))
+}
+
+// RevenuecatExpiresAtIsNil applies the IsNil predicate on the "revenuecat_expires_at" field.
+func RevenuecatExpiresAtIsNil() predicate.Subscription {
+	return predicate.Subscription(sql.FieldIsNull(FieldRevenuecatExpiresAt))
+}
+
+// RevenuecatExpiresAtNotNil applies the NotNil predicate on the "revenuecat_expires_at" field.
+func RevenuecatExpiresAtNotNil() predicate.Subscription {
+	return predicate.Subscription(sql.FieldNotNull(FieldRevenuecatExpiresAt))
+}
+
+// RevenuecatStoreEQ applies the EQ predicate on the "revenuecat_store" field.
+func RevenuecatStoreEQ(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldEQ(FieldRevenuecatStore, v))
+}
+
+// RevenuecatStoreNEQ applies the NEQ predicate on the "revenuecat_store" field.
+func RevenuecatStoreNEQ(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldNEQ(FieldRevenuecatStore, v))
+}
+
+// RevenuecatStoreIn applies the In predicate on the "revenuecat_store" field.
+func RevenuecatStoreIn(vs ...string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldIn(FieldRevenuecatStore, vs...))
+}
+
+// RevenuecatStoreNotIn applies the NotIn predicate on the "revenuecat_store" field.
+func RevenuecatStoreNotIn(vs ...string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldNotIn(FieldRevenuecatStore, vs...))
+}
+
+// RevenuecatStoreGT applies the GT predicate on the "revenuecat_store" field.
+func RevenuecatStoreGT(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldGT(FieldRevenuecatStore, v))
+}
+
+// RevenuecatStoreGTE applies the GTE predicate on the "revenuecat_store" field.
+func RevenuecatStoreGTE(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldGTE(FieldRevenuecatStore, v))
+}
+
+// RevenuecatStoreLT applies the LT predicate on the "revenuecat_store" field.
+func RevenuecatStoreLT(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldLT(FieldRevenuecatStore, v))
+}
+
+// RevenuecatStoreLTE applies the LTE predicate on the "revenuecat_store" field.
+func RevenuecatStoreLTE(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldLTE(FieldRevenuecatStore, v))
+}
+
+// RevenuecatStoreContains applies the Contains predicate on the "revenuecat_store" field.
+func RevenuecatStoreContains(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldContains(FieldRevenuecatStore, v))
+}
+
+// RevenuecatStoreHasPrefix applies the HasPrefix predicate on the "revenuecat_store" field.
+func RevenuecatStoreHasPrefix(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldHasPrefix(FieldRevenuecatStore, v))
+}
+
+// RevenuecatStoreHasSuffix applies the HasSuffix predicate on the "revenuecat_store" field.
+func RevenuecatStoreHasSuffix(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldHasSuffix(FieldRevenuecatStore, v))
+}
+
+// RevenuecatStoreIsNil applies the IsNil predicate on the "revenuecat_store" field.
+func RevenuecatStoreIsNil() predicate.Subscription {
+	return predicate.Subscription(sql.FieldIsNull(FieldRevenuecatStore))
+}
+
+// RevenuecatStoreNotNil applies the NotNil predicate on the "revenuecat_store" field.
+func RevenuecatStoreNotNil() predicate.Subscription {
+	return predicate.Subscription(sql.FieldNotNull(FieldRevenuecatStore))
+}
+
+// RevenuecatStoreEqualFold applies the EqualFold predicate on the "revenuecat_store" field.
+func RevenuecatStoreEqualFold(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldEqualFold(FieldRevenuecatStore, v))
+}
+
+// RevenuecatStoreContainsFold applies the ContainsFold predicate on the "revenuecat_store" field.
+func RevenuecatStoreContainsFold(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldContainsFold(FieldRevenuecatStore, v))
+}
+
+// RevenuecatEntitlementIDEQ applies the EQ predicate on the "revenuecat_entitlement_id" field.
+func RevenuecatEntitlementIDEQ(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldEQ(FieldRevenuecatEntitlementID, v))
+}
+
+// RevenuecatEntitlementIDNEQ applies the NEQ predicate on the "revenuecat_entitlement_id" field.
+func RevenuecatEntitlementIDNEQ(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldNEQ(FieldRevenuecatEntitlementID, v))
+}
+
+// RevenuecatEntitlementIDIn applies the In predicate on the "revenuecat_entitlement_id" field.
+func RevenuecatEntitlementIDIn(vs ...string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldIn(FieldRevenuecatEntitlementID, vs...))
+}
+
+// RevenuecatEntitlementIDNotIn applies the NotIn predicate on the "revenuecat_entitlement_id" field.
+func RevenuecatEntitlementIDNotIn(vs ...string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldNotIn(FieldRevenuecatEntitlementID, vs...))
+}
+
+// RevenuecatEntitlementIDGT applies the GT predicate on the "revenuecat_entitlement_id" field.
+func RevenuecatEntitlementIDGT(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldGT(FieldRevenuecatEntitlementID, v))
+}
+
+// RevenuecatEntitlementIDGTE applies the GTE predicate on the "revenuecat_entitlement_id" field.
+func RevenuecatEntitlementIDGTE(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldGTE(FieldRevenuecatEntitlementID, v))
+}
+
+// RevenuecatEntitlementIDLT applies the LT predicate on the "revenuecat_entitlement_id" field.
+func RevenuecatEntitlementIDLT(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldLT(FieldRevenuecatEntitlementID, v))
+}
+
+// RevenuecatEntitlementIDLTE applies the LTE predicate on the "revenuecat_entitlement_id" field.
+func RevenuecatEntitlementIDLTE(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldLTE(FieldRevenuecatEntitlementID, v))
+}
+
+// RevenuecatEntitlementIDContains applies the Contains predicate on the "revenuecat_entitlement_id" field.
+func RevenuecatEntitlementIDContains(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldContains(FieldRevenuecatEntitlementID, v))
+}
+
+// RevenuecatEntitlementIDHasPrefix applies the HasPrefix predicate on the "revenuecat_entitlement_id" field.
+func RevenuecatEntitlementIDHasPrefix(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldHasPrefix(FieldRevenuecatEntitlementID, v))
+}
+
+// RevenuecatEntitlementIDHasSuffix applies the HasSuffix predicate on the "revenuecat_entitlement_id" field.
+func RevenuecatEntitlementIDHasSuffix(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldHasSuffix(FieldRevenuecatEntitlementID, v))
+}
+
+// RevenuecatEntitlementIDIsNil applies the IsNil predicate on the "revenuecat_entitlement_id" field.
+func RevenuecatEntitlementIDIsNil() predicate.Subscription {
+	return predicate.Subscription(sql.FieldIsNull(FieldRevenuecatEntitlementID))
+}
+
+// RevenuecatEntitlementIDNotNil applies the NotNil predicate on the "revenuecat_entitlement_id" field.
+func RevenuecatEntitlementIDNotNil() predicate.Subscription {
+	return predicate.Subscription(sql.FieldNotNull(FieldRevenuecatEntitlementID))
+}
+
+// RevenuecatEntitlementIDEqualFold applies the EqualFold predicate on the "revenuecat_entitlement_id" field.
+func RevenuecatEntitlementIDEqualFold(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldEqualFold(FieldRevenuecatEntitlementID, v))
+}
+
+// RevenuecatEntitlementIDContainsFold applies the ContainsFold predicate on the "revenuecat_entitlement_id" field.
+func RevenuecatEntitlementIDContainsFold(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldContainsFold(FieldRevenuecatEntitlementID, v))
+}
+
+// RevenuecatOriginalTransactionIDEQ applies the EQ predicate on the "revenuecat_original_transaction_id" field.
+func RevenuecatOriginalTransactionIDEQ(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldEQ(FieldRevenuecatOriginalTransactionID, v))
+}
+
+// RevenuecatOriginalTransactionIDNEQ applies the NEQ predicate on the "revenuecat_original_transaction_id" field.
+func RevenuecatOriginalTransactionIDNEQ(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldNEQ(FieldRevenuecatOriginalTransactionID, v))
+}
+
+// RevenuecatOriginalTransactionIDIn applies the In predicate on the "revenuecat_original_transaction_id" field.
+func RevenuecatOriginalTransactionIDIn(vs ...string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldIn(FieldRevenuecatOriginalTransactionID, vs...))
+}
+
+// RevenuecatOriginalTransactionIDNotIn applies the NotIn predicate on the "revenuecat_original_transaction_id" field.
+func RevenuecatOriginalTransactionIDNotIn(vs ...string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldNotIn(FieldRevenuecatOriginalTransactionID, vs...))
+}
+
+// RevenuecatOriginalTransactionIDGT applies the GT predicate on the "revenuecat_original_transaction_id" field.
+func RevenuecatOriginalTransactionIDGT(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldGT(FieldRevenuecatOriginalTransactionID, v))
+}
+
+// RevenuecatOriginalTransactionIDGTE applies the GTE predicate on the "revenuecat_original_transaction_id" field.
+func RevenuecatOriginalTransactionIDGTE(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldGTE(FieldRevenuecatOriginalTransactionID, v))
+}
+
+// RevenuecatOriginalTransactionIDLT applies the LT predicate on the "revenuecat_original_transaction_id" field.
+func RevenuecatOriginalTransactionIDLT(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldLT(FieldRevenuecatOriginalTransactionID, v))
+}
+
+// RevenuecatOriginalTransactionIDLTE applies the LTE predicate on the "revenuecat_original_transaction_id" field.
+func RevenuecatOriginalTransactionIDLTE(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldLTE(FieldRevenuecatOriginalTransactionID, v))
+}
+
+// RevenuecatOriginalTransactionIDContains applies the Contains predicate on the "revenuecat_original_transaction_id" field.
+func RevenuecatOriginalTransactionIDContains(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldContains(FieldRevenuecatOriginalTransactionID, v))
+}
+
+// RevenuecatOriginalTransactionIDHasPrefix applies the HasPrefix predicate on the "revenuecat_original_transaction_id" field.
+func RevenuecatOriginalTransactionIDHasPrefix(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldHasPrefix(FieldRevenuecatOriginalTransactionID, v))
+}
+
+// RevenuecatOriginalTransactionIDHasSuffix applies the HasSuffix predicate on the "revenuecat_original_transaction_id" field.
+func RevenuecatOriginalTransactionIDHasSuffix(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldHasSuffix(FieldRevenuecatOriginalTransactionID, v))
+}
+
+// RevenuecatOriginalTransactionIDIsNil applies the IsNil predicate on the "revenuecat_original_transaction_id" field.
+func RevenuecatOriginalTransactionIDIsNil() predicate.Subscription {
+	return predicate.Subscription(sql.FieldIsNull(FieldRevenuecatOriginalTransactionID))
+}
+
+// RevenuecatOriginalTransactionIDNotNil applies the NotNil predicate on the "revenuecat_original_transaction_id" field.
+func RevenuecatOriginalTransactionIDNotNil() predicate.Subscription {
+	return predicate.Subscription(sql.FieldNotNull(FieldRevenuecatOriginalTransactionID))
+}
+
+// RevenuecatOriginalTransactionIDEqualFold applies the EqualFold predicate on the "revenuecat_original_transaction_id" field.
+func RevenuecatOriginalTransactionIDEqualFold(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldEqualFold(FieldRevenuecatOriginalTransactionID, v))
+}
+
+// RevenuecatOriginalTransactionIDContainsFold applies the ContainsFold predicate on the "revenuecat_original_transaction_id" field.
+func RevenuecatOriginalTransactionIDContainsFold(v string) predicate.Subscription {
+	return predicate.Subscription(sql.FieldContainsFold(FieldRevenuecatOriginalTransactionID, v))
 }
 
 // And groups predicates with the AND operator between them.

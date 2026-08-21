@@ -35,7 +35,17 @@ type Subscription struct {
 	CurrentPeriodEnd *time.Time `json:"current_period_end,omitempty"`
 	// CancelAtPeriodEnd holds the value of the "cancel_at_period_end" field.
 	CancelAtPeriodEnd bool `json:"cancel_at_period_end,omitempty"`
-	selectValues      sql.SelectValues
+	// RevenuecatActive holds the value of the "revenuecat_active" field.
+	RevenuecatActive bool `json:"revenuecat_active,omitempty"`
+	// RevenuecatExpiresAt holds the value of the "revenuecat_expires_at" field.
+	RevenuecatExpiresAt *time.Time `json:"revenuecat_expires_at,omitempty"`
+	// RevenuecatStore holds the value of the "revenuecat_store" field.
+	RevenuecatStore string `json:"revenuecat_store,omitempty"`
+	// RevenuecatEntitlementID holds the value of the "revenuecat_entitlement_id" field.
+	RevenuecatEntitlementID string `json:"revenuecat_entitlement_id,omitempty"`
+	// RevenuecatOriginalTransactionID holds the value of the "revenuecat_original_transaction_id" field.
+	RevenuecatOriginalTransactionID string `json:"revenuecat_original_transaction_id,omitempty"`
+	selectValues                    sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -43,11 +53,11 @@ func (*Subscription) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case subscription.FieldCancelAtPeriodEnd:
+		case subscription.FieldCancelAtPeriodEnd, subscription.FieldRevenuecatActive:
 			values[i] = new(sql.NullBool)
-		case subscription.FieldStripeCustomerID, subscription.FieldStripeSubscriptionID, subscription.FieldStatus:
+		case subscription.FieldStripeCustomerID, subscription.FieldStripeSubscriptionID, subscription.FieldStatus, subscription.FieldRevenuecatStore, subscription.FieldRevenuecatEntitlementID, subscription.FieldRevenuecatOriginalTransactionID:
 			values[i] = new(sql.NullString)
-		case subscription.FieldCreatedAt, subscription.FieldUpdatedAt, subscription.FieldCurrentPeriodEnd:
+		case subscription.FieldCreatedAt, subscription.FieldUpdatedAt, subscription.FieldCurrentPeriodEnd, subscription.FieldRevenuecatExpiresAt:
 			values[i] = new(sql.NullTime)
 		case subscription.FieldID, subscription.FieldUserID:
 			values[i] = new(uuid.UUID)
@@ -121,6 +131,37 @@ func (_m *Subscription) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.CancelAtPeriodEnd = value.Bool
 			}
+		case subscription.FieldRevenuecatActive:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field revenuecat_active", values[i])
+			} else if value.Valid {
+				_m.RevenuecatActive = value.Bool
+			}
+		case subscription.FieldRevenuecatExpiresAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field revenuecat_expires_at", values[i])
+			} else if value.Valid {
+				_m.RevenuecatExpiresAt = new(time.Time)
+				*_m.RevenuecatExpiresAt = value.Time
+			}
+		case subscription.FieldRevenuecatStore:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field revenuecat_store", values[i])
+			} else if value.Valid {
+				_m.RevenuecatStore = value.String
+			}
+		case subscription.FieldRevenuecatEntitlementID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field revenuecat_entitlement_id", values[i])
+			} else if value.Valid {
+				_m.RevenuecatEntitlementID = value.String
+			}
+		case subscription.FieldRevenuecatOriginalTransactionID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field revenuecat_original_transaction_id", values[i])
+			} else if value.Valid {
+				_m.RevenuecatOriginalTransactionID = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -182,6 +223,23 @@ func (_m *Subscription) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("cancel_at_period_end=")
 	builder.WriteString(fmt.Sprintf("%v", _m.CancelAtPeriodEnd))
+	builder.WriteString(", ")
+	builder.WriteString("revenuecat_active=")
+	builder.WriteString(fmt.Sprintf("%v", _m.RevenuecatActive))
+	builder.WriteString(", ")
+	if v := _m.RevenuecatExpiresAt; v != nil {
+		builder.WriteString("revenuecat_expires_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("revenuecat_store=")
+	builder.WriteString(_m.RevenuecatStore)
+	builder.WriteString(", ")
+	builder.WriteString("revenuecat_entitlement_id=")
+	builder.WriteString(_m.RevenuecatEntitlementID)
+	builder.WriteString(", ")
+	builder.WriteString("revenuecat_original_transaction_id=")
+	builder.WriteString(_m.RevenuecatOriginalTransactionID)
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -61,3 +61,26 @@ func Wrap(v any) error {
 func (te *ErrorWrapper) Unwrap() error {
 	return te.error
 }
+
+// StatusError attaches an explicit HTTP status to an error so the shared
+// access-log error handler (pkg/fiber/logger) can respond with it, instead
+// of falling back to a generic 500 — see WithStatus.
+type StatusError struct {
+	error
+	status int
+}
+
+// WithStatus tags err with the HTTP status the access-log error handler
+// should respond with. Wrap the result (or wrap this around a Wrap call) so
+// the trace is still captured — Unwrap() lets StatusOf find the status
+// regardless of which one is outermost.
+func WithStatus(status int, err error) error {
+	if err == nil {
+		return nil
+	}
+	return &StatusError{error: err, status: status}
+}
+
+func (se *StatusError) Unwrap() error {
+	return se.error
+}

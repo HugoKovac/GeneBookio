@@ -138,6 +138,100 @@ func (_u *SubscriptionUpdate) SetNillableCancelAtPeriodEnd(v *bool) *Subscriptio
 	return _u
 }
 
+// SetRevenuecatActive sets the "revenuecat_active" field.
+func (_u *SubscriptionUpdate) SetRevenuecatActive(v bool) *SubscriptionUpdate {
+	_u.mutation.SetRevenuecatActive(v)
+	return _u
+}
+
+// SetNillableRevenuecatActive sets the "revenuecat_active" field if the given value is not nil.
+func (_u *SubscriptionUpdate) SetNillableRevenuecatActive(v *bool) *SubscriptionUpdate {
+	if v != nil {
+		_u.SetRevenuecatActive(*v)
+	}
+	return _u
+}
+
+// SetRevenuecatExpiresAt sets the "revenuecat_expires_at" field.
+func (_u *SubscriptionUpdate) SetRevenuecatExpiresAt(v time.Time) *SubscriptionUpdate {
+	_u.mutation.SetRevenuecatExpiresAt(v)
+	return _u
+}
+
+// SetNillableRevenuecatExpiresAt sets the "revenuecat_expires_at" field if the given value is not nil.
+func (_u *SubscriptionUpdate) SetNillableRevenuecatExpiresAt(v *time.Time) *SubscriptionUpdate {
+	if v != nil {
+		_u.SetRevenuecatExpiresAt(*v)
+	}
+	return _u
+}
+
+// ClearRevenuecatExpiresAt clears the value of the "revenuecat_expires_at" field.
+func (_u *SubscriptionUpdate) ClearRevenuecatExpiresAt() *SubscriptionUpdate {
+	_u.mutation.ClearRevenuecatExpiresAt()
+	return _u
+}
+
+// SetRevenuecatStore sets the "revenuecat_store" field.
+func (_u *SubscriptionUpdate) SetRevenuecatStore(v string) *SubscriptionUpdate {
+	_u.mutation.SetRevenuecatStore(v)
+	return _u
+}
+
+// SetNillableRevenuecatStore sets the "revenuecat_store" field if the given value is not nil.
+func (_u *SubscriptionUpdate) SetNillableRevenuecatStore(v *string) *SubscriptionUpdate {
+	if v != nil {
+		_u.SetRevenuecatStore(*v)
+	}
+	return _u
+}
+
+// ClearRevenuecatStore clears the value of the "revenuecat_store" field.
+func (_u *SubscriptionUpdate) ClearRevenuecatStore() *SubscriptionUpdate {
+	_u.mutation.ClearRevenuecatStore()
+	return _u
+}
+
+// SetRevenuecatEntitlementID sets the "revenuecat_entitlement_id" field.
+func (_u *SubscriptionUpdate) SetRevenuecatEntitlementID(v string) *SubscriptionUpdate {
+	_u.mutation.SetRevenuecatEntitlementID(v)
+	return _u
+}
+
+// SetNillableRevenuecatEntitlementID sets the "revenuecat_entitlement_id" field if the given value is not nil.
+func (_u *SubscriptionUpdate) SetNillableRevenuecatEntitlementID(v *string) *SubscriptionUpdate {
+	if v != nil {
+		_u.SetRevenuecatEntitlementID(*v)
+	}
+	return _u
+}
+
+// ClearRevenuecatEntitlementID clears the value of the "revenuecat_entitlement_id" field.
+func (_u *SubscriptionUpdate) ClearRevenuecatEntitlementID() *SubscriptionUpdate {
+	_u.mutation.ClearRevenuecatEntitlementID()
+	return _u
+}
+
+// SetRevenuecatOriginalTransactionID sets the "revenuecat_original_transaction_id" field.
+func (_u *SubscriptionUpdate) SetRevenuecatOriginalTransactionID(v string) *SubscriptionUpdate {
+	_u.mutation.SetRevenuecatOriginalTransactionID(v)
+	return _u
+}
+
+// SetNillableRevenuecatOriginalTransactionID sets the "revenuecat_original_transaction_id" field if the given value is not nil.
+func (_u *SubscriptionUpdate) SetNillableRevenuecatOriginalTransactionID(v *string) *SubscriptionUpdate {
+	if v != nil {
+		_u.SetRevenuecatOriginalTransactionID(*v)
+	}
+	return _u
+}
+
+// ClearRevenuecatOriginalTransactionID clears the value of the "revenuecat_original_transaction_id" field.
+func (_u *SubscriptionUpdate) ClearRevenuecatOriginalTransactionID() *SubscriptionUpdate {
+	_u.mutation.ClearRevenuecatOriginalTransactionID()
+	return _u
+}
+
 // Mutation returns the SubscriptionMutation object of the builder.
 func (_u *SubscriptionUpdate) Mutation() *SubscriptionMutation {
 	return _u.mutation
@@ -196,6 +290,21 @@ func (_u *SubscriptionUpdate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Subscription.status": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.RevenuecatStore(); ok {
+		if err := subscription.RevenuecatStoreValidator(v); err != nil {
+			return &ValidationError{Name: "revenuecat_store", err: fmt.Errorf(`ent: validator failed for field "Subscription.revenuecat_store": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.RevenuecatEntitlementID(); ok {
+		if err := subscription.RevenuecatEntitlementIDValidator(v); err != nil {
+			return &ValidationError{Name: "revenuecat_entitlement_id", err: fmt.Errorf(`ent: validator failed for field "Subscription.revenuecat_entitlement_id": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.RevenuecatOriginalTransactionID(); ok {
+		if err := subscription.RevenuecatOriginalTransactionIDValidator(v); err != nil {
+			return &ValidationError{Name: "revenuecat_original_transaction_id", err: fmt.Errorf(`ent: validator failed for field "Subscription.revenuecat_original_transaction_id": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -240,6 +349,33 @@ func (_u *SubscriptionUpdate) sqlSave(ctx context.Context) (_node int, err error
 	}
 	if value, ok := _u.mutation.CancelAtPeriodEnd(); ok {
 		_spec.SetField(subscription.FieldCancelAtPeriodEnd, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.RevenuecatActive(); ok {
+		_spec.SetField(subscription.FieldRevenuecatActive, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.RevenuecatExpiresAt(); ok {
+		_spec.SetField(subscription.FieldRevenuecatExpiresAt, field.TypeTime, value)
+	}
+	if _u.mutation.RevenuecatExpiresAtCleared() {
+		_spec.ClearField(subscription.FieldRevenuecatExpiresAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.RevenuecatStore(); ok {
+		_spec.SetField(subscription.FieldRevenuecatStore, field.TypeString, value)
+	}
+	if _u.mutation.RevenuecatStoreCleared() {
+		_spec.ClearField(subscription.FieldRevenuecatStore, field.TypeString)
+	}
+	if value, ok := _u.mutation.RevenuecatEntitlementID(); ok {
+		_spec.SetField(subscription.FieldRevenuecatEntitlementID, field.TypeString, value)
+	}
+	if _u.mutation.RevenuecatEntitlementIDCleared() {
+		_spec.ClearField(subscription.FieldRevenuecatEntitlementID, field.TypeString)
+	}
+	if value, ok := _u.mutation.RevenuecatOriginalTransactionID(); ok {
+		_spec.SetField(subscription.FieldRevenuecatOriginalTransactionID, field.TypeString, value)
+	}
+	if _u.mutation.RevenuecatOriginalTransactionIDCleared() {
+		_spec.ClearField(subscription.FieldRevenuecatOriginalTransactionID, field.TypeString)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -369,6 +505,100 @@ func (_u *SubscriptionUpdateOne) SetNillableCancelAtPeriodEnd(v *bool) *Subscrip
 	return _u
 }
 
+// SetRevenuecatActive sets the "revenuecat_active" field.
+func (_u *SubscriptionUpdateOne) SetRevenuecatActive(v bool) *SubscriptionUpdateOne {
+	_u.mutation.SetRevenuecatActive(v)
+	return _u
+}
+
+// SetNillableRevenuecatActive sets the "revenuecat_active" field if the given value is not nil.
+func (_u *SubscriptionUpdateOne) SetNillableRevenuecatActive(v *bool) *SubscriptionUpdateOne {
+	if v != nil {
+		_u.SetRevenuecatActive(*v)
+	}
+	return _u
+}
+
+// SetRevenuecatExpiresAt sets the "revenuecat_expires_at" field.
+func (_u *SubscriptionUpdateOne) SetRevenuecatExpiresAt(v time.Time) *SubscriptionUpdateOne {
+	_u.mutation.SetRevenuecatExpiresAt(v)
+	return _u
+}
+
+// SetNillableRevenuecatExpiresAt sets the "revenuecat_expires_at" field if the given value is not nil.
+func (_u *SubscriptionUpdateOne) SetNillableRevenuecatExpiresAt(v *time.Time) *SubscriptionUpdateOne {
+	if v != nil {
+		_u.SetRevenuecatExpiresAt(*v)
+	}
+	return _u
+}
+
+// ClearRevenuecatExpiresAt clears the value of the "revenuecat_expires_at" field.
+func (_u *SubscriptionUpdateOne) ClearRevenuecatExpiresAt() *SubscriptionUpdateOne {
+	_u.mutation.ClearRevenuecatExpiresAt()
+	return _u
+}
+
+// SetRevenuecatStore sets the "revenuecat_store" field.
+func (_u *SubscriptionUpdateOne) SetRevenuecatStore(v string) *SubscriptionUpdateOne {
+	_u.mutation.SetRevenuecatStore(v)
+	return _u
+}
+
+// SetNillableRevenuecatStore sets the "revenuecat_store" field if the given value is not nil.
+func (_u *SubscriptionUpdateOne) SetNillableRevenuecatStore(v *string) *SubscriptionUpdateOne {
+	if v != nil {
+		_u.SetRevenuecatStore(*v)
+	}
+	return _u
+}
+
+// ClearRevenuecatStore clears the value of the "revenuecat_store" field.
+func (_u *SubscriptionUpdateOne) ClearRevenuecatStore() *SubscriptionUpdateOne {
+	_u.mutation.ClearRevenuecatStore()
+	return _u
+}
+
+// SetRevenuecatEntitlementID sets the "revenuecat_entitlement_id" field.
+func (_u *SubscriptionUpdateOne) SetRevenuecatEntitlementID(v string) *SubscriptionUpdateOne {
+	_u.mutation.SetRevenuecatEntitlementID(v)
+	return _u
+}
+
+// SetNillableRevenuecatEntitlementID sets the "revenuecat_entitlement_id" field if the given value is not nil.
+func (_u *SubscriptionUpdateOne) SetNillableRevenuecatEntitlementID(v *string) *SubscriptionUpdateOne {
+	if v != nil {
+		_u.SetRevenuecatEntitlementID(*v)
+	}
+	return _u
+}
+
+// ClearRevenuecatEntitlementID clears the value of the "revenuecat_entitlement_id" field.
+func (_u *SubscriptionUpdateOne) ClearRevenuecatEntitlementID() *SubscriptionUpdateOne {
+	_u.mutation.ClearRevenuecatEntitlementID()
+	return _u
+}
+
+// SetRevenuecatOriginalTransactionID sets the "revenuecat_original_transaction_id" field.
+func (_u *SubscriptionUpdateOne) SetRevenuecatOriginalTransactionID(v string) *SubscriptionUpdateOne {
+	_u.mutation.SetRevenuecatOriginalTransactionID(v)
+	return _u
+}
+
+// SetNillableRevenuecatOriginalTransactionID sets the "revenuecat_original_transaction_id" field if the given value is not nil.
+func (_u *SubscriptionUpdateOne) SetNillableRevenuecatOriginalTransactionID(v *string) *SubscriptionUpdateOne {
+	if v != nil {
+		_u.SetRevenuecatOriginalTransactionID(*v)
+	}
+	return _u
+}
+
+// ClearRevenuecatOriginalTransactionID clears the value of the "revenuecat_original_transaction_id" field.
+func (_u *SubscriptionUpdateOne) ClearRevenuecatOriginalTransactionID() *SubscriptionUpdateOne {
+	_u.mutation.ClearRevenuecatOriginalTransactionID()
+	return _u
+}
+
 // Mutation returns the SubscriptionMutation object of the builder.
 func (_u *SubscriptionUpdateOne) Mutation() *SubscriptionMutation {
 	return _u.mutation
@@ -440,6 +670,21 @@ func (_u *SubscriptionUpdateOne) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Subscription.status": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.RevenuecatStore(); ok {
+		if err := subscription.RevenuecatStoreValidator(v); err != nil {
+			return &ValidationError{Name: "revenuecat_store", err: fmt.Errorf(`ent: validator failed for field "Subscription.revenuecat_store": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.RevenuecatEntitlementID(); ok {
+		if err := subscription.RevenuecatEntitlementIDValidator(v); err != nil {
+			return &ValidationError{Name: "revenuecat_entitlement_id", err: fmt.Errorf(`ent: validator failed for field "Subscription.revenuecat_entitlement_id": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.RevenuecatOriginalTransactionID(); ok {
+		if err := subscription.RevenuecatOriginalTransactionIDValidator(v); err != nil {
+			return &ValidationError{Name: "revenuecat_original_transaction_id", err: fmt.Errorf(`ent: validator failed for field "Subscription.revenuecat_original_transaction_id": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -501,6 +746,33 @@ func (_u *SubscriptionUpdateOne) sqlSave(ctx context.Context) (_node *Subscripti
 	}
 	if value, ok := _u.mutation.CancelAtPeriodEnd(); ok {
 		_spec.SetField(subscription.FieldCancelAtPeriodEnd, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.RevenuecatActive(); ok {
+		_spec.SetField(subscription.FieldRevenuecatActive, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.RevenuecatExpiresAt(); ok {
+		_spec.SetField(subscription.FieldRevenuecatExpiresAt, field.TypeTime, value)
+	}
+	if _u.mutation.RevenuecatExpiresAtCleared() {
+		_spec.ClearField(subscription.FieldRevenuecatExpiresAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.RevenuecatStore(); ok {
+		_spec.SetField(subscription.FieldRevenuecatStore, field.TypeString, value)
+	}
+	if _u.mutation.RevenuecatStoreCleared() {
+		_spec.ClearField(subscription.FieldRevenuecatStore, field.TypeString)
+	}
+	if value, ok := _u.mutation.RevenuecatEntitlementID(); ok {
+		_spec.SetField(subscription.FieldRevenuecatEntitlementID, field.TypeString, value)
+	}
+	if _u.mutation.RevenuecatEntitlementIDCleared() {
+		_spec.ClearField(subscription.FieldRevenuecatEntitlementID, field.TypeString)
+	}
+	if value, ok := _u.mutation.RevenuecatOriginalTransactionID(); ok {
+		_spec.SetField(subscription.FieldRevenuecatOriginalTransactionID, field.TypeString, value)
+	}
+	if _u.mutation.RevenuecatOriginalTransactionIDCleared() {
+		_spec.ClearField(subscription.FieldRevenuecatOriginalTransactionID, field.TypeString)
 	}
 	_node = &Subscription{config: _u.config}
 	_spec.Assign = _node.assignValues

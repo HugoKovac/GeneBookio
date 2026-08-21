@@ -17,7 +17,12 @@ type BucketRepo interface {
 	UploadString(ctx context.Context, bucketName primitive.Bucket, path, content string, ctype pbucket.ContentType) error
 	GetBucketFileAsString(ctx context.Context, bucket primitive.Bucket, path string) (string, error)
 	GetBucketFileAsBytes(ctx context.Context, bucket primitive.Bucket, path string) ([]byte, error)
-	GetBucketObjectAsReader(ctx context.Context, bucket primitive.Bucket, path string) (io.Reader, int64, string, error)
+	// GetBucketObjectAsReader streams an object, optionally restricted to a
+	// byte range (rangeStart < 0 means "no range: the whole object"). It
+	// returns the reader, the size of what the reader will yield, the
+	// object's total size (needed for a Content-Range header even when
+	// ranged), and the content type.
+	GetBucketObjectAsReader(ctx context.Context, bucket primitive.Bucket, path string, rangeStart, rangeEnd int64) (reader io.Reader, size int64, totalSize int64, contentType string, err error)
 	GetFilesIteratorOfDir(ctx context.Context, bucket primitive.Bucket, path string) iter.Seq[minio.ObjectInfo]
 	UploadReader(ctx context.Context, bucketName primitive.Bucket, path string, content io.ReadCloser, len int64, ctype pbucket.ContentType) error
 }
@@ -62,17 +67,31 @@ func (bc *BucketRepoImpl) GetBucketFileAsBytes(ctx context.Context, bucket primi
 	return buf.Bytes(), nil
 }
 
-func (bc *BucketRepoImpl) GetBucketObjectAsReader(ctx context.Context, bucket primitive.Bucket, path string) (io.Reader, int64, string, error) {
-	obj, err := bc.client.GetObject(ctx, string(bucket), path, minio.GetObjectOptions{})
+func (bc *BucketRepoImpl) GetBucketObjectAsReader(ctx context.Context, bucket primitive.Bucket, path string, rangeStart, rangeEnd int64) (io.Reader, int64, int64, string, error) {
+	stat, err := bc.client.StatObject(ctx, string(bucket), path, minio.StatObjectOptions{})
 	if err != nil {
-		return nil, 0, "", errorwrapper.Wrap(err)
+		return nil, 0, 0, "", errorwrapper.Wrap(err)
 	}
-	stat, err := obj.Stat()
+
+	opts := minio.GetObjectOptions{}
+	size := stat.Size
+	if rangeStart >= 0 {
+		end := rangeEnd
+		if end <= 0 || end >= stat.Size {
+			end = stat.Size - 1
+		}
+		if err := opts.SetRange(rangeStart, end); err != nil {
+			return nil, 0, 0, "", errorwrapper.Wrap(err)
+		}
+		size = end - rangeStart + 1
+	}
+
+	obj, err := bc.client.GetObject(ctx, string(bucket), path, opts)
 	if err != nil {
-		obj.Close()
-		return nil, 0, "", errorwrapper.Wrap(err)
+		return nil, 0, 0, "", errorwrapper.Wrap(err)
 	}
-	return obj, stat.Size, stat.ContentType, nil
+
+	return obj, size, stat.Size, stat.ContentType, nil
 }
 
 func (bc *BucketRepoImpl) GetFilesIteratorOfDir(ctx context.Context, bucket primitive.Bucket, path string) iter.Seq[minio.ObjectInfo] {

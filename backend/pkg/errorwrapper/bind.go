@@ -50,3 +50,14 @@ func FiberError(err error) (status int, msg string) {
 	}
 	return 0, ""
 }
+
+// StatusOf reads the status/message attached via WithStatus, for errors that
+// don't fit any of the categories above (e.g. a third-party API failure that
+// should map to a specific status rather than the generic 500 fallback).
+func StatusOf(err error) (status int, msg string) {
+	var se *StatusError
+	if errors.As(err, &se) {
+		return se.status, se.Error()
+	}
+	return 0, ""
+}

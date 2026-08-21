@@ -19,10 +19,11 @@ export async function getBooks(token: string): Promise<Book[]> {
   return response.json() as Promise<Book[]>;
 }
 
-// getBookAudioURL fetches the protected audio stream and exposes it as an
-// object URL, since a plain <audio> src can't carry an Authorization header.
-export async function getBookAudioURL(bookID: string, token: string): Promise<string> {
-  const response = await request(`/books/audio/${bookID}`, token);
-  const blob = await response.blob();
-  return URL.createObjectURL(blob);
+// getBookAudioStreamURL builds a URL an <audio> element can use directly as
+// its src, so the browser streams the file progressively (byte-range
+// requests) instead of the app downloading it whole first. A plain <audio>
+// src can't carry an Authorization header, so the access token travels as a
+// query parameter, which the backend accepts as a fallback for this route.
+export function getBookAudioStreamURL(bookID: string, token: string): string {
+  return `${apiBaseUrl}/books/audio/${bookID}?token=${encodeURIComponent(token)}`;
 }

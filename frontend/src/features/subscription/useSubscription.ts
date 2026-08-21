@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../auth/useAuth';
 import { getSubscriptionStatus } from './api';
 import type { SubscriptionInfo } from './types';
 
-const activeStatuses = new Set(['active', 'trialing', 'past_due']);
-
 export function useSubscription() {
+  const { t } = useTranslation();
   const { token } = useAuth();
   const [info, setInfo] = useState<SubscriptionInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -20,9 +20,9 @@ export function useSubscription() {
     setLoading(true);
     getSubscriptionStatus(token)
       .then(setInfo)
-      .catch((cause) => setError(cause instanceof Error ? cause.message : 'Unable to load your subscription.'))
+      .catch((cause) => setError(cause instanceof Error ? cause.message : t('subscription.loadError')))
       .finally(() => setLoading(false));
-  }, [token]);
+  }, [token, t]);
 
   useEffect(() => {
     refetch();
@@ -30,7 +30,7 @@ export function useSubscription() {
 
   return {
     status: info?.status ?? 'none',
-    isActive: info ? activeStatuses.has(info.status) : false,
+    isActive: info?.isActive ?? false,
     info,
     loading,
     error,

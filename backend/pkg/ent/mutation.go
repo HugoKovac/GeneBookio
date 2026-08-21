@@ -1474,21 +1474,26 @@ func (m *BookMutation) ResetEdge(name string) error {
 // SubscriptionMutation represents an operation that mutates the Subscription nodes in the graph.
 type SubscriptionMutation struct {
 	config
-	op                     Op
-	typ                    string
-	id                     *uuid.UUID
-	created_at             *time.Time
-	updated_at             *time.Time
-	user_id                *uuid.UUID
-	stripe_customer_id     *string
-	stripe_subscription_id *string
-	status                 *primitive.SubscriptionStatus
-	current_period_end     *time.Time
-	cancel_at_period_end   *bool
-	clearedFields          map[string]struct{}
-	done                   bool
-	oldValue               func(context.Context) (*Subscription, error)
-	predicates             []predicate.Subscription
+	op                                 Op
+	typ                                string
+	id                                 *uuid.UUID
+	created_at                         *time.Time
+	updated_at                         *time.Time
+	user_id                            *uuid.UUID
+	stripe_customer_id                 *string
+	stripe_subscription_id             *string
+	status                             *primitive.SubscriptionStatus
+	current_period_end                 *time.Time
+	cancel_at_period_end               *bool
+	revenuecat_active                  *bool
+	revenuecat_expires_at              *time.Time
+	revenuecat_store                   *string
+	revenuecat_entitlement_id          *string
+	revenuecat_original_transaction_id *string
+	clearedFields                      map[string]struct{}
+	done                               bool
+	oldValue                           func(context.Context) (*Subscription, error)
+	predicates                         []predicate.Subscription
 }
 
 var _ ent.Mutation = (*SubscriptionMutation)(nil)
@@ -1922,6 +1927,238 @@ func (m *SubscriptionMutation) ResetCancelAtPeriodEnd() {
 	m.cancel_at_period_end = nil
 }
 
+// SetRevenuecatActive sets the "revenuecat_active" field.
+func (m *SubscriptionMutation) SetRevenuecatActive(b bool) {
+	m.revenuecat_active = &b
+}
+
+// RevenuecatActive returns the value of the "revenuecat_active" field in the mutation.
+func (m *SubscriptionMutation) RevenuecatActive() (r bool, exists bool) {
+	v := m.revenuecat_active
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRevenuecatActive returns the old "revenuecat_active" field's value of the Subscription entity.
+// If the Subscription object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SubscriptionMutation) OldRevenuecatActive(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRevenuecatActive is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRevenuecatActive requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRevenuecatActive: %w", err)
+	}
+	return oldValue.RevenuecatActive, nil
+}
+
+// ResetRevenuecatActive resets all changes to the "revenuecat_active" field.
+func (m *SubscriptionMutation) ResetRevenuecatActive() {
+	m.revenuecat_active = nil
+}
+
+// SetRevenuecatExpiresAt sets the "revenuecat_expires_at" field.
+func (m *SubscriptionMutation) SetRevenuecatExpiresAt(t time.Time) {
+	m.revenuecat_expires_at = &t
+}
+
+// RevenuecatExpiresAt returns the value of the "revenuecat_expires_at" field in the mutation.
+func (m *SubscriptionMutation) RevenuecatExpiresAt() (r time.Time, exists bool) {
+	v := m.revenuecat_expires_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRevenuecatExpiresAt returns the old "revenuecat_expires_at" field's value of the Subscription entity.
+// If the Subscription object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SubscriptionMutation) OldRevenuecatExpiresAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRevenuecatExpiresAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRevenuecatExpiresAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRevenuecatExpiresAt: %w", err)
+	}
+	return oldValue.RevenuecatExpiresAt, nil
+}
+
+// ClearRevenuecatExpiresAt clears the value of the "revenuecat_expires_at" field.
+func (m *SubscriptionMutation) ClearRevenuecatExpiresAt() {
+	m.revenuecat_expires_at = nil
+	m.clearedFields[subscription.FieldRevenuecatExpiresAt] = struct{}{}
+}
+
+// RevenuecatExpiresAtCleared returns if the "revenuecat_expires_at" field was cleared in this mutation.
+func (m *SubscriptionMutation) RevenuecatExpiresAtCleared() bool {
+	_, ok := m.clearedFields[subscription.FieldRevenuecatExpiresAt]
+	return ok
+}
+
+// ResetRevenuecatExpiresAt resets all changes to the "revenuecat_expires_at" field.
+func (m *SubscriptionMutation) ResetRevenuecatExpiresAt() {
+	m.revenuecat_expires_at = nil
+	delete(m.clearedFields, subscription.FieldRevenuecatExpiresAt)
+}
+
+// SetRevenuecatStore sets the "revenuecat_store" field.
+func (m *SubscriptionMutation) SetRevenuecatStore(s string) {
+	m.revenuecat_store = &s
+}
+
+// RevenuecatStore returns the value of the "revenuecat_store" field in the mutation.
+func (m *SubscriptionMutation) RevenuecatStore() (r string, exists bool) {
+	v := m.revenuecat_store
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRevenuecatStore returns the old "revenuecat_store" field's value of the Subscription entity.
+// If the Subscription object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SubscriptionMutation) OldRevenuecatStore(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRevenuecatStore is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRevenuecatStore requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRevenuecatStore: %w", err)
+	}
+	return oldValue.RevenuecatStore, nil
+}
+
+// ClearRevenuecatStore clears the value of the "revenuecat_store" field.
+func (m *SubscriptionMutation) ClearRevenuecatStore() {
+	m.revenuecat_store = nil
+	m.clearedFields[subscription.FieldRevenuecatStore] = struct{}{}
+}
+
+// RevenuecatStoreCleared returns if the "revenuecat_store" field was cleared in this mutation.
+func (m *SubscriptionMutation) RevenuecatStoreCleared() bool {
+	_, ok := m.clearedFields[subscription.FieldRevenuecatStore]
+	return ok
+}
+
+// ResetRevenuecatStore resets all changes to the "revenuecat_store" field.
+func (m *SubscriptionMutation) ResetRevenuecatStore() {
+	m.revenuecat_store = nil
+	delete(m.clearedFields, subscription.FieldRevenuecatStore)
+}
+
+// SetRevenuecatEntitlementID sets the "revenuecat_entitlement_id" field.
+func (m *SubscriptionMutation) SetRevenuecatEntitlementID(s string) {
+	m.revenuecat_entitlement_id = &s
+}
+
+// RevenuecatEntitlementID returns the value of the "revenuecat_entitlement_id" field in the mutation.
+func (m *SubscriptionMutation) RevenuecatEntitlementID() (r string, exists bool) {
+	v := m.revenuecat_entitlement_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRevenuecatEntitlementID returns the old "revenuecat_entitlement_id" field's value of the Subscription entity.
+// If the Subscription object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SubscriptionMutation) OldRevenuecatEntitlementID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRevenuecatEntitlementID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRevenuecatEntitlementID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRevenuecatEntitlementID: %w", err)
+	}
+	return oldValue.RevenuecatEntitlementID, nil
+}
+
+// ClearRevenuecatEntitlementID clears the value of the "revenuecat_entitlement_id" field.
+func (m *SubscriptionMutation) ClearRevenuecatEntitlementID() {
+	m.revenuecat_entitlement_id = nil
+	m.clearedFields[subscription.FieldRevenuecatEntitlementID] = struct{}{}
+}
+
+// RevenuecatEntitlementIDCleared returns if the "revenuecat_entitlement_id" field was cleared in this mutation.
+func (m *SubscriptionMutation) RevenuecatEntitlementIDCleared() bool {
+	_, ok := m.clearedFields[subscription.FieldRevenuecatEntitlementID]
+	return ok
+}
+
+// ResetRevenuecatEntitlementID resets all changes to the "revenuecat_entitlement_id" field.
+func (m *SubscriptionMutation) ResetRevenuecatEntitlementID() {
+	m.revenuecat_entitlement_id = nil
+	delete(m.clearedFields, subscription.FieldRevenuecatEntitlementID)
+}
+
+// SetRevenuecatOriginalTransactionID sets the "revenuecat_original_transaction_id" field.
+func (m *SubscriptionMutation) SetRevenuecatOriginalTransactionID(s string) {
+	m.revenuecat_original_transaction_id = &s
+}
+
+// RevenuecatOriginalTransactionID returns the value of the "revenuecat_original_transaction_id" field in the mutation.
+func (m *SubscriptionMutation) RevenuecatOriginalTransactionID() (r string, exists bool) {
+	v := m.revenuecat_original_transaction_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRevenuecatOriginalTransactionID returns the old "revenuecat_original_transaction_id" field's value of the Subscription entity.
+// If the Subscription object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SubscriptionMutation) OldRevenuecatOriginalTransactionID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRevenuecatOriginalTransactionID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRevenuecatOriginalTransactionID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRevenuecatOriginalTransactionID: %w", err)
+	}
+	return oldValue.RevenuecatOriginalTransactionID, nil
+}
+
+// ClearRevenuecatOriginalTransactionID clears the value of the "revenuecat_original_transaction_id" field.
+func (m *SubscriptionMutation) ClearRevenuecatOriginalTransactionID() {
+	m.revenuecat_original_transaction_id = nil
+	m.clearedFields[subscription.FieldRevenuecatOriginalTransactionID] = struct{}{}
+}
+
+// RevenuecatOriginalTransactionIDCleared returns if the "revenuecat_original_transaction_id" field was cleared in this mutation.
+func (m *SubscriptionMutation) RevenuecatOriginalTransactionIDCleared() bool {
+	_, ok := m.clearedFields[subscription.FieldRevenuecatOriginalTransactionID]
+	return ok
+}
+
+// ResetRevenuecatOriginalTransactionID resets all changes to the "revenuecat_original_transaction_id" field.
+func (m *SubscriptionMutation) ResetRevenuecatOriginalTransactionID() {
+	m.revenuecat_original_transaction_id = nil
+	delete(m.clearedFields, subscription.FieldRevenuecatOriginalTransactionID)
+}
+
 // Where appends a list predicates to the SubscriptionMutation builder.
 func (m *SubscriptionMutation) Where(ps ...predicate.Subscription) {
 	m.predicates = append(m.predicates, ps...)
@@ -1956,7 +2193,7 @@ func (m *SubscriptionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SubscriptionMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 13)
 	if m.created_at != nil {
 		fields = append(fields, subscription.FieldCreatedAt)
 	}
@@ -1980,6 +2217,21 @@ func (m *SubscriptionMutation) Fields() []string {
 	}
 	if m.cancel_at_period_end != nil {
 		fields = append(fields, subscription.FieldCancelAtPeriodEnd)
+	}
+	if m.revenuecat_active != nil {
+		fields = append(fields, subscription.FieldRevenuecatActive)
+	}
+	if m.revenuecat_expires_at != nil {
+		fields = append(fields, subscription.FieldRevenuecatExpiresAt)
+	}
+	if m.revenuecat_store != nil {
+		fields = append(fields, subscription.FieldRevenuecatStore)
+	}
+	if m.revenuecat_entitlement_id != nil {
+		fields = append(fields, subscription.FieldRevenuecatEntitlementID)
+	}
+	if m.revenuecat_original_transaction_id != nil {
+		fields = append(fields, subscription.FieldRevenuecatOriginalTransactionID)
 	}
 	return fields
 }
@@ -2005,6 +2257,16 @@ func (m *SubscriptionMutation) Field(name string) (ent.Value, bool) {
 		return m.CurrentPeriodEnd()
 	case subscription.FieldCancelAtPeriodEnd:
 		return m.CancelAtPeriodEnd()
+	case subscription.FieldRevenuecatActive:
+		return m.RevenuecatActive()
+	case subscription.FieldRevenuecatExpiresAt:
+		return m.RevenuecatExpiresAt()
+	case subscription.FieldRevenuecatStore:
+		return m.RevenuecatStore()
+	case subscription.FieldRevenuecatEntitlementID:
+		return m.RevenuecatEntitlementID()
+	case subscription.FieldRevenuecatOriginalTransactionID:
+		return m.RevenuecatOriginalTransactionID()
 	}
 	return nil, false
 }
@@ -2030,6 +2292,16 @@ func (m *SubscriptionMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldCurrentPeriodEnd(ctx)
 	case subscription.FieldCancelAtPeriodEnd:
 		return m.OldCancelAtPeriodEnd(ctx)
+	case subscription.FieldRevenuecatActive:
+		return m.OldRevenuecatActive(ctx)
+	case subscription.FieldRevenuecatExpiresAt:
+		return m.OldRevenuecatExpiresAt(ctx)
+	case subscription.FieldRevenuecatStore:
+		return m.OldRevenuecatStore(ctx)
+	case subscription.FieldRevenuecatEntitlementID:
+		return m.OldRevenuecatEntitlementID(ctx)
+	case subscription.FieldRevenuecatOriginalTransactionID:
+		return m.OldRevenuecatOriginalTransactionID(ctx)
 	}
 	return nil, fmt.Errorf("unknown Subscription field %s", name)
 }
@@ -2095,6 +2367,41 @@ func (m *SubscriptionMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCancelAtPeriodEnd(v)
 		return nil
+	case subscription.FieldRevenuecatActive:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRevenuecatActive(v)
+		return nil
+	case subscription.FieldRevenuecatExpiresAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRevenuecatExpiresAt(v)
+		return nil
+	case subscription.FieldRevenuecatStore:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRevenuecatStore(v)
+		return nil
+	case subscription.FieldRevenuecatEntitlementID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRevenuecatEntitlementID(v)
+		return nil
+	case subscription.FieldRevenuecatOriginalTransactionID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRevenuecatOriginalTransactionID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Subscription field %s", name)
 }
@@ -2134,6 +2441,18 @@ func (m *SubscriptionMutation) ClearedFields() []string {
 	if m.FieldCleared(subscription.FieldCurrentPeriodEnd) {
 		fields = append(fields, subscription.FieldCurrentPeriodEnd)
 	}
+	if m.FieldCleared(subscription.FieldRevenuecatExpiresAt) {
+		fields = append(fields, subscription.FieldRevenuecatExpiresAt)
+	}
+	if m.FieldCleared(subscription.FieldRevenuecatStore) {
+		fields = append(fields, subscription.FieldRevenuecatStore)
+	}
+	if m.FieldCleared(subscription.FieldRevenuecatEntitlementID) {
+		fields = append(fields, subscription.FieldRevenuecatEntitlementID)
+	}
+	if m.FieldCleared(subscription.FieldRevenuecatOriginalTransactionID) {
+		fields = append(fields, subscription.FieldRevenuecatOriginalTransactionID)
+	}
 	return fields
 }
 
@@ -2156,6 +2475,18 @@ func (m *SubscriptionMutation) ClearField(name string) error {
 		return nil
 	case subscription.FieldCurrentPeriodEnd:
 		m.ClearCurrentPeriodEnd()
+		return nil
+	case subscription.FieldRevenuecatExpiresAt:
+		m.ClearRevenuecatExpiresAt()
+		return nil
+	case subscription.FieldRevenuecatStore:
+		m.ClearRevenuecatStore()
+		return nil
+	case subscription.FieldRevenuecatEntitlementID:
+		m.ClearRevenuecatEntitlementID()
+		return nil
+	case subscription.FieldRevenuecatOriginalTransactionID:
+		m.ClearRevenuecatOriginalTransactionID()
 		return nil
 	}
 	return fmt.Errorf("unknown Subscription nullable field %s", name)
@@ -2188,6 +2519,21 @@ func (m *SubscriptionMutation) ResetField(name string) error {
 		return nil
 	case subscription.FieldCancelAtPeriodEnd:
 		m.ResetCancelAtPeriodEnd()
+		return nil
+	case subscription.FieldRevenuecatActive:
+		m.ResetRevenuecatActive()
+		return nil
+	case subscription.FieldRevenuecatExpiresAt:
+		m.ResetRevenuecatExpiresAt()
+		return nil
+	case subscription.FieldRevenuecatStore:
+		m.ResetRevenuecatStore()
+		return nil
+	case subscription.FieldRevenuecatEntitlementID:
+		m.ResetRevenuecatEntitlementID()
+		return nil
+	case subscription.FieldRevenuecatOriginalTransactionID:
+		m.ResetRevenuecatOriginalTransactionID()
 		return nil
 	}
 	return fmt.Errorf("unknown Subscription field %s", name)

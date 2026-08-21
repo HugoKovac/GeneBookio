@@ -224,7 +224,7 @@ func TestFullPipeline(t *testing.T) {
 	require.NoError(t, err)
 	require.Contains(t, scriptContent, "==START OF REQUEST==", "script output should come from the AI substitution client, not a real AI call")
 
-	audioReader, audioLen, _, err := bucketRepo.GetBucketObjectAsReader(ctx, primitive.AudioBucket, bookID)
+	audioReader, audioLen, _, _, err := bucketRepo.GetBucketObjectAsReader(ctx, primitive.AudioBucket, bookID, -1, -1)
 	require.NoError(t, err)
 	if closer, ok := audioReader.(io.Closer); ok {
 		defer closer.Close()

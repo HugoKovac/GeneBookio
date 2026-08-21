@@ -1,17 +1,27 @@
 import { Alert, Avatar, Button, Group, Loader, Modal, Paper, Stack, Text, TextInput, Title, UnstyledButton } from '@mantine/core';
 import { IconChevronRight, IconCreditCard, IconLogout, IconTrash } from '@tabler/icons-react';
+import { Capacitor } from '@capacitor/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../features/auth/useAuth';
 import { createPortalSession } from '../features/subscription/api';
 import { useSubscription } from '../features/subscription/useSubscription';
 import { deleteUser, getUser, updateUser } from '../features/user/api';
 import type { User } from '../features/user/types';
 
+// A native purchaser has no Stripe customer to manage — send them to the
+// OS's own subscription-management surface instead (Apple/Google expect
+// in-app access to manage or cancel, not just a hidden row).
+const nativeSubscriptionManagementURL = Capacitor.getPlatform() === 'ios'
+  ? 'itms-apps://apps.apple.com/account/subscriptions'
+  : 'https://play.google.com/store/account/subscriptions';
+
 export default function ProfilePage() {
   const { userID, token, logout } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { isActive: hasActiveSubscription } = useSubscription();
 
   const [user, setUser] = useState<User | null>(null);
@@ -32,8 +42,8 @@ export default function ProfilePage() {
     if (!userID || !token) return;
     getUser(userID, token)
       .then(setUser)
-      .catch((cause) => setLoadError(cause instanceof Error ? cause.message : 'Unable to load your profile.'));
-  }, [userID, token]);
+      .catch((cause) => setLoadError(cause instanceof Error ? cause.message : t('profile.loadError')));
+  }, [userID, token, t]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -51,7 +61,7 @@ export default function ProfilePage() {
       setUser(updated);
       setSaveSuccess(true);
     } catch (cause) {
-      setSaveError(cause instanceof Error ? cause.message : 'Unable to update your profile.');
+      setSaveError(cause instanceof Error ? cause.message : t('profile.saveError'));
     } finally {
       setSaving(false);
     }
@@ -67,7 +77,7 @@ export default function ProfilePage() {
       logout();
       navigate('/', { replace: true });
     } catch (cause) {
-      setDeleteError(cause instanceof Error ? cause.message : 'Unable to delete your account.');
+      setDeleteError(cause instanceof Error ? cause.message : t('profile.deleteError'));
       setDeleting(false);
     }
   }
@@ -78,6 +88,10 @@ export default function ProfilePage() {
   }
 
   async function handleManageSubscription() {
+    if (Capacitor.isNativePlatform()) {
+      window.open(nativeSubscriptionManagementURL, '_system');
+      return;
+    }
     if (!token) return;
     setPortalError('');
     setPortalLoading(true);
@@ -85,7 +99,7 @@ export default function ProfilePage() {
       const { portalUrl } = await createPortalSession(token);
       window.location.href = portalUrl;
     } catch (cause) {
-      setPortalError(cause instanceof Error ? cause.message : 'Unable to open the billing portal.');
+      setPortalError(cause instanceof Error ? cause.message : t('profile.portalError'));
       setPortalLoading(false);
     }
   }
@@ -102,7 +116,7 @@ export default function ProfilePage() {
 
   return (
     <Stack px="lg" pt="lg" pb="xl" gap="xl">
-      <Title order={2} style={{ fontSize: 28 }}>Profile</Title>
+      <Title order={2} style={{ fontSize: 28 }}>{t('profile.title')}</Title>
 
       <Group>
         <Avatar size={64} radius="xl" color="violet">{initials}</Avatar>
@@ -116,10 +130,10 @@ export default function ProfilePage() {
         <form onSubmit={handleSubmit}>
           <Stack>
             {saveError && <Alert color="red" radius="lg">{saveError}</Alert>}
-            {saveSuccess && <Alert color="green" radius="lg">Your profile has been updated.</Alert>}
-            <TextInput name="firstname" label="First name" defaultValue={user.Firstname} required maxLength={100} autoComplete="given-name" radius="md" />
-            <TextInput name="lastname" label="Last name" defaultValue={user.Lastname} required maxLength={100} autoComplete="family-name" radius="md" />
-            <Button type="submit" loading={saving} radius="xl">Save changes</Button>
+            {saveSuccess && <Alert color="green" radius="lg">{t('profile.updated')}</Alert>}
+            <TextInput name="firstname" label={t('profile.firstname')} defaultValue={user.Firstname} required maxLength={100} autoComplete="given-name" radius="md" />
+            <TextInput name="lastname" label={t('profile.lastname')} defaultValue={user.Lastname} required maxLength={100} autoComplete="family-name" radius="md" />
+            <Button type="submit" loading={saving} radius="xl">{t('profile.save')}</Button>
           </Stack>
         </form>
       </Paper>
@@ -128,19 +142,19 @@ export default function ProfilePage() {
 
       <Paper withBorder radius="lg" style={{ overflow: 'hidden' }}>
         {hasActiveSubscription && (
-          <SettingsRow icon={<IconCreditCard size={20} />} label="Manage subscription" onClick={handleManageSubscription} disabled={portalLoading} />
+          <SettingsRow icon={<IconCreditCard size={20} />} label={t('profile.manageSubscription')} onClick={handleManageSubscription} disabled={portalLoading} />
         )}
-        <SettingsRow icon={<IconLogout size={20} />} label="Sign out" onClick={handleLogout} />
-        <SettingsRow icon={<IconTrash size={20} />} label="Delete account" onClick={openConfirm} color="red" last />
+        <SettingsRow icon={<IconLogout size={20} />} label={t('profile.signOut')} onClick={handleLogout} />
+        <SettingsRow icon={<IconTrash size={20} />} label={t('profile.deleteAccount')} onClick={openConfirm} color="red" last />
       </Paper>
 
-      <Modal opened={confirmOpened} onClose={closeConfirm} title="Delete account" centered radius="lg">
+      <Modal opened={confirmOpened} onClose={closeConfirm} title={t('profile.deleteAccount')} centered radius="lg">
         <Stack>
           {deleteError && <Alert color="red" radius="lg">{deleteError}</Alert>}
-          <Text>This will permanently delete your account. You will no longer be able to sign in. This action cannot be undone.</Text>
+          <Text>{t('profile.deleteAccountBody')}</Text>
           <Group justify="flex-end">
-            <Button variant="default" radius="xl" onClick={closeConfirm}>Cancel</Button>
-            <Button color="red" radius="xl" loading={deleting} onClick={handleDelete}>Delete my account</Button>
+            <Button variant="default" radius="xl" onClick={closeConfirm}>{t('profile.cancel')}</Button>
+            <Button color="red" radius="xl" loading={deleting} onClick={handleDelete}>{t('profile.deleteConfirm')}</Button>
           </Group>
         </Stack>
       </Modal>

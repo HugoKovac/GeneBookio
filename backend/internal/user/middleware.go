@@ -37,12 +37,17 @@ func MiddlewareUserExists(userService *Service) fiber.Handler {
 
 // MiddlewareAuth verifies the request's bearer JWT and stores the
 // authenticated user's ID and role in locals ("authUserID", "authUserRole").
+// The token is normally read from the Authorization header; if that's
+// absent, it falls back to a "token" query parameter, since an <audio>/<video>
+// element's src can't carry custom headers but does need to hit an
+// authenticated, range-request-capable endpoint directly.
 func MiddlewareAuth(userService *Service) fiber.Handler {
 	return func(c fiber.Ctx) error {
-		authHeader := c.Get(fiber.HeaderAuthorization)
-
-		tokenString, ok := strings.CutPrefix(authHeader, "Bearer ")
+		tokenString, ok := strings.CutPrefix(c.Get(fiber.HeaderAuthorization), "Bearer ")
 		if !ok || tokenString == "" {
+			tokenString = c.Query("token")
+		}
+		if tokenString == "" {
 			return c.SendStatus(http.StatusUnauthorized)
 		}
 

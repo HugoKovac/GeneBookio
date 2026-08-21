@@ -15,19 +15,39 @@ type Subscription struct {
 	Status               primitive.SubscriptionStatus
 	CurrentPeriodEnd     *time.Time
 	CancelAtPeriodEnd    bool
-	CreatedAt            time.Time
-	UpdatedAt            time.Time
+
+	// RevenueCat fields — namespaced and independent of the Stripe fields
+	// above (see Repository.Upsert/UpsertRevenueCat). RevenueCatActive is a
+	// computed-at-write-time snapshot of "now < expiry", not a raw event
+	// flag — RevenueCat's own CANCELLATION event, for instance, still leaves
+	// the user active until RevenueCatExpiresAt.
+	RevenueCatActive                bool
+	RevenueCatExpiresAt             *time.Time
+	RevenueCatStore                 string
+	RevenueCatEntitlementID         string
+	RevenueCatOriginalTransactionID string
+
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
-// IsActive reports whether s currently grants access to gated content.
-// PastDue keeps access during Stripe's payment-retry grace window; Trialing
-// counts too since it's still a functioning subscription. Nil-safe so
-// callers with no Subscription row at all (a brand new user) can call it
+func (s *Subscription) stripeIsActive() bool {
+	return s.Status == primitive.SubscriptionActive ||
+		s.Status == primitive.SubscriptionTrialing ||
+		s.Status == primitive.SubscriptionPastDue
+}
+
+func (s *Subscription) revenueCatIsActive() bool {
+	return s.RevenueCatActive && s.RevenueCatExpiresAt != nil && s.RevenueCatExpiresAt.After(time.Now())
+}
+
+// IsActive reports whether s currently grants access to gated content —
+// true if either Stripe (web) or RevenueCat (native iOS/Android) says the
+// user is subscribed, regardless of which platform they paid on. Nil-safe
+// so callers with no Subscription row at all (a brand new user) can call it
 // directly.
 func (s *Subscription) IsActive() bool {
-	return s != nil && (s.Status == primitive.SubscriptionActive ||
-		s.Status == primitive.SubscriptionTrialing ||
-		s.Status == primitive.SubscriptionPastDue)
+	return s != nil && (s.stripeIsActive() || s.revenueCatIsActive())
 }
 
 // SubscriptionSnapshot is Stripe's view of a subscription's state, as
@@ -40,4 +60,18 @@ type SubscriptionSnapshot struct {
 	Status               primitive.SubscriptionStatus
 	CurrentPeriodEnd     *time.Time
 	CancelAtPeriodEnd    bool
+}
+
+// RevenueCatSnapshot is RevenueCat's view of a user's entitlement state, as
+// extracted from either a webhook or a direct REST fetch — see
+// RevenueCatAPI. It's what Repository.UpsertRevenueCat persists. Active is
+// already computed (now < expiry) by the caller building this snapshot, not
+// derived from the raw webhook event type.
+type RevenueCatSnapshot struct {
+	UserID                uuid.UUID
+	Active                bool
+	ExpiresAt             *time.Time
+	Store                 string
+	EntitlementID         string
+	OriginalTransactionID string
 }

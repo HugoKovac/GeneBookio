@@ -35,3 +35,12 @@ export async function createPortalSession(token: string): Promise<{ portalUrl: s
   const response = await request('/subscriptions/portal', token, 'POST');
   return response.json() as Promise<{ portalUrl: string }>;
 }
+
+// reconcileRevenueCat syncs the subscription row directly from RevenueCat's
+// current entitlement state — call right after a native purchase completes
+// so the UI reflects it immediately, without waiting on async webhook
+// delivery.
+export async function reconcileRevenueCat(token: string): Promise<SubscriptionInfo> {
+  const response = await request('/subscriptions/reconcile/revenuecat', token, 'POST');
+  return response.json() as Promise<SubscriptionInfo>;
+}

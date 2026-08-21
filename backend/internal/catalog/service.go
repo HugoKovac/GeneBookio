@@ -68,8 +68,8 @@ func (s *Service) GetBooks(ctx context.Context, page, limit int) ([]*BookWithCos
 	return result, nil
 }
 
-func (s *Service) GetBucketObjectAsReader(ctx context.Context, bucket primitive.Bucket, path string) (io.Reader, int64, string, error) {
-	return s.bucketRepo.GetBucketObjectAsReader(ctx, bucket, path)
+func (s *Service) GetBucketObjectAsReader(ctx context.Context, bucket primitive.Bucket, path string, rangeStart, rangeEnd int64) (io.Reader, int64, int64, string, error) {
+	return s.bucketRepo.GetBucketObjectAsReader(ctx, bucket, path, rangeStart, rangeEnd)
 }
 
 // RetryFailedStage re-publishes bookID onto the queue for the stage it last

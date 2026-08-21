@@ -38,6 +38,7 @@ type Config struct {
 	bucket.ConfigBucket
 	library.ConfigGoogleBooks
 	subscription.ConfigStripe
+	subscription.ConfigRevenueCat
 	subscription.PlanConfig
 }
 
@@ -103,6 +104,7 @@ func main() {
 	subscriptionService := subscription.NewService(
 		subscription.NewRepositoryImpl(dbClient),
 		subscription.NewStripeClient(&cfg.ConfigStripe, cfg.PlanConfig.PriceID),
+		subscription.NewRevenueCatClient(&cfg.ConfigRevenueCat),
 		cfg.PlanConfig,
 	)
 	subscription.NewHandler(app.Group("/subscriptions"), subscriptionService, userService, user.MiddlewareAuth(userService))

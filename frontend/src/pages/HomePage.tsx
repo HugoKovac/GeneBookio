@@ -1,7 +1,8 @@
 import { Alert, Anchor, Box, Button, Group, Loader, Stack, Text, ThemeIcon, Title } from '@mantine/core';
-import { IconChevronRight, IconHeadphones } from '@tabler/icons-react';
+import { IconChevronRight, IconBook } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import BookCover from '../features/catalog/components/BookCover';
 import { getBooks } from '../features/catalog/api';
 import type { Book } from '../features/catalog/types';
@@ -19,24 +20,27 @@ export default function HomePage() {
 }
 
 function GuestHome() {
+  const { t } = useTranslation();
+
   return (
     <Stack justify="center" style={{ flex: 1, minHeight: 'calc(100dvh - 64px)' }} align="center" px="lg" gap="xl">
       <ThemeIcon size={72} radius="xl" variant="light" color="violet">
-        <IconHeadphones size={36} stroke={1.5} />
+        <IconBook size={36} stroke={1.5} />
       </ThemeIcon>
       <Stack gap={6} align="center">
-        <Title order={1} ta="center" style={{ fontSize: 32 }}>GeneBookio</Title>
-        <Text c="dimmed" ta="center" maw={320}>Your books, narrated. Sign in to pick up where you left off.</Text>
+        <Title order={1} ta="center" style={{ fontSize: 32 }}>{t('app.name')}</Title>
+        <Text c="dimmed" ta="center" maw={320}>{t('home.guest.tagline')}</Text>
       </Stack>
       <Stack w="100%" maw={340} gap="sm">
-        <Button component={Link} to="/login" size="md" radius="xl" fullWidth>Sign in</Button>
-        <Button component={Link} to="/register" size="md" radius="xl" fullWidth variant="light">Create an account</Button>
+        <Button component={Link} to="/login" size="md" radius="xl" fullWidth>{t('home.guest.signIn')}</Button>
+        <Button component={Link} to="/register" size="md" radius="xl" fullWidth variant="light">{t('home.guest.createAccount')}</Button>
       </Stack>
     </Stack>
   );
 }
 
 function AuthenticatedHome({ userID, token }: { userID: string | null; token: string | null }) {
+  const { t } = useTranslation();
   const [firstname, setFirstname] = useState('');
   const [books, setBooks] = useState<Book[] | null>(null);
   const [error, setError] = useState('');
@@ -48,18 +52,18 @@ function AuthenticatedHome({ userID, token }: { userID: string | null; token: st
 
   useEffect(() => {
     if (!token) return;
-    getBooks(token).then(setBooks).catch((cause) => setError(cause instanceof Error ? cause.message : 'Unable to load your library.'));
-  }, [token]);
+    getBooks(token).then(setBooks).catch((cause) => setError(cause instanceof Error ? cause.message : t('home.loadError')));
+  }, [token, t]);
 
   return (
     <Stack px="lg" pt="lg" gap="xl">
-      <Title order={2} style={{ fontSize: 28 }}>{firstname ? `Hi, ${firstname}` : 'Welcome back'}</Title>
+      <Title order={2} style={{ fontSize: 28 }}>{firstname ? t('home.greeting', { name: firstname }) : t('home.welcomeBack')}</Title>
 
       <Stack gap="sm">
         <Group justify="space-between">
-          <Text fw={600} size="lg">Continue your library</Text>
+          <Text fw={600} size="lg">{t('home.continueLibrary')}</Text>
           <Anchor component={Link} to="/dashboard" size="sm" c="dimmed">
-            <Group gap={2}>See all <IconChevronRight size={14} /></Group>
+            <Group gap={2}>{t('home.seeAll')} <IconChevronRight size={14} /></Group>
           </Anchor>
         </Group>
 
@@ -68,7 +72,7 @@ function AuthenticatedHome({ userID, token }: { userID: string | null; token: st
         {!error && !books && <Group justify="center" py="xl"><Loader /></Group>}
 
         {books && books.length === 0 && (
-          <Text c="dimmed">No books in your library yet.</Text>
+          <Text c="dimmed">{t('home.noBooks')}</Text>
         )}
 
         {books && books.length > 0 && (

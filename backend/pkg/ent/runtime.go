@@ -106,6 +106,22 @@ func init() {
 	subscriptionDescCancelAtPeriodEnd := subscriptionFields[6].Descriptor()
 	// subscription.DefaultCancelAtPeriodEnd holds the default value on creation for the cancel_at_period_end field.
 	subscription.DefaultCancelAtPeriodEnd = subscriptionDescCancelAtPeriodEnd.Default.(bool)
+	// subscriptionDescRevenuecatActive is the schema descriptor for revenuecat_active field.
+	subscriptionDescRevenuecatActive := subscriptionFields[7].Descriptor()
+	// subscription.DefaultRevenuecatActive holds the default value on creation for the revenuecat_active field.
+	subscription.DefaultRevenuecatActive = subscriptionDescRevenuecatActive.Default.(bool)
+	// subscriptionDescRevenuecatStore is the schema descriptor for revenuecat_store field.
+	subscriptionDescRevenuecatStore := subscriptionFields[9].Descriptor()
+	// subscription.RevenuecatStoreValidator is a validator for the "revenuecat_store" field. It is called by the builders before save.
+	subscription.RevenuecatStoreValidator = subscriptionDescRevenuecatStore.Validators[0].(func(string) error)
+	// subscriptionDescRevenuecatEntitlementID is the schema descriptor for revenuecat_entitlement_id field.
+	subscriptionDescRevenuecatEntitlementID := subscriptionFields[10].Descriptor()
+	// subscription.RevenuecatEntitlementIDValidator is a validator for the "revenuecat_entitlement_id" field. It is called by the builders before save.
+	subscription.RevenuecatEntitlementIDValidator = subscriptionDescRevenuecatEntitlementID.Validators[0].(func(string) error)
+	// subscriptionDescRevenuecatOriginalTransactionID is the schema descriptor for revenuecat_original_transaction_id field.
+	subscriptionDescRevenuecatOriginalTransactionID := subscriptionFields[11].Descriptor()
+	// subscription.RevenuecatOriginalTransactionIDValidator is a validator for the "revenuecat_original_transaction_id" field. It is called by the builders before save.
+	subscription.RevenuecatOriginalTransactionIDValidator = subscriptionDescRevenuecatOriginalTransactionID.Validators[0].(func(string) error)
 	// subscriptionDescID is the schema descriptor for id field.
 	subscriptionDescID := subscriptionFields[0].Descriptor()
 	// subscription.DefaultID holds the default value on creation for the id field.

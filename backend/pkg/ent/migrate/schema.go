@@ -48,6 +48,11 @@ var (
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"incomplete", "incomplete_expired", "trialing", "active", "past_due", "canceled", "unpaid", "paused"}, Default: "incomplete"},
 		{Name: "current_period_end", Type: field.TypeTime, Nullable: true},
 		{Name: "cancel_at_period_end", Type: field.TypeBool, Default: false},
+		{Name: "revenuecat_active", Type: field.TypeBool, Default: false},
+		{Name: "revenuecat_expires_at", Type: field.TypeTime, Nullable: true},
+		{Name: "revenuecat_store", Type: field.TypeString, Nullable: true, Size: 20},
+		{Name: "revenuecat_entitlement_id", Type: field.TypeString, Nullable: true, Size: 100},
+		{Name: "revenuecat_original_transaction_id", Type: field.TypeString, Nullable: true, Size: 100},
 	}
 	// SubscriptionsTable holds the schema information for the "subscriptions" table.
 	SubscriptionsTable = &schema.Table{
