@@ -16,7 +16,6 @@ var (
 		{Name: "key", Type: field.TypeString, Unique: true, Size: 20},
 		{Name: "title", Type: field.TypeString, Size: 100},
 		{Name: "author_names", Type: field.TypeJSON, Nullable: true},
-		{Name: "author_keys", Type: field.TypeJSON, Nullable: true},
 		{Name: "description", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "cover_url", Type: field.TypeString, Nullable: true, Size: 1000},
 		{Name: "uploaded", Type: field.TypeBool, Default: false},

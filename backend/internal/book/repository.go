@@ -44,7 +44,6 @@ func (r *RepositoryImpl) CreateBook(ctx context.Context, book *Book) (*Book, err
 		SetTitle(book.Title).
 		SetKey(book.Key).
 		SetCoverURL(book.CoverURL).
-		SetAuthorKeys(book.AuthorKeys).
 		SetAuthorNames(book.AuthorNames).
 		SetDescription(book.Description)
 
@@ -62,7 +61,6 @@ func (r *RepositoryImpl) CreateBook(ctx context.Context, book *Book) (*Book, err
 		AuthorNames: e.AuthorNames,
 		CoverURL:    e.CoverURL,
 		Key:         e.Key,
-		AuthorKeys:  e.AuthorKeys,
 		Description: e.Description,
 		Language:    e.Language,
 	}, nil
@@ -164,7 +162,6 @@ func fromEntBook(e *ent.Book) *Book {
 		AuthorNames:     e.AuthorNames,
 		CoverURL:        e.CoverURL,
 		Key:             e.Key,
-		AuthorKeys:      e.AuthorKeys,
 		Description:     e.Description,
 		Language:        e.Language,
 		Uploaded:        e.Uploaded,

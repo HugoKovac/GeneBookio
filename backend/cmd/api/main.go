@@ -35,6 +35,7 @@ type Config struct {
 	database.ConfigDB
 	user.ConfigJWT
 	bucket.ConfigBucket
+	library.ConfigGoogleBooks
 }
 
 func readKeys(privatePath, publicPath string) (*rsa.PrivateKey, *rsa.PublicKey, error) {
@@ -92,7 +93,7 @@ func main() {
 
 	user.NewHandler(app.Group("/users"), userService)
 
-	libraryService := library.NewService(library.NewOpenLibraryClient())
+	libraryService := library.NewService(library.NewGoogleBooksClient(cfg.ConfigGoogleBooks.APIKey))
 	pricingCalculator := pricing.NewCalculator(pricing.NewExchangeRateClient())
 	catalogService := catalog.NewService(book.NewRepositoryImpl(dbClient), book.NewBucketRepoImpl(cClient), nil, pricingCalculator)
 

@@ -12,7 +12,6 @@ type Book struct {
 	AuthorNames                                               []string
 	CoverURL                                                  string
 	Key                                                       string
-	AuthorKeys                                                []string
 	Description                                               string
 	Language                                                  primitive.Language
 	Uploaded, Parsed, Prepared, ScriptGenerated, TTSGenerated bool
@@ -30,11 +29,10 @@ type QueryURI struct {
 
 type BookDTO struct {
 	Title       string   `json:"title"`
-	Authors     []string `json:"authors,omitempty"`
 	AuthorNames []string `json:"author_names,omitempty"`
 	CoverURL    string   `json:"cover_url"`
 	Key         string   `json:"key"`
-	Descriptiom string   `json:"description"`
+	Description string   `json:"description"`
 }
 
 type Stage int

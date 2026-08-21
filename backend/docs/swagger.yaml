@@ -6,10 +6,6 @@ definitions:
         items:
           type: string
         type: array
-      authors:
-        items:
-          type: string
-        type: array
       cover_url:
         type: string
       description:
@@ -18,6 +14,71 @@ definitions:
         type: string
       title:
         type: string
+    type: object
+  catalog.BookWithCost:
+    properties:
+      CostEUR:
+        type: number
+      CostUSD:
+        type: number
+      authorNames:
+        items:
+          type: string
+        type: array
+      coverURL:
+        type: string
+      description:
+        type: string
+      errorMessage:
+        type: string
+      failed:
+        type: boolean
+      failedStage:
+        type: string
+      id:
+        type: string
+      key:
+        type: string
+      language:
+        $ref: '#/definitions/primitive.Language'
+      parsed:
+        type: boolean
+      prepared:
+        type: boolean
+      retryDisabled:
+        description: RetryDisabled marks Failed as permanent — see book.RecordPermanentFailure.
+        type: boolean
+      scriptGenerated:
+        type: boolean
+      title:
+        type: string
+      tokenUsage:
+        $ref: '#/definitions/primitive.TokenUsage'
+      ttsgenerated:
+        type: boolean
+      uploaded:
+        type: boolean
+    type: object
+  primitive.Language:
+    enum:
+    - fr
+    - en
+    type: string
+    x-enum-varnames:
+    - French
+    - English
+  primitive.ModelUsage:
+    properties:
+      input_tokens:
+        type: integer
+      output_tokens:
+        type: integer
+      total_tokens:
+        type: integer
+    type: object
+  primitive.TokenUsage:
+    additionalProperties:
+      $ref: '#/definitions/primitive.ModelUsage'
     type: object
   primitive.UserRole:
     enum:
@@ -64,11 +125,18 @@ definitions:
       firstname:
         maxLength: 100
         type: string
+      language:
+        allOf:
+        - $ref: '#/definitions/primitive.Language'
+        enum:
+        - en
+        - fr
       lastname:
         maxLength: 100
         type: string
     required:
     - firstname
+    - language
     - lastname
     type: object
   user.User:
@@ -83,6 +151,8 @@ definitions:
         type: string
       id:
         type: string
+      language:
+        $ref: '#/definitions/primitive.Language'
       lastname:
         type: string
       passwordHash:
@@ -104,7 +174,7 @@ info:
 paths:
   /books/:
     get:
-      description: Returns up to 5 books saved in the local database
+      description: Returns up to 100 books saved in the local database
       produces:
       - application/json
       responses:
@@ -112,7 +182,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/book.BookDTO'
+              $ref: '#/definitions/catalog.BookWithCost'
             type: array
         "500":
           description: Internal Server Error
@@ -127,9 +197,9 @@ paths:
       - books
   /books/{query}:
     get:
-      description: Fetch a book from OpenLibrary by its key (e.g. /works/OL12345W)
+      description: Fetch a book from Google Books by its volume ID
       parameters:
-      - description: OpenLibrary book key
+      - description: Google Books volume ID
         in: path
         name: query
         required: true
@@ -150,6 +220,30 @@ paths:
       security:
       - BearerAuth: []
       summary: Get book by key
+      tags:
+      - books
+  /books/{query}/retry:
+    post:
+      description: Re-publishes the book onto the queue for the stage it last failed
+        at, and clears the failure
+      parameters:
+      - description: Book ID (UUID)
+        in: path
+        name: query
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Retry a failed book
       tags:
       - books
   /books/audio/{query}:
@@ -187,7 +281,7 @@ paths:
       - books
   /books/search/{query}:
     get:
-      description: Search for books on OpenLibrary by title or keyword
+      description: Search for books on Google Books by title or keyword
       parameters:
       - description: Search query
         in: path

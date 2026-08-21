@@ -32,9 +32,8 @@ func TestCheckBudget_ZeroCostNeverExceeds(t *testing.T) {
 	}
 }
 
-// TestCheckBudget_OverBudget hits the real Frankfurter exchange-rate API
-// (like internal/library's OpenLibrary test hits a real API) — expect it to
-// be slow/flaky offline.
+// TestCheckBudget_OverBudget hits the real Frankfurter exchange-rate API —
+// expect it to be slow/flaky offline.
 func TestCheckBudget_OverBudget(t *testing.T) {
 	c := NewCalculator(NewExchangeRateClient())
 

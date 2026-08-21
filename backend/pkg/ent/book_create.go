@@ -71,12 +71,6 @@ func (_c *BookCreate) SetAuthorNames(v []string) *BookCreate {
 	return _c
 }
 
-// SetAuthorKeys sets the "author_keys" field.
-func (_c *BookCreate) SetAuthorKeys(v []string) *BookCreate {
-	_c.mutation.SetAuthorKeys(v)
-	return _c
-}
-
 // SetDescription sets the "description" field.
 func (_c *BookCreate) SetDescription(v string) *BookCreate {
 	_c.mutation.SetDescription(v)
@@ -465,10 +459,6 @@ func (_c *BookCreate) createSpec() (*Book, *sqlgraph.CreateSpec) {
 		_spec.SetField(book.FieldAuthorNames, field.TypeJSON, value)
 		_node.AuthorNames = value
 	}
-	if value, ok := _c.mutation.AuthorKeys(); ok {
-		_spec.SetField(book.FieldAuthorKeys, field.TypeJSON, value)
-		_node.AuthorKeys = value
-	}
 	if value, ok := _c.mutation.Description(); ok {
 		_spec.SetField(book.FieldDescription, field.TypeString, value)
 		_node.Description = value
@@ -624,24 +614,6 @@ func (u *BookUpsert) UpdateAuthorNames() *BookUpsert {
 // ClearAuthorNames clears the value of the "author_names" field.
 func (u *BookUpsert) ClearAuthorNames() *BookUpsert {
 	u.SetNull(book.FieldAuthorNames)
-	return u
-}
-
-// SetAuthorKeys sets the "author_keys" field.
-func (u *BookUpsert) SetAuthorKeys(v []string) *BookUpsert {
-	u.Set(book.FieldAuthorKeys, v)
-	return u
-}
-
-// UpdateAuthorKeys sets the "author_keys" field to the value that was provided on create.
-func (u *BookUpsert) UpdateAuthorKeys() *BookUpsert {
-	u.SetExcluded(book.FieldAuthorKeys)
-	return u
-}
-
-// ClearAuthorKeys clears the value of the "author_keys" field.
-func (u *BookUpsert) ClearAuthorKeys() *BookUpsert {
-	u.SetNull(book.FieldAuthorKeys)
 	return u
 }
 
@@ -942,27 +914,6 @@ func (u *BookUpsertOne) UpdateAuthorNames() *BookUpsertOne {
 func (u *BookUpsertOne) ClearAuthorNames() *BookUpsertOne {
 	return u.Update(func(s *BookUpsert) {
 		s.ClearAuthorNames()
-	})
-}
-
-// SetAuthorKeys sets the "author_keys" field.
-func (u *BookUpsertOne) SetAuthorKeys(v []string) *BookUpsertOne {
-	return u.Update(func(s *BookUpsert) {
-		s.SetAuthorKeys(v)
-	})
-}
-
-// UpdateAuthorKeys sets the "author_keys" field to the value that was provided on create.
-func (u *BookUpsertOne) UpdateAuthorKeys() *BookUpsertOne {
-	return u.Update(func(s *BookUpsert) {
-		s.UpdateAuthorKeys()
-	})
-}
-
-// ClearAuthorKeys clears the value of the "author_keys" field.
-func (u *BookUpsertOne) ClearAuthorKeys() *BookUpsertOne {
-	return u.Update(func(s *BookUpsert) {
-		s.ClearAuthorKeys()
 	})
 }
 
@@ -1461,27 +1412,6 @@ func (u *BookUpsertBulk) UpdateAuthorNames() *BookUpsertBulk {
 func (u *BookUpsertBulk) ClearAuthorNames() *BookUpsertBulk {
 	return u.Update(func(s *BookUpsert) {
 		s.ClearAuthorNames()
-	})
-}
-
-// SetAuthorKeys sets the "author_keys" field.
-func (u *BookUpsertBulk) SetAuthorKeys(v []string) *BookUpsertBulk {
-	return u.Update(func(s *BookUpsert) {
-		s.SetAuthorKeys(v)
-	})
-}
-
-// UpdateAuthorKeys sets the "author_keys" field to the value that was provided on create.
-func (u *BookUpsertBulk) UpdateAuthorKeys() *BookUpsertBulk {
-	return u.Update(func(s *BookUpsert) {
-		s.UpdateAuthorKeys()
-	})
-}
-
-// ClearAuthorKeys clears the value of the "author_keys" field.
-func (u *BookUpsertBulk) ClearAuthorKeys() *BookUpsertBulk {
-	return u.Update(func(s *BookUpsert) {
-		s.ClearAuthorKeys()
 	})
 }
 

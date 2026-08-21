@@ -4,7 +4,6 @@ export type Book = {
   AuthorNames: string[] | null;
   CoverURL: string;
   Key: string;
-  AuthorKeys: string[] | null;
   Description: string;
   Uploaded: boolean;
   Parsed: boolean;

@@ -43,8 +43,6 @@ type BookMutation struct {
 	title              *string
 	author_names       *[]string
 	appendauthor_names []string
-	author_keys        *[]string
-	appendauthor_keys  []string
 	description        *string
 	cover_url          *string
 	uploaded           *bool
@@ -375,71 +373,6 @@ func (m *BookMutation) ResetAuthorNames() {
 	m.author_names = nil
 	m.appendauthor_names = nil
 	delete(m.clearedFields, book.FieldAuthorNames)
-}
-
-// SetAuthorKeys sets the "author_keys" field.
-func (m *BookMutation) SetAuthorKeys(s []string) {
-	m.author_keys = &s
-	m.appendauthor_keys = nil
-}
-
-// AuthorKeys returns the value of the "author_keys" field in the mutation.
-func (m *BookMutation) AuthorKeys() (r []string, exists bool) {
-	v := m.author_keys
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldAuthorKeys returns the old "author_keys" field's value of the Book entity.
-// If the Book object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *BookMutation) OldAuthorKeys(ctx context.Context) (v []string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldAuthorKeys is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldAuthorKeys requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldAuthorKeys: %w", err)
-	}
-	return oldValue.AuthorKeys, nil
-}
-
-// AppendAuthorKeys adds s to the "author_keys" field.
-func (m *BookMutation) AppendAuthorKeys(s []string) {
-	m.appendauthor_keys = append(m.appendauthor_keys, s...)
-}
-
-// AppendedAuthorKeys returns the list of values that were appended to the "author_keys" field in this mutation.
-func (m *BookMutation) AppendedAuthorKeys() ([]string, bool) {
-	if len(m.appendauthor_keys) == 0 {
-		return nil, false
-	}
-	return m.appendauthor_keys, true
-}
-
-// ClearAuthorKeys clears the value of the "author_keys" field.
-func (m *BookMutation) ClearAuthorKeys() {
-	m.author_keys = nil
-	m.appendauthor_keys = nil
-	m.clearedFields[book.FieldAuthorKeys] = struct{}{}
-}
-
-// AuthorKeysCleared returns if the "author_keys" field was cleared in this mutation.
-func (m *BookMutation) AuthorKeysCleared() bool {
-	_, ok := m.clearedFields[book.FieldAuthorKeys]
-	return ok
-}
-
-// ResetAuthorKeys resets all changes to the "author_keys" field.
-func (m *BookMutation) ResetAuthorKeys() {
-	m.author_keys = nil
-	m.appendauthor_keys = nil
-	delete(m.clearedFields, book.FieldAuthorKeys)
 }
 
 // SetDescription sets the "description" field.
@@ -1009,7 +942,7 @@ func (m *BookMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *BookMutation) Fields() []string {
-	fields := make([]string, 0, 19)
+	fields := make([]string, 0, 18)
 	if m.created_at != nil {
 		fields = append(fields, book.FieldCreatedAt)
 	}
@@ -1024,9 +957,6 @@ func (m *BookMutation) Fields() []string {
 	}
 	if m.author_names != nil {
 		fields = append(fields, book.FieldAuthorNames)
-	}
-	if m.author_keys != nil {
-		fields = append(fields, book.FieldAuthorKeys)
 	}
 	if m.description != nil {
 		fields = append(fields, book.FieldDescription)
@@ -1085,8 +1015,6 @@ func (m *BookMutation) Field(name string) (ent.Value, bool) {
 		return m.Title()
 	case book.FieldAuthorNames:
 		return m.AuthorNames()
-	case book.FieldAuthorKeys:
-		return m.AuthorKeys()
 	case book.FieldDescription:
 		return m.Description()
 	case book.FieldCoverURL:
@@ -1132,8 +1060,6 @@ func (m *BookMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldTitle(ctx)
 	case book.FieldAuthorNames:
 		return m.OldAuthorNames(ctx)
-	case book.FieldAuthorKeys:
-		return m.OldAuthorKeys(ctx)
 	case book.FieldDescription:
 		return m.OldDescription(ctx)
 	case book.FieldCoverURL:
@@ -1203,13 +1129,6 @@ func (m *BookMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAuthorNames(v)
-		return nil
-	case book.FieldAuthorKeys:
-		v, ok := value.([]string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetAuthorKeys(v)
 		return nil
 	case book.FieldDescription:
 		v, ok := value.(string)
@@ -1335,9 +1254,6 @@ func (m *BookMutation) ClearedFields() []string {
 	if m.FieldCleared(book.FieldAuthorNames) {
 		fields = append(fields, book.FieldAuthorNames)
 	}
-	if m.FieldCleared(book.FieldAuthorKeys) {
-		fields = append(fields, book.FieldAuthorKeys)
-	}
 	if m.FieldCleared(book.FieldDescription) {
 		fields = append(fields, book.FieldDescription)
 	}
@@ -1369,9 +1285,6 @@ func (m *BookMutation) ClearField(name string) error {
 	switch name {
 	case book.FieldAuthorNames:
 		m.ClearAuthorNames()
-		return nil
-	case book.FieldAuthorKeys:
-		m.ClearAuthorKeys()
 		return nil
 	case book.FieldDescription:
 		m.ClearDescription()
@@ -1410,9 +1323,6 @@ func (m *BookMutation) ResetField(name string) error {
 		return nil
 	case book.FieldAuthorNames:
 		m.ResetAuthorNames()
-		return nil
-	case book.FieldAuthorKeys:
-		m.ResetAuthorKeys()
 		return nil
 	case book.FieldDescription:
 		m.ResetDescription()

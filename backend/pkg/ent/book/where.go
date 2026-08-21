@@ -351,16 +351,6 @@ func AuthorNamesNotNil() predicate.Book {
 	return predicate.Book(sql.FieldNotNull(FieldAuthorNames))
 }
 
-// AuthorKeysIsNil applies the IsNil predicate on the "author_keys" field.
-func AuthorKeysIsNil() predicate.Book {
-	return predicate.Book(sql.FieldIsNull(FieldAuthorKeys))
-}
-
-// AuthorKeysNotNil applies the NotNil predicate on the "author_keys" field.
-func AuthorKeysNotNil() predicate.Book {
-	return predicate.Book(sql.FieldNotNull(FieldAuthorKeys))
-}
-
 // DescriptionEQ applies the EQ predicate on the "description" field.
 func DescriptionEQ(v string) predicate.Book {
 	return predicate.Book(sql.FieldEQ(FieldDescription, v))

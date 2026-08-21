@@ -32,10 +32,10 @@ func NewHandler(router fiber.Router, service *Service) {
 	)
 }
 
-// Search searches books on OpenLibrary by keyword or title.
+// Search searches books on Google Books by keyword or title.
 //
 // @Summary      Search books
-// @Description  Search for books on OpenLibrary by title or keyword
+// @Description  Search for books on Google Books by title or keyword
 // @Tags         books
 // @Security     BearerAuth
 // @Produce      json
@@ -62,14 +62,14 @@ func (h *Handler) Search(c fiber.Ctx) error {
 	return c.JSON(books)
 }
 
-// GetBookByKey fetches a single book from OpenLibrary by its key.
+// GetBookByKey fetches a single book from Google Books by its volume ID.
 //
 // @Summary      Get book by key
-// @Description  Fetch a book from OpenLibrary by its key (e.g. /works/OL12345W)
+// @Description  Fetch a book from Google Books by its volume ID
 // @Tags         books
 // @Security     BearerAuth
 // @Produce      json
-// @Param        query  path  string  true  "OpenLibrary book key"
+// @Param        query  path  string  true  "Google Books volume ID"
 // @Success      200  {object}  book.BookDTO
 // @Failure      400  {object}  map[string]string
 // @Router       /books/{query} [get]
@@ -91,9 +91,9 @@ func (h *Handler) GetBookByKey(c fiber.Ctx) error {
 
 	return c.JSON(book.BookDTO{
 		Title:       b.Title,
-		Authors:     b.AuthorKeys,
+		AuthorNames: b.AuthorNames,
 		CoverURL:    b.CoverURL,
 		Key:         b.Key,
-		Descriptiom: b.Description,
+		Description: b.Description,
 	})
 }

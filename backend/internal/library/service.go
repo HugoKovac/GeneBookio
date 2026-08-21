@@ -5,24 +5,26 @@ import (
 	"hkorpo/book/internal/book"
 )
 
-type LibraryAPI interface {
+// BooksAPI is the port to an external book catalog — GoogleBooksClient is
+// its only implementation.
+type BooksAPI interface {
 	SearchBookByString(q string, page int) (books []*book.Book, err error)
 	GetBookByKey(key string) (books *book.Book, err error)
 }
 
-// Service looks up books on the external OpenLibrary catalog.
+// Service looks up books on an external catalog (see BooksAPI).
 type Service struct {
-	bookAPI LibraryAPI
+	booksAPI BooksAPI
 }
 
-func NewService(bookAPI LibraryAPI) *Service {
-	return &Service{bookAPI: bookAPI}
+func NewService(booksAPI BooksAPI) *Service {
+	return &Service{booksAPI: booksAPI}
 }
 
 func (s *Service) Search(ctx context.Context, query string) ([]*book.Book, error) {
-	return s.bookAPI.SearchBookByString(query, 1)
+	return s.booksAPI.SearchBookByString(query, 1)
 }
 
 func (s *Service) GetBookByKey(key string) (*book.Book, error) {
-	return s.bookAPI.GetBookByKey(key)
+	return s.booksAPI.GetBookByKey(key)
 }

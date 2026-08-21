@@ -26,7 +26,6 @@ func (Book) Fields() []ent.Field {
 		field.String("key").MaxLen(20).Unique(),
 		field.String("title").MaxLen(100),
 		field.JSON("author_names", []string{}).Optional(),
-		field.JSON("author_keys", []string{}).Optional(),
 		field.Text("description").Optional(),
 		field.String("cover_url").MaxLen(1000).Optional(),
 		field.Bool("uploaded").Default(false),

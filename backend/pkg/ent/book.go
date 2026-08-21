@@ -30,8 +30,6 @@ type Book struct {
 	Title string `json:"title,omitempty"`
 	// AuthorNames holds the value of the "author_names" field.
 	AuthorNames []string `json:"author_names,omitempty"`
-	// AuthorKeys holds the value of the "author_keys" field.
-	AuthorKeys []string `json:"author_keys,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
 	// CoverURL holds the value of the "cover_url" field.
@@ -66,7 +64,7 @@ func (*Book) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case book.FieldAuthorNames, book.FieldAuthorKeys, book.FieldTokenUsage:
+		case book.FieldAuthorNames, book.FieldTokenUsage:
 			values[i] = new([]byte)
 		case book.FieldUploaded, book.FieldParsed, book.FieldPrepared, book.FieldScriptGenerated, book.FieldTtsGenerated, book.FieldFailed, book.FieldRetryDisabled:
 			values[i] = new(sql.NullBool)
@@ -127,14 +125,6 @@ func (_m *Book) assignValues(columns []string, values []any) error {
 			} else if value != nil && len(*value) > 0 {
 				if err := json.Unmarshal(*value, &_m.AuthorNames); err != nil {
 					return fmt.Errorf("unmarshal field author_names: %w", err)
-				}
-			}
-		case book.FieldAuthorKeys:
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field author_keys", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &_m.AuthorKeys); err != nil {
-					return fmt.Errorf("unmarshal field author_keys: %w", err)
 				}
 			}
 		case book.FieldDescription:
@@ -267,9 +257,6 @@ func (_m *Book) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("author_names=")
 	builder.WriteString(fmt.Sprintf("%v", _m.AuthorNames))
-	builder.WriteString(", ")
-	builder.WriteString("author_keys=")
-	builder.WriteString(fmt.Sprintf("%v", _m.AuthorKeys))
 	builder.WriteString(", ")
 	builder.WriteString("description=")
 	builder.WriteString(_m.Description)

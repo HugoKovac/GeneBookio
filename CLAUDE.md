@@ -40,11 +40,10 @@ Each AI-driven stage also has a hardcoded per-book EUR budget (`budgetEUR` in ea
 Standard Go tooling applies for tests/build — there's no test/lint wrapper in the Makefile:
 ```
 go test ./...
-go test ./internal/library/... -run TestGetBookByKey -v
 go build ./...
 go vet ./...
 ```
-`internal/library/openlibrary_client_test.go` makes live HTTP calls to openlibrary.org — expect it to be slow/flaky offline.
+`internal/pricing`'s tests make live HTTP calls to the Frankfurter exchange-rate API — expect them to be slow/flaky offline.
 
 ### Architecture: queue-driven pipeline
 
@@ -88,7 +87,7 @@ A `Book`'s progress is tracked both as boolean flags (`Uploaded`/`Parsed`/`Prepa
 
 | Package | Owns | Depends on `book` for |
 |---|---|---|
-| `internal/library` | Book search/lookup — `LibraryAPI` has two implementations: `LibraryClient` (OpenLibrary, used by `cmd/api`) and `GoogleBooksClient` (Google Books, used by `cmd/admin` via `GOOGLE_API_BOOKS`) | `Book` (return type only) |
+| `internal/library` | Book search/lookup via Google Books — `LibraryAPI`'s only implementation is `GoogleBooksClient` (used by both `cmd/api` and `cmd/admin`, each with their own `GOOGLE_API_BOOKS` key) | `Book` (return type only) |
 | `internal/catalog` | saved-book persistence + audio streaming | `Repository`, `BucketRepo` |
 | `internal/upload` | EPUB intake (`UploadNewBook`/`GetUploadBook`) | `Repository`, `BucketRepo`, `QueueRepo`, `Stage` |
 | `internal/parsing` | EPUB → chapter chunks (`EpubParserImpl`) | same, plus its own `EpubParser` interface |

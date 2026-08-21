@@ -22,7 +22,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns up to 5 books saved in the local database",
+                "description": "Returns up to 100 books saved in the local database",
                 "produces": [
                     "application/json"
                 ],
@@ -36,7 +36,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/book.BookDTO"
+                                "$ref": "#/definitions/catalog.BookWithCost"
                             }
                         }
                     },
@@ -111,7 +111,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Search for books on OpenLibrary by title or keyword",
+                "description": "Search for books on Google Books by title or keyword",
                 "produces": [
                     "application/json"
                 ],
@@ -157,7 +157,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Fetch a book from OpenLibrary by its key (e.g. /works/OL12345W)",
+                "description": "Fetch a book from Google Books by its volume ID",
                 "produces": [
                     "application/json"
                 ],
@@ -168,7 +168,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "OpenLibrary book key",
+                        "description": "Google Books volume ID",
                         "name": "query",
                         "in": "path",
                         "required": true
@@ -180,6 +180,43 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/book.BookDTO"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/books/{query}/retry": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Re-publishes the book onto the queue for the stage it last failed at, and clears the failure",
+                "tags": [
+                    "books"
+                ],
+                "summary": "Retry a failed book",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Book ID (UUID)",
+                        "name": "query",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -496,12 +533,6 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "authors": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
                 "cover_url": {
                     "type": "string"
                 },
@@ -514,6 +545,103 @@ const docTemplate = `{
                 "title": {
                     "type": "string"
                 }
+            }
+        },
+        "catalog.BookWithCost": {
+            "type": "object",
+            "properties": {
+                "CostEUR": {
+                    "type": "number"
+                },
+                "CostUSD": {
+                    "type": "number"
+                },
+                "authorNames": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "coverURL": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "errorMessage": {
+                    "type": "string"
+                },
+                "failed": {
+                    "type": "boolean"
+                },
+                "failedStage": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "language": {
+                    "$ref": "#/definitions/primitive.Language"
+                },
+                "parsed": {
+                    "type": "boolean"
+                },
+                "prepared": {
+                    "type": "boolean"
+                },
+                "retryDisabled": {
+                    "description": "RetryDisabled marks Failed as permanent — see book.RecordPermanentFailure.",
+                    "type": "boolean"
+                },
+                "scriptGenerated": {
+                    "type": "boolean"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "tokenUsage": {
+                    "$ref": "#/definitions/primitive.TokenUsage"
+                },
+                "ttsgenerated": {
+                    "type": "boolean"
+                },
+                "uploaded": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "primitive.Language": {
+            "type": "string",
+            "enum": [
+                "fr",
+                "en"
+            ],
+            "x-enum-varnames": [
+                "French",
+                "English"
+            ]
+        },
+        "primitive.ModelUsage": {
+            "type": "object",
+            "properties": {
+                "input_tokens": {
+                    "type": "integer"
+                },
+                "output_tokens": {
+                    "type": "integer"
+                },
+                "total_tokens": {
+                    "type": "integer"
+                }
+            }
+        },
+        "primitive.TokenUsage": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/definitions/primitive.ModelUsage"
             }
         },
         "primitive.UserRole": {
@@ -575,12 +703,24 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "firstname",
+                "language",
                 "lastname"
             ],
             "properties": {
                 "firstname": {
                     "type": "string",
                     "maxLength": 100
+                },
+                "language": {
+                    "enum": [
+                        "en",
+                        "fr"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/primitive.Language"
+                        }
+                    ]
                 },
                 "lastname": {
                     "type": "string",
@@ -605,6 +745,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
+                },
+                "language": {
+                    "$ref": "#/definitions/primitive.Language"
                 },
                 "lastname": {
                     "type": "string"

@@ -82,24 +82,6 @@ func (_u *BookUpdate) ClearAuthorNames() *BookUpdate {
 	return _u
 }
 
-// SetAuthorKeys sets the "author_keys" field.
-func (_u *BookUpdate) SetAuthorKeys(v []string) *BookUpdate {
-	_u.mutation.SetAuthorKeys(v)
-	return _u
-}
-
-// AppendAuthorKeys appends value to the "author_keys" field.
-func (_u *BookUpdate) AppendAuthorKeys(v []string) *BookUpdate {
-	_u.mutation.AppendAuthorKeys(v)
-	return _u
-}
-
-// ClearAuthorKeys clears the value of the "author_keys" field.
-func (_u *BookUpdate) ClearAuthorKeys() *BookUpdate {
-	_u.mutation.ClearAuthorKeys()
-	return _u
-}
-
 // SetDescription sets the "description" field.
 func (_u *BookUpdate) SetDescription(v string) *BookUpdate {
 	_u.mutation.SetDescription(v)
@@ -407,17 +389,6 @@ func (_u *BookUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if _u.mutation.AuthorNamesCleared() {
 		_spec.ClearField(book.FieldAuthorNames, field.TypeJSON)
 	}
-	if value, ok := _u.mutation.AuthorKeys(); ok {
-		_spec.SetField(book.FieldAuthorKeys, field.TypeJSON, value)
-	}
-	if value, ok := _u.mutation.AppendedAuthorKeys(); ok {
-		_spec.AddModifier(func(u *sql.UpdateBuilder) {
-			sqljson.Append(u, book.FieldAuthorKeys, value)
-		})
-	}
-	if _u.mutation.AuthorKeysCleared() {
-		_spec.ClearField(book.FieldAuthorKeys, field.TypeJSON)
-	}
 	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(book.FieldDescription, field.TypeString, value)
 	}
@@ -541,24 +512,6 @@ func (_u *BookUpdateOne) AppendAuthorNames(v []string) *BookUpdateOne {
 // ClearAuthorNames clears the value of the "author_names" field.
 func (_u *BookUpdateOne) ClearAuthorNames() *BookUpdateOne {
 	_u.mutation.ClearAuthorNames()
-	return _u
-}
-
-// SetAuthorKeys sets the "author_keys" field.
-func (_u *BookUpdateOne) SetAuthorKeys(v []string) *BookUpdateOne {
-	_u.mutation.SetAuthorKeys(v)
-	return _u
-}
-
-// AppendAuthorKeys appends value to the "author_keys" field.
-func (_u *BookUpdateOne) AppendAuthorKeys(v []string) *BookUpdateOne {
-	_u.mutation.AppendAuthorKeys(v)
-	return _u
-}
-
-// ClearAuthorKeys clears the value of the "author_keys" field.
-func (_u *BookUpdateOne) ClearAuthorKeys() *BookUpdateOne {
-	_u.mutation.ClearAuthorKeys()
 	return _u
 }
 
@@ -898,17 +851,6 @@ func (_u *BookUpdateOne) sqlSave(ctx context.Context) (_node *Book, err error) {
 	}
 	if _u.mutation.AuthorNamesCleared() {
 		_spec.ClearField(book.FieldAuthorNames, field.TypeJSON)
-	}
-	if value, ok := _u.mutation.AuthorKeys(); ok {
-		_spec.SetField(book.FieldAuthorKeys, field.TypeJSON, value)
-	}
-	if value, ok := _u.mutation.AppendedAuthorKeys(); ok {
-		_spec.AddModifier(func(u *sql.UpdateBuilder) {
-			sqljson.Append(u, book.FieldAuthorKeys, value)
-		})
-	}
-	if _u.mutation.AuthorKeysCleared() {
-		_spec.ClearField(book.FieldAuthorKeys, field.TypeJSON)
 	}
 	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(book.FieldDescription, field.TypeString, value)

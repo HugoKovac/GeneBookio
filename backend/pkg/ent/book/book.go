@@ -26,8 +26,6 @@ const (
 	FieldTitle = "title"
 	// FieldAuthorNames holds the string denoting the author_names field in the database.
 	FieldAuthorNames = "author_names"
-	// FieldAuthorKeys holds the string denoting the author_keys field in the database.
-	FieldAuthorKeys = "author_keys"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
 	// FieldCoverURL holds the string denoting the cover_url field in the database.
@@ -66,7 +64,6 @@ var Columns = []string{
 	FieldKey,
 	FieldTitle,
 	FieldAuthorNames,
-	FieldAuthorKeys,
 	FieldDescription,
 	FieldCoverURL,
 	FieldUploaded,

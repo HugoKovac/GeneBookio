@@ -121,7 +121,7 @@ services:
       - MINIO_ENPOINT=minio:9000
       - RABBITMQ_HOST=rabbitmq:5672
       - MYSQL_HOST=db:3306
-      - AI_TEST_MODE=${AI_TEST_MODE:-true}
+      - AI_TEST_MODE=${AI_TEST_MODE:-false}
 
   generate_script:
     build:
@@ -139,7 +139,7 @@ services:
       - MYSQL_HOST=db:3306
       - MINIO_ENPOINT=minio:9000
       - RABBITMQ_HOST=rabbitmq:5672
-      - AI_TEST_MODE=${AI_TEST_MODE:-true}
+      - AI_TEST_MODE=${AI_TEST_MODE:-false}
 
 
   generate_tss:
@@ -158,7 +158,7 @@ services:
       - MINIO_ENPOINT=minio:9000
       - RABBITMQ_HOST=rabbitmq:5672
       - MYSQL_HOST=db:3306
-      - AI_TEST_MODE=${AI_TEST_MODE:-true}
+      - AI_TEST_MODE=${AI_TEST_MODE:-false}
 
       
   
