@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ActionIcon, Alert, Badge, Box, Button, Card, Group, Loader, Stack, Table, Text, Title, Tooltip } from '@mantine/core';
+import { ActionIcon, Alert, Badge, Box, Button, Card, CopyButton, Group, Loader, Stack, Table, Text, Title, Tooltip } from '@mantine/core';
 import BookCover from '../features/books/components/BookCover';
 import { getCatalog, retryBook } from '../features/books/api';
 import type { CatalogBook } from '../features/books/types';
@@ -79,6 +79,35 @@ function ProgressStages({ book }: { book: CatalogBook }) {
   );
 }
 
+function BookIDBadge({ id }: { id: string }) {
+  return (
+    <CopyButton value={id}>
+      {({ copied, copy }) => (
+        <Tooltip label={copied ? 'Copied!' : 'Click to copy'} withArrow>
+          <Box
+            component="span"
+            onClick={copy}
+            px={8}
+            py={2}
+            style={{
+              cursor: 'pointer',
+              display: 'inline-block',
+              whiteSpace: 'nowrap',
+              borderRadius: 'var(--mantine-radius-sm)',
+              border: `1px solid var(--mantine-color-${copied ? 'teal' : 'gray'}-6)`,
+              fontFamily: 'monospace',
+              fontSize: 'var(--mantine-font-size-xs)',
+              color: copied ? 'var(--mantine-color-teal-6)' : 'var(--mantine-color-dimmed)',
+            }}
+          >
+            {id}
+          </Box>
+        </Tooltip>
+      )}
+    </CopyButton>
+  );
+}
+
 export default function CataloguePage() {
   const [books, setBooks] = useState<CatalogBook[] | null>(null);
   const [error, setError] = useState('');
@@ -130,6 +159,7 @@ export default function CataloguePage() {
             <Table.Thead>
               <Table.Tr>
                 <Table.Th>Book</Table.Th>
+                <Table.Th>ID</Table.Th>
                 <Table.Th>Language</Table.Th>
                 <Table.Th>Progress</Table.Th>
                 <Table.Th>Cost</Table.Th>
@@ -149,6 +179,9 @@ export default function CataloguePage() {
                         <Text size="xs" c="dimmed" lineClamp={1}>{(book.AuthorNames ?? []).join(', ')}</Text>
                       </Stack>
                     </Group>
+                  </Table.Td>
+                  <Table.Td>
+                    <BookIDBadge id={book.ID} />
                   </Table.Td>
                   <Table.Td>
                     <Badge variant="light">{book.Language}</Badge>

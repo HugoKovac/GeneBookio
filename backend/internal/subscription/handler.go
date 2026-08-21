@@ -73,8 +73,14 @@ type subscriptionStatusDTO struct {
 
 // GetMe returns the authenticated user's subscription status. If a
 // sessionID query param is present (the frontend's return page passes back
-// Stripe's {CHECKOUT_SESSION_ID}), it reconciles from that Checkout Session
-// first — see Service.ReconcileFromCheckoutSession.
+// Stripe's {CHECKOUT_SESSION_ID}), it first tries to reconcile from that
+// Checkout Session — see Service.ReconcileFromCheckoutSession. That's a
+// best-effort accelerator (the webhook is the source of truth and will
+// catch up on its own), so a reconcile failure doesn't fail the request:
+// the success URL keeps sessionID in the query string, so a hard failure
+// here would strand the user on an error page that every refresh repeats
+// identically forever (e.g. a stale/reused session ID, or a mismatched
+// user from switching accounts mid-checkout).
 //
 // @Summary      Get the authenticated user's subscription status
 // @Tags         subscriptions
@@ -90,9 +96,7 @@ func (h *Handler) GetMe(c fiber.Ctx) error {
 	}
 
 	if sessionID := c.Query("sessionID"); sessionID != "" {
-		if err := h.service.ReconcileFromCheckoutSession(c.RequestCtx(), authUserID, sessionID); err != nil {
-			return err
-		}
+		_ = h.service.ReconcileFromCheckoutSession(c.RequestCtx(), authUserID, sessionID)
 	}
 
 	sub, err := h.service.GetStatus(c.RequestCtx(), authUserID)

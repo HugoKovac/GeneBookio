@@ -38,17 +38,25 @@ services:
     env_file:
       - .env
 
-  # seaweed:
-  #   image: chrislusf/seaweedfs
-  #   ports:
-  #     - 8333:8333   # endpoint
-  #     - 9333:9333   # overview
-  #     - 8888:8888   # filer
-  #     - 23646:23646 # admin
-  #   environment:
-  #     - AWS_ACCESS_KEY_ID=value
-  #     - AWS_SECRET_ACCESS_KEY=secret
-  #     - S3_BUCKET=my-bucket
+  # Replaces minio as the S3-compatible object store. The image's default
+  # command is `weed mini -dir=/data`, which boots master+volume+filer+S3
+  # gateway in one process and seeds the buckets named in S3_BUCKET.
+  # Kept alongside `minio` (below) until its data has been migrated over via
+  # scripts/migrate_minio.sh — do not remove the minio service or delete
+  # minio-data/ before that migration is verified.
+  seaweed:
+    image: chrislusf/seaweedfs
+    ports:
+      - 8333:8333   # S3 endpoint
+      - 9333:9333   # master UI
+      - 8888:8888   # filer
+      - 23646:23646 # admin UI
+    volumes:
+      - ./seaweed-data:/data
+    environment:
+      - AWS_ACCESS_KEY_ID=${SEAWEED_ACCESS_KEY}
+      - AWS_SECRET_ACCESS_KEY=${SEAWEED_SECRET_KEY}
+      - S3_BUCKET=books,scripts,audio,prompts
 
   api:
     build:
@@ -62,7 +70,7 @@ services:
       - cmd/api/.env
     environment:
       - MYSQL_HOST=db:3306
-      - MINIO_ENPOINT=minio:9000
+      - MINIO_ENPOINT=seaweed:8333
     ports:
       - 3000:3000
 
@@ -80,7 +88,7 @@ services:
     env_file:
       - cmd/admin/.env
     environment:
-      - MINIO_ENPOINT=minio:9000
+      - MINIO_ENPOINT=seaweed:8333
       - RABBITMQ_HOST=rabbitmq:5672
       - MYSQL_HOST=db:3306
     ports:
@@ -100,7 +108,7 @@ services:
     env_file:
       - cmd/epub_parser/.env
     environment:
-      - MINIO_ENPOINT=minio:9000
+      - MINIO_ENPOINT=seaweed:8333
       - RABBITMQ_HOST=rabbitmq:5672
       - MYSQL_HOST=db:3306
 
@@ -118,7 +126,7 @@ services:
     env_file:
       - cmd/prepare_chapters/.env
     environment:
-      - MINIO_ENPOINT=minio:9000
+      - MINIO_ENPOINT=seaweed:8333
       - RABBITMQ_HOST=rabbitmq:5672
       - MYSQL_HOST=db:3306
       - AI_TEST_MODE=${AI_TEST_MODE:-false}
@@ -137,7 +145,7 @@ services:
       - cmd/generate_script/.env
     environment:
       - MYSQL_HOST=db:3306
-      - MINIO_ENPOINT=minio:9000
+      - MINIO_ENPOINT=seaweed:8333
       - RABBITMQ_HOST=rabbitmq:5672
       - AI_TEST_MODE=${AI_TEST_MODE:-false}
 
@@ -155,10 +163,18 @@ services:
     env_file:
       - cmd/generate_tts/.env
     environment:
-      - MINIO_ENPOINT=minio:9000
+      - MINIO_ENPOINT=seaweed:8333
       - RABBITMQ_HOST=rabbitmq:5672
       - MYSQL_HOST=db:3306
       - AI_TEST_MODE=${AI_TEST_MODE:-false}
+
+  frontend:
+    build:
+      context: ../frontend
+    depends_on:
+      - api
+    ports:
+      - 8080:80
 
 
 

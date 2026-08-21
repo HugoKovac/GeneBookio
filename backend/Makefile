@@ -30,7 +30,7 @@ swag:
 	swag init -g cmd/api/main.go -o docs/
 
 docker-hybrid:
-	docker compose up -d db rabbitmq minio
+	docker compose up -d db rabbitmq seaweed
 
 docker:
 	docker compose up -d
