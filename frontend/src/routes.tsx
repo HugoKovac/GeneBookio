@@ -8,7 +8,10 @@ import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import BookDetailPage from './pages/BookDetailPage';
 import ProfilePage from './pages/ProfilePage';
+import SubscribePage from './pages/SubscribePage';
+import SubscribeReturnPage from './pages/SubscribeReturnPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import RequireSubscription from './components/RequireSubscription';
 
 export const router = createBrowserRouter([
   {
@@ -17,7 +20,16 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <HomePage /> },
       { path: 'about', element: <AboutPage /> },
-      { element: <ProtectedRoute />, children: [{ path: 'dashboard', element: <DashboardPage /> }, { path: 'books/:id', element: <BookDetailPage /> }, { path: 'profile', element: <ProfilePage /> }] },
+      {
+        element: <ProtectedRoute />,
+        children: [
+          { path: 'dashboard', element: <DashboardPage /> },
+          { path: 'profile', element: <ProfilePage /> },
+          { path: 'subscribe', element: <SubscribePage /> },
+          { path: 'subscribe/return', element: <SubscribeReturnPage /> },
+          { element: <RequireSubscription />, children: [{ path: 'books/:id', element: <BookDetailPage /> }] },
+        ],
+      },
     ],
   },
   {

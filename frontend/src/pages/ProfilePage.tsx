@@ -1,18 +1,24 @@
 import { Alert, Avatar, Button, Group, Loader, Modal, Paper, Stack, Text, TextInput, Title, UnstyledButton } from '@mantine/core';
-import { IconChevronRight, IconLogout, IconTrash } from '@tabler/icons-react';
+import { IconChevronRight, IconCreditCard, IconLogout, IconTrash } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/useAuth';
+import { createPortalSession } from '../features/subscription/api';
+import { useSubscription } from '../features/subscription/useSubscription';
 import { deleteUser, getUser, updateUser } from '../features/user/api';
 import type { User } from '../features/user/types';
 
 export default function ProfilePage() {
   const { userID, token, logout } = useAuth();
   const navigate = useNavigate();
+  const { isActive: hasActiveSubscription } = useSubscription();
 
   const [user, setUser] = useState<User | null>(null);
   const [loadError, setLoadError] = useState('');
+
+  const [portalError, setPortalError] = useState('');
+  const [portalLoading, setPortalLoading] = useState(false);
 
   const [saveError, setSaveError] = useState('');
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -71,6 +77,19 @@ export default function ProfilePage() {
     navigate('/login', { replace: true });
   }
 
+  async function handleManageSubscription() {
+    if (!token) return;
+    setPortalError('');
+    setPortalLoading(true);
+    try {
+      const { portalUrl } = await createPortalSession(token);
+      window.location.href = portalUrl;
+    } catch (cause) {
+      setPortalError(cause instanceof Error ? cause.message : 'Unable to open the billing portal.');
+      setPortalLoading(false);
+    }
+  }
+
   if (loadError) {
     return <Stack px="lg" pt="lg"><Alert color="red" radius="lg">{loadError}</Alert></Stack>;
   }
@@ -105,7 +124,12 @@ export default function ProfilePage() {
         </form>
       </Paper>
 
+      {portalError && <Alert color="red" radius="lg">{portalError}</Alert>}
+
       <Paper withBorder radius="lg" style={{ overflow: 'hidden' }}>
+        {hasActiveSubscription && (
+          <SettingsRow icon={<IconCreditCard size={20} />} label="Manage subscription" onClick={handleManageSubscription} disabled={portalLoading} />
+        )}
         <SettingsRow icon={<IconLogout size={20} />} label="Sign out" onClick={handleLogout} />
         <SettingsRow icon={<IconTrash size={20} />} label="Delete account" onClick={openConfirm} color="red" last />
       </Paper>
@@ -124,11 +148,12 @@ export default function ProfilePage() {
   );
 }
 
-function SettingsRow({ icon, label, onClick, color, last }: { icon: ReactNode; label: string; onClick: () => void; color?: string; last?: boolean }) {
+function SettingsRow({ icon, label, onClick, color, last, disabled }: { icon: ReactNode; label: string; onClick: () => void; color?: string; last?: boolean; disabled?: boolean }) {
   return (
     <UnstyledButton
       onClick={onClick}
-      style={{ display: 'block', width: '100%', borderBottom: last ? undefined : '1px solid var(--mantine-color-default-border)' }}
+      disabled={disabled}
+      style={{ display: 'block', width: '100%', borderBottom: last ? undefined : '1px solid var(--mantine-color-default-border)', opacity: disabled ? 0.6 : 1 }}
     >
       <Group justify="space-between" px="md" py="sm">
         <Group gap="sm" c={color}>

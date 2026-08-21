@@ -160,5 +160,7 @@ services:
       - MYSQL_HOST=db:3306
       - AI_TEST_MODE=${AI_TEST_MODE:-false}
 
-      
+
+
+
   

@@ -37,6 +37,31 @@ var (
 		Columns:    BooksColumns,
 		PrimaryKey: []*schema.Column{BooksColumns[0]},
 	}
+	// SubscriptionsColumns holds the columns for the "subscriptions" table.
+	SubscriptionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeUUID, Unique: true},
+		{Name: "stripe_customer_id", Type: field.TypeString, Nullable: true, Size: 50},
+		{Name: "stripe_subscription_id", Type: field.TypeString, Unique: true, Nullable: true, Size: 50},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"incomplete", "incomplete_expired", "trialing", "active", "past_due", "canceled", "unpaid", "paused"}, Default: "incomplete"},
+		{Name: "current_period_end", Type: field.TypeTime, Nullable: true},
+		{Name: "cancel_at_period_end", Type: field.TypeBool, Default: false},
+	}
+	// SubscriptionsTable holds the schema information for the "subscriptions" table.
+	SubscriptionsTable = &schema.Table{
+		Name:       "subscriptions",
+		Columns:    SubscriptionsColumns,
+		PrimaryKey: []*schema.Column{SubscriptionsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "subscription_status",
+				Unique:  false,
+				Columns: []*schema.Column{SubscriptionsColumns[6]},
+			},
+		},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -59,6 +84,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		BooksTable,
+		SubscriptionsTable,
 		UsersTable,
 	}
 )

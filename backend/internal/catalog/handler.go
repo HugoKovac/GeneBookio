@@ -19,8 +19,10 @@ type Handler struct {
 // NewHandler mounts catalog's routes on router. enableRetry gates the
 // admin-only POST /:query/retry route — it's only wired up by cmd/admin
 // (see its Service's queueRepos), not the user-facing cmd/api, since
-// retrying a pipeline stage isn't a regular-user action.
-func NewHandler(router fiber.Router, service *Service, enableRetry bool) {
+// retrying a pipeline stage isn't a regular-user action. requireActiveSubscription,
+// when non-nil, gates audio streaming behind a paid subscription — cmd/admin
+// passes nil since it has no auth/subscription concept at all.
+func NewHandler(router fiber.Router, service *Service, enableRetry bool, requireActiveSubscription fiber.Handler) {
 	h := &Handler{
 		validate: validator.New(validator.WithRequiredStructEnabled()),
 		router:   router,
@@ -32,9 +34,16 @@ func NewHandler(router fiber.Router, service *Service, enableRetry bool) {
 		h.GetBooks,
 	)
 
-	h.router.Get("/audio/:query",
-		h.GetAudioBook,
-	)
+	if requireActiveSubscription != nil {
+		h.router.Get("/audio/:query",
+			requireActiveSubscription,
+			h.GetAudioBook,
+		)
+	} else {
+		h.router.Get("/audio/:query",
+			h.GetAudioBook,
+		)
+	}
 
 	if enableRetry {
 		h.router.Post("/:query/retry",

@@ -110,7 +110,7 @@ func main() {
 	userService := user.NewService(user.NewRepositoryImpl(dbClient), &cfg.ConfigJWT)
 
 	upload.NewHandler(app, libraryService, catalogService, uploadService, userService)
-	catalog.NewHandler(app.Group("/books"), catalogService, true)
+	catalog.NewHandler(app.Group("/books"), catalogService, true, nil)
 
 	errorpkg.ExitTrace(app.Listen(":3001"))
 }

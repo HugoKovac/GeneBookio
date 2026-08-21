@@ -23,6 +23,7 @@ import (
 	"hkorpo/book/internal/platform/database"
 	"hkorpo/book/internal/platform/httpserver"
 	"hkorpo/book/internal/pricing"
+	"hkorpo/book/internal/subscription"
 	"hkorpo/book/internal/user"
 	"hkorpo/book/pkg/env"
 	"hkorpo/book/pkg/errorpkg"
@@ -36,6 +37,8 @@ type Config struct {
 	user.ConfigJWT
 	bucket.ConfigBucket
 	library.ConfigGoogleBooks
+	subscription.ConfigStripe
+	subscription.PlanConfig
 }
 
 func readKeys(privatePath, publicPath string) (*rsa.PrivateKey, *rsa.PublicKey, error) {
@@ -97,11 +100,18 @@ func main() {
 	pricingCalculator := pricing.NewCalculator(pricing.NewExchangeRateClient())
 	catalogService := catalog.NewService(book.NewRepositoryImpl(dbClient), book.NewBucketRepoImpl(cClient), nil, pricingCalculator)
 
+	subscriptionService := subscription.NewService(
+		subscription.NewRepositoryImpl(dbClient),
+		subscription.NewStripeClient(&cfg.ConfigStripe, cfg.PlanConfig.PriceID),
+		cfg.PlanConfig,
+	)
+	subscription.NewHandler(app.Group("/subscriptions"), subscriptionService, userService, user.MiddlewareAuth(userService))
+
 	booksGroup := app.Group("/books")
 	booksGroup.Use(user.MiddlewareAuth(userService))
 
 	library.NewHandler(booksGroup, libraryService)
-	catalog.NewHandler(booksGroup, catalogService, false)
+	catalog.NewHandler(booksGroup, catalogService, false, subscription.MiddlewareRequireActiveSubscription(subscriptionService))
 
 	if err := app.Listen(":3000"); err != nil {
 		log.Fatalf("fiber listen failed: %v", err)

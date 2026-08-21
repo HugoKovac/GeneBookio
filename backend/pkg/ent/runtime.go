@@ -5,6 +5,7 @@ package ent
 import (
 	"hkorpo/book/pkg/ent/book"
 	"hkorpo/book/pkg/ent/schema"
+	"hkorpo/book/pkg/ent/subscription"
 	"hkorpo/book/pkg/ent/user"
 	"time"
 
@@ -78,6 +79,37 @@ func init() {
 	bookDescID := bookFields[0].Descriptor()
 	// book.DefaultID holds the default value on creation for the id field.
 	book.DefaultID = bookDescID.Default.(func() uuid.UUID)
+	subscriptionMixin := schema.Subscription{}.Mixin()
+	subscriptionMixinFields0 := subscriptionMixin[0].Fields()
+	_ = subscriptionMixinFields0
+	subscriptionFields := schema.Subscription{}.Fields()
+	_ = subscriptionFields
+	// subscriptionDescCreatedAt is the schema descriptor for created_at field.
+	subscriptionDescCreatedAt := subscriptionMixinFields0[0].Descriptor()
+	// subscription.DefaultCreatedAt holds the default value on creation for the created_at field.
+	subscription.DefaultCreatedAt = subscriptionDescCreatedAt.Default.(func() time.Time)
+	// subscriptionDescUpdatedAt is the schema descriptor for updated_at field.
+	subscriptionDescUpdatedAt := subscriptionMixinFields0[1].Descriptor()
+	// subscription.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	subscription.DefaultUpdatedAt = subscriptionDescUpdatedAt.Default.(func() time.Time)
+	// subscription.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	subscription.UpdateDefaultUpdatedAt = subscriptionDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// subscriptionDescStripeCustomerID is the schema descriptor for stripe_customer_id field.
+	subscriptionDescStripeCustomerID := subscriptionFields[2].Descriptor()
+	// subscription.StripeCustomerIDValidator is a validator for the "stripe_customer_id" field. It is called by the builders before save.
+	subscription.StripeCustomerIDValidator = subscriptionDescStripeCustomerID.Validators[0].(func(string) error)
+	// subscriptionDescStripeSubscriptionID is the schema descriptor for stripe_subscription_id field.
+	subscriptionDescStripeSubscriptionID := subscriptionFields[3].Descriptor()
+	// subscription.StripeSubscriptionIDValidator is a validator for the "stripe_subscription_id" field. It is called by the builders before save.
+	subscription.StripeSubscriptionIDValidator = subscriptionDescStripeSubscriptionID.Validators[0].(func(string) error)
+	// subscriptionDescCancelAtPeriodEnd is the schema descriptor for cancel_at_period_end field.
+	subscriptionDescCancelAtPeriodEnd := subscriptionFields[6].Descriptor()
+	// subscription.DefaultCancelAtPeriodEnd holds the default value on creation for the cancel_at_period_end field.
+	subscription.DefaultCancelAtPeriodEnd = subscriptionDescCancelAtPeriodEnd.Default.(bool)
+	// subscriptionDescID is the schema descriptor for id field.
+	subscriptionDescID := subscriptionFields[0].Descriptor()
+	// subscription.DefaultID holds the default value on creation for the id field.
+	subscription.DefaultID = subscriptionDescID.Default.(func() uuid.UUID)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0
