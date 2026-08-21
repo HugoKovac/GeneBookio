@@ -1,6 +1,7 @@
 import { ActionIcon, Alert, Box, Group, Image, Loader, Slider, Stack, Text, Title, UnstyledButton } from '@mantine/core';
 import { IconChevronDown, IconPlayerPauseFilled, IconPlayerPlayFilled, IconRewindBackward15, IconRewindForward15 } from '@tabler/icons-react';
 import { useState } from 'react';
+import { PLAYBACK_RATES } from '../context';
 import { usePlayer } from '../usePlayer';
 
 function formatTime(seconds: number): string {
@@ -15,14 +16,19 @@ function formatTime(seconds: number): string {
 // artwork, a draggable progress bar, and playback controls.
 export default function NowPlayingOverlay() {
   const {
-    track, isExpanded, isPlaying, isBuffering, currentTime, duration, error,
-    togglePlay, seek, skip, minimize,
+    track, isExpanded, isPlaying, isBuffering, currentTime, duration, playbackRate, error,
+    togglePlay, seek, skip, setPlaybackRate, minimize,
   } = usePlayer();
   const [dragValue, setDragValue] = useState<number | null>(null);
 
   if (!track || !isExpanded) return null;
 
   const displayTime = dragValue ?? currentTime;
+
+  const cyclePlaybackRate = () => {
+    const index = PLAYBACK_RATES.indexOf(playbackRate);
+    setPlaybackRate(PLAYBACK_RATES[(index + 1) % PLAYBACK_RATES.length]);
+  };
 
   return (
     <Box style={{ position: 'fixed', inset: 0, zIndex: 300, overflow: 'hidden' }}>
@@ -109,7 +115,23 @@ export default function NowPlayingOverlay() {
                 </Group>
               </Stack>
 
-              <Group justify="center" align="center" gap="xl">
+              <Group justify="center" align="center" gap="xl" style={{ position: 'relative' }}>
+                <UnstyledButton
+                  onClick={cyclePlaybackRate}
+                  aria-label={`Playback speed ${playbackRate}x`}
+                  style={{
+                    position: 'absolute',
+                    right: 0,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    padding: '4px 12px',
+                    borderRadius: 999,
+                    background: 'rgba(255,255,255,0.15)',
+                  }}
+                >
+                  <Text size="sm" fw={700} c="white">{playbackRate}×</Text>
+                </UnstyledButton>
+
                 <ActionIcon variant="transparent" c="white" size="xl" onClick={() => skip(-15)} aria-label="Back 15 seconds">
                   <IconRewindBackward15 size={26} />
                 </ActionIcon>

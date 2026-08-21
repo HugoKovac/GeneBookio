@@ -1,0 +1,290 @@
+# Dokploy deployment compose — this is separate from backend/docker-compose.yaml
+# (which is the local/dev orchestration described in CLAUDE.md, using exposed
+# host ports and no reverse proxy). This file has no host ports published for
+# internal services and routes the two public-facing apps (frontend,
+# frontend-admin) through Dokploy's managed Traefik instead.
+#
+# Deploy this SAME file as two separate Dokploy "environments" (e.g. dev and
+# prod), each with its own set of environment variables (see .env.example and
+# .env.dev.example / .env.prod.example at the repo root). Every Traefik
+# object name is prefixed with ${STACK_NAME} so the two environments' routers
+# can coexist on the one shared Traefik instance without colliding.
+#
+# admin / frontend-admin (backend/cmd/admin) has NO built-in authentication by
+# design (see CLAUDE.md) — frontend-admin is only reachable here behind a
+# Traefik Basic Auth middleware (ADMIN_BASIC_AUTH). Do not remove that
+# middleware without adding equivalent protection some other way.
+#
+# See DOKPLOY.md for the one-time setup steps (domains, basic auth, TLS).
+
+services:
+  db:
+    image: mysql
+    restart: always
+    environment:
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    restart: always
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  seaweed:
+    image: chrislusf/seaweedfs
+    restart: always
+    volumes:
+      - seaweed-data:/data
+    environment:
+      - AWS_ACCESS_KEY_ID=${SEAWEED_ACCESS_KEY}
+      - AWS_SECRET_ACCESS_KEY=${SEAWEED_SECRET_KEY}
+      - S3_BUCKET=books,scripts,audio,prompts
+
+  api:
+    build:
+      context: ./backend
+      args:
+        CMD: api
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_HOST=db:3306
+      - PUBLIC_KEY_PATH=keys/JWT_public.pem
+      - PRIVATE_KEY_PATH=keys/JWT_private.pem
+      - PUBLIC_REFRESH_KEY_PATH=keys/JWT_REFRESH_public.pem
+      - PRIVATE_REFRESH_KEY_PATH=keys/JWT_REFRESH_private.pem
+      - JWT_TOKEN_EXP=${JWT_TOKEN_EXP:-60m}
+      - JWT_REFRESH_TOKEN_EXP=${JWT_REFRESH_TOKEN_EXP:-720h}
+      - MINIO_ACCESS_KEY=${SEAWEED_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${SEAWEED_SECRET_KEY}
+      - MINIO_ENPOINT=seaweed:8333
+      - MINIO_USE_SSL=false
+      - GOOGLE_API_BOOKS=${GOOGLE_API_BOOKS}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - STRIPE_PRICE_ID=${STRIPE_PRICE_ID}
+      - SUBSCRIPTION_SUCCESS_URL=${SUBSCRIPTION_SUCCESS_URL}
+      - SUBSCRIPTION_CANCEL_URL=${SUBSCRIPTION_CANCEL_URL}
+      - SUBSCRIPTION_PORTAL_RETURN_URL=${SUBSCRIPTION_PORTAL_RETURN_URL}
+      - REVENUECAT_WEBHOOK_AUTH_HEADER=${REVENUECAT_WEBHOOK_AUTH_HEADER}
+      - REVENUECAT_SECRET_API_KEY=${REVENUECAT_SECRET_API_KEY}
+      - REVENUECAT_PROJECT_ID=${REVENUECAT_PROJECT_ID}
+      - REVENUECAT_ENTITLEMENT_ID=${REVENUECAT_ENTITLEMENT_ID}
+
+  admin:
+    build:
+      context: ./backend
+      args:
+        CMD: admin
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_HOST=db:3306
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+      - RABBITMQ_HOST=rabbitmq:5672
+      - MINIO_ACCESS_KEY=${SEAWEED_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${SEAWEED_SECRET_KEY}
+      - MINIO_ENPOINT=seaweed:8333
+      - MINIO_USE_SSL=false
+      - PUBLIC_KEY_PATH=keys/JWT_public.pem
+      - PRIVATE_KEY_PATH=keys/JWT_private.pem
+      - PUBLIC_REFRESH_KEY_PATH=keys/JWT_REFRESH_public.pem
+      - PRIVATE_REFRESH_KEY_PATH=keys/JWT_REFRESH_private.pem
+      - JWT_TOKEN_EXP=${JWT_TOKEN_EXP:-60m}
+      - JWT_REFRESH_TOKEN_EXP=${JWT_REFRESH_TOKEN_EXP:-720h}
+      - GOOGLE_API_BOOKS=${GOOGLE_API_BOOKS}
+
+  epub_parser:
+    build:
+      context: ./backend
+      args:
+        CMD: epub_parser
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_HOST=db:3306
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+      - RABBITMQ_HOST=rabbitmq:5672
+      - MINIO_ACCESS_KEY=${SEAWEED_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${SEAWEED_SECRET_KEY}
+      - MINIO_ENPOINT=seaweed:8333
+      - MINIO_USE_SSL=false
+
+  prepare_chapters:
+    build:
+      context: ./backend
+      args:
+        CMD: prepare_chapters
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_HOST=db:3306
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+      - RABBITMQ_HOST=rabbitmq:5672
+      - MINIO_ACCESS_KEY=${SEAWEED_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${SEAWEED_SECRET_KEY}
+      - MINIO_ENPOINT=seaweed:8333
+      - MINIO_USE_SSL=false
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      # Defaults to the safe substitution client — each environment's real
+      # .env values should set this explicitly (false only where you mean to
+      # spend real OpenAI credit).
+      - AI_TEST_MODE=${AI_TEST_MODE:-true}
+
+  generate_script:
+    build:
+      context: ./backend
+      args:
+        CMD: generate_script
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_HOST=db:3306
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+      - RABBITMQ_HOST=rabbitmq:5672
+      - MINIO_ACCESS_KEY=${SEAWEED_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${SEAWEED_SECRET_KEY}
+      - MINIO_ENPOINT=seaweed:8333
+      - MINIO_USE_SSL=false
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - AI_TEST_MODE=${AI_TEST_MODE:-true}
+
+  generate_tts:
+    build:
+      context: ./backend
+      args:
+        CMD: generate_tts
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_HOST=db:3306
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+      - RABBITMQ_HOST=rabbitmq:5672
+      - MINIO_ACCESS_KEY=${SEAWEED_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${SEAWEED_SECRET_KEY}
+      - MINIO_ENPOINT=seaweed:8333
+      - MINIO_USE_SSL=false
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - AI_TEST_MODE=${AI_TEST_MODE:-true}
+
+  frontend:
+    build:
+      context: ./frontend
+    restart: always
+    depends_on:
+      - api
+    networks:
+      - default
+      - dokploy-network
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=dokploy-network
+      - traefik.http.routers.${STACK_NAME}-app.rule=Host(`${APP_DOMAIN}`)
+      - traefik.http.routers.${STACK_NAME}-app.entrypoints=${TRAEFIK_ENTRYPOINT}
+      - traefik.http.routers.${STACK_NAME}-app.tls=true
+      - traefik.http.routers.${STACK_NAME}-app.tls.certresolver=${CERT_RESOLVER}
+      - traefik.http.routers.${STACK_NAME}-app.priority=1
+      - traefik.http.services.${STACK_NAME}-app.loadbalancer.server.port=80
+
+  frontend-admin:
+    build:
+      context: ./frontend-admin
+      args:
+        VITE_BASE_PATH: /admin/
+        VITE_API_URL: /admin/api
+    restart: always
+    depends_on:
+      - admin
+    networks:
+      - default
+      - dokploy-network
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=dokploy-network
+      - traefik.http.routers.${STACK_NAME}-admin.rule=Host(`${APP_DOMAIN}`) && PathPrefix(`/admin`)
+      - traefik.http.routers.${STACK_NAME}-admin.entrypoints=${TRAEFIK_ENTRYPOINT}
+      - traefik.http.routers.${STACK_NAME}-admin.tls=true
+      - traefik.http.routers.${STACK_NAME}-admin.tls.certresolver=${CERT_RESOLVER}
+      - traefik.http.routers.${STACK_NAME}-admin.priority=10
+      - traefik.http.routers.${STACK_NAME}-admin.middlewares=${STACK_NAME}-admin-auth
+      - traefik.http.middlewares.${STACK_NAME}-admin-auth.basicauth.users=${ADMIN_BASIC_AUTH}
+      - traefik.http.services.${STACK_NAME}-admin.loadbalancer.server.port=80
+
+networks:
+  dokploy-network:
+    external: true
+
+volumes:
+  db-data:
+  rabbitmq-data:
+  seaweed-data:

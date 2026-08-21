@@ -8,6 +8,9 @@ export type PlayerTrack = {
   src: string;
 };
 
+// Playback speed presets offered in NowPlayingOverlay's speed control.
+export const PLAYBACK_RATES: number[] = [1, 1.5, 1.8, 2];
+
 export type PlayerContextValue = {
   track: PlayerTrack | null;
   isPlaying: boolean;
@@ -16,11 +19,13 @@ export type PlayerContextValue = {
   currentTime: number;
   duration: number;
   bufferedEnd: number;
+  playbackRate: number;
   error: boolean;
   playTrack: (track: PlayerTrack) => void;
   togglePlay: () => void;
   seek: (time: number) => void;
   skip: (deltaSeconds: number) => void;
+  setPlaybackRate: (rate: number) => void;
   expand: () => void;
   minimize: () => void;
 };
