@@ -43,6 +43,10 @@ export type CatalogBook = {
   // not a display label — see FAILED_STAGE_TO_PROGRESS_KEY in CataloguePage.
   FailedStage: string;
   ErrorMessage: string;
+  // Set when the failure is permanent (e.g. AI spend exceeded its budget) —
+  // the backend refuses POST /books/:id/retry for these, so the UI hides
+  // the Retry button instead of offering an action that will just error.
+  RetryDisabled: boolean;
   TokenUsage: TokenUsage | null;
   CostUSD: number;
   // Omitted by the backend when no exchange rate is available right now.

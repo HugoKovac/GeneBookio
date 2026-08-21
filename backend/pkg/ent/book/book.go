@@ -50,6 +50,8 @@ const (
 	FieldFailedStage = "failed_stage"
 	// FieldErrorMessage holds the string denoting the error_message field in the database.
 	FieldErrorMessage = "error_message"
+	// FieldRetryDisabled holds the string denoting the retry_disabled field in the database.
+	FieldRetryDisabled = "retry_disabled"
 	// FieldTokenUsage holds the string denoting the token_usage field in the database.
 	FieldTokenUsage = "token_usage"
 	// Table holds the table name of the book in the database.
@@ -76,6 +78,7 @@ var Columns = []string{
 	FieldFailed,
 	FieldFailedStage,
 	FieldErrorMessage,
+	FieldRetryDisabled,
 	FieldTokenUsage,
 }
 
@@ -116,6 +119,8 @@ var (
 	DefaultFailed bool
 	// FailedStageValidator is a validator for the "failed_stage" field. It is called by the builders before save.
 	FailedStageValidator func(string) error
+	// DefaultRetryDisabled holds the default value on creation for the "retry_disabled" field.
+	DefaultRetryDisabled bool
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -213,4 +218,9 @@ func ByFailedStage(opts ...sql.OrderTermOption) OrderOption {
 // ByErrorMessage orders the results by the error_message field.
 func ByErrorMessage(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldErrorMessage, opts...).ToFunc()
+}
+
+// ByRetryDisabled orders the results by the retry_disabled field.
+func ByRetryDisabled(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRetryDisabled, opts...).ToFunc()
 }

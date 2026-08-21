@@ -89,6 +89,10 @@ func (s *Service) RetryFailedStage(ctx context.Context, bookID string) error {
 		return errorwrapper.Wrap(fmt.Errorf("book %s has no failed stage to retry", bookID))
 	}
 
+	if b.RetryDisabled {
+		return errorwrapper.Wrap(fmt.Errorf("book %s failed permanently and cannot be retried: %s", bookID, b.ErrorMessage))
+	}
+
 	queueRepo, ok := s.queueRepos[b.FailedStage]
 	if !ok {
 		return errorwrapper.Wrap(fmt.Errorf("unknown failed stage %q", b.FailedStage))

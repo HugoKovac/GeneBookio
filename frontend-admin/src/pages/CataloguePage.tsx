@@ -160,7 +160,12 @@ export default function CataloguePage() {
                     <CostCell book={book} />
                   </Table.Td>
                   <Table.Td>
-                    {book.Failed && (
+                    {book.Failed && book.RetryDisabled && (
+                      <Tooltip label={book.ErrorMessage} multiline maw={320}>
+                        <Badge color="red" variant="light">Budget exceeded</Badge>
+                      </Tooltip>
+                    )}
+                    {book.Failed && !book.RetryDisabled && (
                       <Button
                         size="xs"
                         color="red"

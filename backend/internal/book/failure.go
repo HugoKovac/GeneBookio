@@ -22,3 +22,20 @@ func RecordFailure(ctx context.Context, repo Repository, bookID, stage string, c
 
 	return errorwrapper.Wrap(cause)
 }
+
+// RecordPermanentFailure is like RecordFailure but marks the failure as
+// permanent (see Repository.MarkBookFailedPermanently) — used when retrying
+// would just repeat work that's already known to be a bad idea, e.g. AI
+// spend for the stage exceeded its budget (pricing.BudgetExceededError).
+func RecordPermanentFailure(ctx context.Context, repo Repository, bookID, stage string, cause error) error {
+	id, err := uuid.Parse(bookID)
+	if err != nil {
+		return errorwrapper.Wrap(cause)
+	}
+
+	if err := repo.MarkBookFailedPermanently(ctx, id, stage, cause.Error()); err != nil {
+		return errorwrapper.Wrap(err)
+	}
+
+	return errorwrapper.Wrap(cause)
+}

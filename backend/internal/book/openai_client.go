@@ -38,7 +38,7 @@ func (sc *SubstitutionAiClient) ModelName() string {
 	return "test-mode"
 }
 
-func (sc *SubstitutionAiClient) Request(_ context.Context, request string) (string, primitive.ModelUsage, error) {
+func (sc *SubstitutionAiClient) Request(_ context.Context, request string, _ int64) (string, primitive.ModelUsage, error) {
 	return fmt.Sprintf("==START OF REQUEST==\n%s\n==END OF REQUEST==", request), primitive.ModelUsage{}, nil
 }
 
@@ -46,13 +46,22 @@ func (oc *OpenAiClient) ModelName() string {
 	return string(oc.model)
 }
 
-func (oc *OpenAiClient) Request(ctx context.Context, request string) (string, primitive.ModelUsage, error) {
-	preparation, err := oc.client.Responses.New(ctx, responses.ResponseNewParams{
+// Request calls the Responses API. maxOutputTokens, when positive, caps the
+// response length server-side — see pricing.Calculator.CapOutputTokens,
+// which sizes it from the caller's remaining EUR budget so a single request
+// can't blow past it.
+func (oc *OpenAiClient) Request(ctx context.Context, request string, maxOutputTokens int64) (string, primitive.ModelUsage, error) {
+	params := responses.ResponseNewParams{
 		Model: oc.model,
 		Input: responses.ResponseNewParamsInputUnion{OfString: openai.String(
 			request,
 		)},
-	})
+	}
+	if maxOutputTokens > 0 {
+		params.MaxOutputTokens = openai.Int(maxOutputTokens)
+	}
+
+	preparation, err := oc.client.Responses.New(ctx, params)
 	if err != nil {
 		return "", primitive.ModelUsage{}, errorwrapper.Wrap(fmt.Errorf("generate preparation: %v", err))
 	}

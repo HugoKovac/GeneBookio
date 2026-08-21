@@ -27,12 +27,15 @@ import (
 	"testing"
 	"time"
 
+	"errors"
 	"hkorpo/book/internal/book"
+	"hkorpo/book/internal/catalog"
 	"hkorpo/book/internal/parsing"
 	"hkorpo/book/internal/platform/bucket"
 	"hkorpo/book/internal/platform/database"
 	"hkorpo/book/internal/platform/queue"
 	"hkorpo/book/internal/preparation"
+	"hkorpo/book/internal/pricing"
 	"hkorpo/book/internal/primitive"
 	"hkorpo/book/internal/script"
 	"hkorpo/book/internal/tts"
@@ -111,11 +114,17 @@ func TestFullPipeline(t *testing.T) {
 		_, _ = ttsAMQPCh.QueueDelete(string(ttsQ.Name), false, false, false)
 	})
 
+	// Substitution clients always cost $0 (their "test-mode"/"test-mode-tts"
+	// model isn't in the pricing table), so budget checks short-circuit
+	// without ever calling the exchange-rate API — safe to use the real
+	// Calculator here.
+	pricingCalculator := pricing.NewCalculator(pricing.NewExchangeRateClient())
+
 	uploadService := upload.NewService(repo, bucketRepo, book.NewQueueRepoImpl(splitQ, splitCh))
 	parsingService := parsing.NewService(repo, bucketRepo, book.NewQueueRepoImpl(prepareQ, prepareCh), parsing.NewEpubParserImpl())
-	preparationService := preparation.NewService(repo, bucketRepo, book.NewQueueRepoImpl(scriptQ, scriptCh), book.NewSubstitutionAiClient())
-	scriptService := script.NewService(repo, bucketRepo, book.NewQueueRepoImpl(ttsQ, ttsAMQPCh), book.NewSubstitutionAiClient())
-	ttsService := tts.NewService(repo, bucketRepo, tts.NewSubstitutionTTSClient())
+	preparationService := preparation.NewService(repo, bucketRepo, book.NewQueueRepoImpl(scriptQ, scriptCh), book.NewSubstitutionAiClient(), pricingCalculator)
+	scriptService := script.NewService(repo, bucketRepo, book.NewQueueRepoImpl(ttsQ, ttsAMQPCh), book.NewSubstitutionAiClient(), pricingCalculator)
+	ttsService := tts.NewService(repo, bucketRepo, tts.NewSubstitutionTTSClient(), pricingCalculator)
 
 	// Wire one consumer per stage, exactly like each cmd/*/main.go does,
 	// but report success/failure on a channel instead of just logging it.
@@ -223,6 +232,93 @@ func TestFullPipeline(t *testing.T) {
 	require.Greater(t, audioLen, int64(0), "synthesized audio should be non-empty")
 
 	t.Logf("pipeline completed: book %s produced %d bytes of audio", bookID, audioLen)
+}
+
+// fakeExpensiveAiAPI reports usage that's over budget under any of gpt-5.2's
+// published rates, without ever calling a real AI model.
+type fakeExpensiveAiAPI struct{}
+
+func (fakeExpensiveAiAPI) ModelName() string { return "gpt-5.2" }
+func (fakeExpensiveAiAPI) Request(_ context.Context, _ string, _ int64) (string, primitive.ModelUsage, error) {
+	return "fake output", primitive.ModelUsage{OutputTokens: 1_000_000}, nil
+}
+
+// TestPreparationOverBudgetFailsPermanently checks the budget guardrail's
+// reactive path: fakeExpensiveAiAPI's declared usage is what a real call
+// would report, so pricing.Calculator.CapOutputTokens's pre-call check (the
+// input here is tiny, so it lets the call through) doesn't intercept it —
+// the aggregate CheckBudget after the call does. Either way the effect is
+// the same: the book fails permanently (RetryDisabled), and
+// catalog.Service.RetryFailedStage refuses to retry it — retrying would
+// just spend more money repeating already-over-budget work. See
+// internal/pricing's own tests for the pre-call CapOutputTokens path.
+func TestPreparationOverBudgetFailsPermanently(t *testing.T) {
+	env.LoadEnv()
+
+	var cfg testConfig
+	require.NoError(t, envconfig.Process("", &cfg))
+
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+	defer cancel()
+
+	minioClient, err := bucket.Init(&cfg.ConfigBucket)
+	require.NoError(t, err)
+	ensureBuckets(ctx, t, minioClient)
+	seedPrompts(ctx, t, minioClient)
+
+	dbClient, err := database.Init(&cfg.ConfigDB)
+	require.NoError(t, err)
+	t.Cleanup(func() { dbClient.Close() })
+
+	repo := book.NewRepositoryImpl(dbClient)
+	bucketRepo := book.NewBucketRepoImpl(minioClient)
+	pricingCalculator := pricing.NewCalculator(pricing.NewExchangeRateClient())
+
+	key := "it-budget-" + uuid.NewString()[:8]
+	created, err := repo.CreateBook(ctx, &book.Book{
+		Title:       "Over Budget Test",
+		Key:         key,
+		AuthorNames: []string{"Integration Test"},
+		Description: "Book created by TestPreparationOverBudgetFailsPermanently.",
+		Language:    primitive.English,
+	})
+	require.NoError(t, err)
+	bookID := created.ID.String()
+
+	t.Cleanup(func() {
+		cleanupCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		_ = dbClient.Book.DeleteOneID(created.ID).Exec(cleanupCtx)
+		removePrefix(cleanupCtx, minioClient, primitive.BooksBucket, "chunks/"+bookID+"/")
+		removePrefix(cleanupCtx, minioClient, primitive.ScriptsBucket, bookID+"/")
+	})
+
+	require.NoError(t, bucketRepo.UploadString(ctx, primitive.BooksBucket, "chunks/"+bookID+"/000.txt", "Chapter content.", bucket.TEXT))
+
+	preparationService := preparation.NewService(repo, bucketRepo, book.NewQueueRepoImpl(nil, nil), fakeExpensiveAiAPI{}, pricingCalculator)
+
+	err = preparationService.MapOnChunks(ctx, bookID, preparationService.GenerateChapterPreparation)
+	require.Error(t, err, "preparation should fail once its cost exceeds the €1 budget")
+	require.True(t, pricing.IsBudgetExceeded(err), "the error should be a *pricing.BudgetExceededError, got %T: %v", err, err)
+
+	// RecordPermanentFailure deliberately returns cause (wrapped), not nil,
+	// so the caller's existing error-logging path still fires — mirroring
+	// book.RecordFailure. What matters here is the DB write it made.
+	require.Error(t, book.RecordPermanentFailure(ctx, repo, bookID, primitive.Prepare, err))
+
+	final, err := repo.GetBookByID(ctx, created.ID)
+	require.NoError(t, err)
+	require.True(t, final.Failed, "book should be marked failed")
+	require.True(t, final.RetryDisabled, "an over-budget failure must not be retryable")
+	require.Equal(t, string(primitive.Prepare), final.FailedStage)
+	require.False(t, final.Prepared, "book must not advance to the next stage once over budget")
+
+	catalogService := catalog.NewService(repo, bucketRepo, nil, pricingCalculator)
+	retryErr := catalogService.RetryFailedStage(ctx, bookID)
+	require.Error(t, retryErr, "retrying a permanently-failed book must be refused")
+
+	var budgetErr *pricing.BudgetExceededError
+	require.False(t, errors.As(retryErr, &budgetErr), "the retry refusal itself isn't a budget error")
 }
 
 func waitStage(t *testing.T, name, bookID string, ch <-chan stageResult, timeout time.Duration) {

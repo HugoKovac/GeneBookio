@@ -19,7 +19,9 @@ type Book struct {
 	Failed                                                    bool
 	FailedStage                                               string
 	ErrorMessage                                              string
-	TokenUsage                                                primitive.TokenUsage
+	// RetryDisabled marks Failed as permanent — see book.RecordPermanentFailure.
+	RetryDisabled bool
+	TokenUsage    primitive.TokenUsage
 }
 
 type QueryURI struct {

@@ -35,6 +35,8 @@ Each `cmd/*` binary reads its own `.env` file (see `cmd/<name>/.env.example`) vi
 
 Every AI call's token/character usage is recorded on `Book.TokenUsage` (a `primitive.TokenUsage` JSON column, keyed by model name) via `Repository.AddTokenUsage` — `internal/pricing` turns that into a display cost (`CostUSD`, best-effort `CostEUR` converted via the free Frankfurter exchange-rate API) that `catalog.Service.GetBooks` attaches to each `catalog.BookWithCost`, shown in `frontend-admin`'s catalogue table.
 
+Each AI-driven stage also has a hardcoded per-book EUR budget (`budgetEUR` in each stage's `service.go`: €1 for `prepare_chapters`, €1 for `generate_script`, €2 for `generate_tts`), enforced two ways via `internal/pricing.Calculator`: **pre-call**, `CapOutputTokens` sizes a `max_output_tokens` cap (or, for the fully character-priced TTS stage, `CheckBudget` runs on the exact input size before any request) from the model's price and the estimated/known input size, so a single request can't spend past the whole stage budget on its own; **post-call**, `CheckBudget` runs again on the real reported usage (for `prepare_chapters`, the *aggregate* across all of a book's concurrently-processed chunks) to catch what the pre-call estimate couldn't. Either check failing returns a `*pricing.BudgetExceededError` (`pricing.IsBudgetExceeded`), which each `cmd/*/main.go` queue consumer routes to `book.RecordPermanentFailure` instead of `book.RecordFailure` — this sets `Book.RetryDisabled`, which `catalog.Service.RetryFailedStage` checks and refuses, and which `frontend-admin`'s `CataloguePage` renders as a "Budget exceeded" badge instead of a Retry button.
+
 Standard Go tooling applies for tests/build — there's no test/lint wrapper in the Makefile:
 ```
 go test ./...

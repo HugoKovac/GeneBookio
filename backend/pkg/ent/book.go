@@ -54,6 +54,8 @@ type Book struct {
 	FailedStage string `json:"failed_stage,omitempty"`
 	// ErrorMessage holds the value of the "error_message" field.
 	ErrorMessage string `json:"error_message,omitempty"`
+	// RetryDisabled holds the value of the "retry_disabled" field.
+	RetryDisabled bool `json:"retry_disabled,omitempty"`
 	// TokenUsage holds the value of the "token_usage" field.
 	TokenUsage   primitive.TokenUsage `json:"token_usage,omitempty"`
 	selectValues sql.SelectValues
@@ -66,7 +68,7 @@ func (*Book) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case book.FieldAuthorNames, book.FieldAuthorKeys, book.FieldTokenUsage:
 			values[i] = new([]byte)
-		case book.FieldUploaded, book.FieldParsed, book.FieldPrepared, book.FieldScriptGenerated, book.FieldTtsGenerated, book.FieldFailed:
+		case book.FieldUploaded, book.FieldParsed, book.FieldPrepared, book.FieldScriptGenerated, book.FieldTtsGenerated, book.FieldFailed, book.FieldRetryDisabled:
 			values[i] = new(sql.NullBool)
 		case book.FieldKey, book.FieldTitle, book.FieldDescription, book.FieldCoverURL, book.FieldLanguage, book.FieldFailedStage, book.FieldErrorMessage:
 			values[i] = new(sql.NullString)
@@ -201,6 +203,12 @@ func (_m *Book) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.ErrorMessage = value.String
 			}
+		case book.FieldRetryDisabled:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field retry_disabled", values[i])
+			} else if value.Valid {
+				_m.RetryDisabled = value.Bool
+			}
 		case book.FieldTokenUsage:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field token_usage", values[i])
@@ -295,6 +303,9 @@ func (_m *Book) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("error_message=")
 	builder.WriteString(_m.ErrorMessage)
+	builder.WriteString(", ")
+	builder.WriteString("retry_disabled=")
+	builder.WriteString(fmt.Sprintf("%v", _m.RetryDisabled))
 	builder.WriteString(", ")
 	builder.WriteString("token_usage=")
 	builder.WriteString(fmt.Sprintf("%v", _m.TokenUsage))

@@ -70,6 +70,10 @@ func init() {
 	bookDescFailedStage := bookFields[14].Descriptor()
 	// book.FailedStageValidator is a validator for the "failed_stage" field. It is called by the builders before save.
 	book.FailedStageValidator = bookDescFailedStage.Validators[0].(func(string) error)
+	// bookDescRetryDisabled is the schema descriptor for retry_disabled field.
+	bookDescRetryDisabled := bookFields[16].Descriptor()
+	// book.DefaultRetryDisabled holds the default value on creation for the retry_disabled field.
+	book.DefaultRetryDisabled = bookDescRetryDisabled.Default.(bool)
 	// bookDescID is the schema descriptor for id field.
 	bookDescID := bookFields[0].Descriptor()
 	// book.DefaultID holds the default value on creation for the id field.

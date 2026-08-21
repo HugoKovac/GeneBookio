@@ -278,6 +278,20 @@ func (_u *BookUpdate) ClearErrorMessage() *BookUpdate {
 	return _u
 }
 
+// SetRetryDisabled sets the "retry_disabled" field.
+func (_u *BookUpdate) SetRetryDisabled(v bool) *BookUpdate {
+	_u.mutation.SetRetryDisabled(v)
+	return _u
+}
+
+// SetNillableRetryDisabled sets the "retry_disabled" field if the given value is not nil.
+func (_u *BookUpdate) SetNillableRetryDisabled(v *bool) *BookUpdate {
+	if v != nil {
+		_u.SetRetryDisabled(*v)
+	}
+	return _u
+}
+
 // SetTokenUsage sets the "token_usage" field.
 func (_u *BookUpdate) SetTokenUsage(v primitive.TokenUsage) *BookUpdate {
 	_u.mutation.SetTokenUsage(v)
@@ -448,6 +462,9 @@ func (_u *BookUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.ErrorMessageCleared() {
 		_spec.ClearField(book.FieldErrorMessage, field.TypeString)
+	}
+	if value, ok := _u.mutation.RetryDisabled(); ok {
+		_spec.SetField(book.FieldRetryDisabled, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.TokenUsage(); ok {
 		_spec.SetField(book.FieldTokenUsage, field.TypeJSON, value)
@@ -723,6 +740,20 @@ func (_u *BookUpdateOne) ClearErrorMessage() *BookUpdateOne {
 	return _u
 }
 
+// SetRetryDisabled sets the "retry_disabled" field.
+func (_u *BookUpdateOne) SetRetryDisabled(v bool) *BookUpdateOne {
+	_u.mutation.SetRetryDisabled(v)
+	return _u
+}
+
+// SetNillableRetryDisabled sets the "retry_disabled" field if the given value is not nil.
+func (_u *BookUpdateOne) SetNillableRetryDisabled(v *bool) *BookUpdateOne {
+	if v != nil {
+		_u.SetRetryDisabled(*v)
+	}
+	return _u
+}
+
 // SetTokenUsage sets the "token_usage" field.
 func (_u *BookUpdateOne) SetTokenUsage(v primitive.TokenUsage) *BookUpdateOne {
 	_u.mutation.SetTokenUsage(v)
@@ -923,6 +954,9 @@ func (_u *BookUpdateOne) sqlSave(ctx context.Context) (_node *Book, err error) {
 	}
 	if _u.mutation.ErrorMessageCleared() {
 		_spec.ClearField(book.FieldErrorMessage, field.TypeString)
+	}
+	if value, ok := _u.mutation.RetryDisabled(); ok {
+		_spec.SetField(book.FieldRetryDisabled, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.TokenUsage(); ok {
 		_spec.SetField(book.FieldTokenUsage, field.TypeJSON, value)

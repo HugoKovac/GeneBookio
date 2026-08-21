@@ -12,6 +12,7 @@ import (
 	"hkorpo/book/internal/platform/database"
 	"hkorpo/book/internal/platform/queue"
 	"hkorpo/book/internal/preparation"
+	"hkorpo/book/internal/pricing"
 	"hkorpo/book/internal/primitive"
 	"hkorpo/book/pkg/env"
 	"hkorpo/book/pkg/errorpkg"
@@ -67,6 +68,7 @@ func main() {
 		book.NewBucketRepoImpl(cClient),
 		book.NewQueueRepoImpl(q, ch),
 		aiAPI,
+		pricing.NewCalculator(pricing.NewExchangeRateClient()),
 	)
 
 	err = queue.InitConsumer(&cfg.ConfigQueue, primitive.Prepare, func(d amqp091.Delivery) error {
@@ -74,6 +76,9 @@ func main() {
 
 		err = preparationService.MapOnChunks(ctx, bookID, preparationService.GenerateChapterPreparation)
 		if err != nil {
+			if pricing.IsBudgetExceeded(err) {
+				return book.RecordPermanentFailure(ctx, repo, bookID, primitive.Prepare, err)
+			}
 			return book.RecordFailure(ctx, repo, bookID, primitive.Prepare, err)
 		}
 		return nil

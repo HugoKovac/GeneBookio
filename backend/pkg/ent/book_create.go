@@ -231,6 +231,20 @@ func (_c *BookCreate) SetNillableErrorMessage(v *string) *BookCreate {
 	return _c
 }
 
+// SetRetryDisabled sets the "retry_disabled" field.
+func (_c *BookCreate) SetRetryDisabled(v bool) *BookCreate {
+	_c.mutation.SetRetryDisabled(v)
+	return _c
+}
+
+// SetNillableRetryDisabled sets the "retry_disabled" field if the given value is not nil.
+func (_c *BookCreate) SetNillableRetryDisabled(v *bool) *BookCreate {
+	if v != nil {
+		_c.SetRetryDisabled(*v)
+	}
+	return _c
+}
+
 // SetTokenUsage sets the "token_usage" field.
 func (_c *BookCreate) SetTokenUsage(v primitive.TokenUsage) *BookCreate {
 	_c.mutation.SetTokenUsage(v)
@@ -322,6 +336,10 @@ func (_c *BookCreate) defaults() {
 		v := book.DefaultFailed
 		_c.mutation.SetFailed(v)
 	}
+	if _, ok := _c.mutation.RetryDisabled(); !ok {
+		v := book.DefaultRetryDisabled
+		_c.mutation.SetRetryDisabled(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := book.DefaultID()
 		_c.mutation.SetID(v)
@@ -387,6 +405,9 @@ func (_c *BookCreate) check() error {
 		if err := book.FailedStageValidator(v); err != nil {
 			return &ValidationError{Name: "failed_stage", err: fmt.Errorf(`ent: validator failed for field "Book.failed_stage": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.RetryDisabled(); !ok {
+		return &ValidationError{Name: "retry_disabled", err: errors.New(`ent: missing required field "Book.retry_disabled"`)}
 	}
 	return nil
 }
@@ -491,6 +512,10 @@ func (_c *BookCreate) createSpec() (*Book, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.ErrorMessage(); ok {
 		_spec.SetField(book.FieldErrorMessage, field.TypeString, value)
 		_node.ErrorMessage = value
+	}
+	if value, ok := _c.mutation.RetryDisabled(); ok {
+		_spec.SetField(book.FieldRetryDisabled, field.TypeBool, value)
+		_node.RetryDisabled = value
 	}
 	if value, ok := _c.mutation.TokenUsage(); ok {
 		_spec.SetField(book.FieldTokenUsage, field.TypeJSON, value)
@@ -773,6 +798,18 @@ func (u *BookUpsert) UpdateErrorMessage() *BookUpsert {
 // ClearErrorMessage clears the value of the "error_message" field.
 func (u *BookUpsert) ClearErrorMessage() *BookUpsert {
 	u.SetNull(book.FieldErrorMessage)
+	return u
+}
+
+// SetRetryDisabled sets the "retry_disabled" field.
+func (u *BookUpsert) SetRetryDisabled(v bool) *BookUpsert {
+	u.Set(book.FieldRetryDisabled, v)
+	return u
+}
+
+// UpdateRetryDisabled sets the "retry_disabled" field to the value that was provided on create.
+func (u *BookUpsert) UpdateRetryDisabled() *BookUpsert {
+	u.SetExcluded(book.FieldRetryDisabled)
 	return u
 }
 
@@ -1108,6 +1145,20 @@ func (u *BookUpsertOne) UpdateErrorMessage() *BookUpsertOne {
 func (u *BookUpsertOne) ClearErrorMessage() *BookUpsertOne {
 	return u.Update(func(s *BookUpsert) {
 		s.ClearErrorMessage()
+	})
+}
+
+// SetRetryDisabled sets the "retry_disabled" field.
+func (u *BookUpsertOne) SetRetryDisabled(v bool) *BookUpsertOne {
+	return u.Update(func(s *BookUpsert) {
+		s.SetRetryDisabled(v)
+	})
+}
+
+// UpdateRetryDisabled sets the "retry_disabled" field to the value that was provided on create.
+func (u *BookUpsertOne) UpdateRetryDisabled() *BookUpsertOne {
+	return u.Update(func(s *BookUpsert) {
+		s.UpdateRetryDisabled()
 	})
 }
 
@@ -1613,6 +1664,20 @@ func (u *BookUpsertBulk) UpdateErrorMessage() *BookUpsertBulk {
 func (u *BookUpsertBulk) ClearErrorMessage() *BookUpsertBulk {
 	return u.Update(func(s *BookUpsert) {
 		s.ClearErrorMessage()
+	})
+}
+
+// SetRetryDisabled sets the "retry_disabled" field.
+func (u *BookUpsertBulk) SetRetryDisabled(v bool) *BookUpsertBulk {
+	return u.Update(func(s *BookUpsert) {
+		s.SetRetryDisabled(v)
+	})
+}
+
+// UpdateRetryDisabled sets the "retry_disabled" field to the value that was provided on create.
+func (u *BookUpsertBulk) UpdateRetryDisabled() *BookUpsertBulk {
+	return u.Update(func(s *BookUpsert) {
+		s.UpdateRetryDisabled()
 	})
 }
 

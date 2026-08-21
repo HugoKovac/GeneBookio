@@ -39,6 +39,9 @@ func (Book) Fields() []ent.Field {
 		field.Bool("failed").Default(false),
 		field.String("failed_stage").MaxLen(20).Optional(),
 		field.Text("error_message").Optional(),
+		// RetryDisabled marks a failure as permanent (e.g. AI spend exceeded
+		// its budget) — catalog.Service.RetryFailedStage refuses to retry it.
+		field.Bool("retry_disabled").Default(false),
 		field.JSON("token_usage", primitive.TokenUsage{}).Optional(),
 	}
 }

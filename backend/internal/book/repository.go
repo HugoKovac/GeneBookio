@@ -14,6 +14,9 @@ type Repository interface {
 	CreateBook(ctx context.Context, book *Book) (*Book, error)
 	UpdateBookStage(ctx context.Context, bookID uuid.UUID, s Stage) error
 	MarkBookFailed(ctx context.Context, bookID uuid.UUID, stage, message string) error
+	// MarkBookFailedPermanently is like MarkBookFailed but also sets
+	// RetryDisabled, so catalog.Service.RetryFailedStage refuses to retry it.
+	MarkBookFailedPermanently(ctx context.Context, bookID uuid.UUID, stage, message string) error
 	ClearBookFailure(ctx context.Context, bookID uuid.UUID) error
 	GetSavedBookByKey(ctx context.Context, bookKey string) (*Book, error)
 	GetBookByID(ctx context.Context, bookID uuid.UUID) (*Book, error)
@@ -92,11 +95,21 @@ func (r *RepositoryImpl) MarkBookFailed(ctx context.Context, bookID uuid.UUID, s
 		Exec(ctx))
 }
 
+func (r *RepositoryImpl) MarkBookFailedPermanently(ctx context.Context, bookID uuid.UUID, stage, message string) error {
+	return errorwrapper.Wrap(r.dbClient.Book.UpdateOneID(bookID).
+		SetFailed(true).
+		SetFailedStage(stage).
+		SetErrorMessage(message).
+		SetRetryDisabled(true).
+		Exec(ctx))
+}
+
 func (r *RepositoryImpl) ClearBookFailure(ctx context.Context, bookID uuid.UUID) error {
 	return errorwrapper.Wrap(r.dbClient.Book.UpdateOneID(bookID).
 		SetFailed(false).
 		ClearFailedStage().
 		ClearErrorMessage().
+		SetRetryDisabled(false).
 		Exec(ctx))
 }
 
@@ -162,6 +175,7 @@ func fromEntBook(e *ent.Book) *Book {
 		Failed:          e.Failed,
 		FailedStage:     e.FailedStage,
 		ErrorMessage:    e.ErrorMessage,
+		RetryDisabled:   e.RetryDisabled,
 		TokenUsage:      e.TokenUsage,
 	}
 }

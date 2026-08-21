@@ -56,6 +56,7 @@ type BookMutation struct {
 	failed             *bool
 	failed_stage       *string
 	error_message      *string
+	retry_disabled     *bool
 	token_usage        *primitive.TokenUsage
 	clearedFields      map[string]struct{}
 	done               bool
@@ -889,6 +890,42 @@ func (m *BookMutation) ResetErrorMessage() {
 	delete(m.clearedFields, book.FieldErrorMessage)
 }
 
+// SetRetryDisabled sets the "retry_disabled" field.
+func (m *BookMutation) SetRetryDisabled(b bool) {
+	m.retry_disabled = &b
+}
+
+// RetryDisabled returns the value of the "retry_disabled" field in the mutation.
+func (m *BookMutation) RetryDisabled() (r bool, exists bool) {
+	v := m.retry_disabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRetryDisabled returns the old "retry_disabled" field's value of the Book entity.
+// If the Book object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BookMutation) OldRetryDisabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRetryDisabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRetryDisabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRetryDisabled: %w", err)
+	}
+	return oldValue.RetryDisabled, nil
+}
+
+// ResetRetryDisabled resets all changes to the "retry_disabled" field.
+func (m *BookMutation) ResetRetryDisabled() {
+	m.retry_disabled = nil
+}
+
 // SetTokenUsage sets the "token_usage" field.
 func (m *BookMutation) SetTokenUsage(pu primitive.TokenUsage) {
 	m.token_usage = &pu
@@ -972,7 +1009,7 @@ func (m *BookMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *BookMutation) Fields() []string {
-	fields := make([]string, 0, 18)
+	fields := make([]string, 0, 19)
 	if m.created_at != nil {
 		fields = append(fields, book.FieldCreatedAt)
 	}
@@ -1024,6 +1061,9 @@ func (m *BookMutation) Fields() []string {
 	if m.error_message != nil {
 		fields = append(fields, book.FieldErrorMessage)
 	}
+	if m.retry_disabled != nil {
+		fields = append(fields, book.FieldRetryDisabled)
+	}
 	if m.token_usage != nil {
 		fields = append(fields, book.FieldTokenUsage)
 	}
@@ -1069,6 +1109,8 @@ func (m *BookMutation) Field(name string) (ent.Value, bool) {
 		return m.FailedStage()
 	case book.FieldErrorMessage:
 		return m.ErrorMessage()
+	case book.FieldRetryDisabled:
+		return m.RetryDisabled()
 	case book.FieldTokenUsage:
 		return m.TokenUsage()
 	}
@@ -1114,6 +1156,8 @@ func (m *BookMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldFailedStage(ctx)
 	case book.FieldErrorMessage:
 		return m.OldErrorMessage(ctx)
+	case book.FieldRetryDisabled:
+		return m.OldRetryDisabled(ctx)
 	case book.FieldTokenUsage:
 		return m.OldTokenUsage(ctx)
 	}
@@ -1243,6 +1287,13 @@ func (m *BookMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetErrorMessage(v)
+		return nil
+	case book.FieldRetryDisabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRetryDisabled(v)
 		return nil
 	case book.FieldTokenUsage:
 		v, ok := value.(primitive.TokenUsage)
@@ -1395,6 +1446,9 @@ func (m *BookMutation) ResetField(name string) error {
 		return nil
 	case book.FieldErrorMessage:
 		m.ResetErrorMessage()
+		return nil
+	case book.FieldRetryDisabled:
+		m.ResetRetryDisabled()
 		return nil
 	case book.FieldTokenUsage:
 		m.ResetTokenUsage()

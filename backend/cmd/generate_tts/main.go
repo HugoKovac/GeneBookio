@@ -11,6 +11,7 @@ import (
 	"hkorpo/book/internal/platform/bucket"
 	"hkorpo/book/internal/platform/database"
 	"hkorpo/book/internal/platform/queue"
+	"hkorpo/book/internal/pricing"
 	"hkorpo/book/internal/primitive"
 	"hkorpo/book/internal/tts"
 	"hkorpo/book/pkg/env"
@@ -61,12 +62,16 @@ func main() {
 		repo,
 		book.NewBucketRepoImpl(cClient),
 		ttsAPI,
+		pricing.NewCalculator(pricing.NewExchangeRateClient()),
 	)
 
 	err = queue.InitConsumer(&cfg.ConfigQueue, primitive.GenerateTTS, func(d amqp091.Delivery) error {
 		bookID := string(d.Body)
 
 		if err := ttsService.CreateAudioFromScript(ctx, bookID); err != nil {
+			if pricing.IsBudgetExceeded(err) {
+				return book.RecordPermanentFailure(ctx, repo, bookID, primitive.GenerateTTS, err)
+			}
 			return book.RecordFailure(ctx, repo, bookID, primitive.GenerateTTS, err)
 		}
 

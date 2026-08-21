@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"hkorpo/book/internal/book"
 	pbucket "hkorpo/book/internal/platform/bucket"
+	"hkorpo/book/internal/pricing"
 	"hkorpo/book/internal/primitive"
 	"strings"
 
@@ -12,9 +13,27 @@ import (
 )
 
 type AiAPI interface {
-	Request(ctx context.Context, request string) (string, primitive.ModelUsage, error)
+	// maxOutputTokens, when positive, caps the response length — see
+	// BudgetAPI.CapOutputTokens.
+	Request(ctx context.Context, request string, maxOutputTokens int64) (string, primitive.ModelUsage, error)
 	ModelName() string
 }
+
+// BudgetAPI checks a stage's AI usage cost against a EUR budget.
+type BudgetAPI interface {
+	// CheckBudget is the post-call check: did this call's real (reported)
+	// usage exceed the budget?
+	CheckBudget(ctx context.Context, stage, model string, usage primitive.ModelUsage, limitEUR float64) error
+	// CapOutputTokens is the pre-call check: given an estimated input size,
+	// how many output tokens can the remaining budget still afford? It
+	// returns an error — before any request is made — if the (estimated)
+	// input alone already exceeds the budget.
+	CapOutputTokens(ctx context.Context, stage, model string, inputTokens int64, limitEUR float64) (int64, error)
+}
+
+// budgetEUR is the maximum a single book may spend on script generation
+// before the book fails permanently (see GenerateScript).
+const budgetEUR = 1.0
 
 // Service merges a book's prepared chapter chunks into one narration script.
 type Service struct {
@@ -22,10 +41,11 @@ type Service struct {
 	bucketRepo book.BucketRepo
 	queueRepo  book.QueueRepo
 	aiAPI      AiAPI
+	budgetAPI  BudgetAPI
 }
 
-func NewService(repo book.Repository, bucketRepo book.BucketRepo, queueRepo book.QueueRepo, aiAPI AiAPI) *Service {
-	return &Service{repo: repo, bucketRepo: bucketRepo, queueRepo: queueRepo, aiAPI: aiAPI}
+func NewService(repo book.Repository, bucketRepo book.BucketRepo, queueRepo book.QueueRepo, aiAPI AiAPI, budgetAPI BudgetAPI) *Service {
+	return &Service{repo: repo, bucketRepo: bucketRepo, queueRepo: queueRepo, aiAPI: aiAPI, budgetAPI: budgetAPI}
 }
 
 func (s *Service) GenerateScript(ctx context.Context, bookID string) error {
@@ -58,7 +78,14 @@ func (s *Service) GenerateScript(ctx context.Context, bookID string) error {
 		return err
 	}
 
-	output, usage, err := s.aiAPI.Request(ctx, promptGenerateScript+result)
+	request := promptGenerateScript + result
+
+	maxOutputTokens, err := s.budgetAPI.CapOutputTokens(ctx, primitive.GenerateScript, s.aiAPI.ModelName(), pricing.EstimateTokens(request), budgetEUR)
+	if err != nil {
+		return err
+	}
+
+	output, usage, err := s.aiAPI.Request(ctx, request, maxOutputTokens)
 	if err != nil {
 		return err
 	}
@@ -68,6 +95,10 @@ func (s *Service) GenerateScript(ctx context.Context, bookID string) error {
 	}
 
 	if err := s.repo.AddTokenUsage(ctx, uuid.MustParse(bookID), s.aiAPI.ModelName(), usage); err != nil {
+		return err
+	}
+
+	if err := s.budgetAPI.CheckBudget(ctx, primitive.GenerateScript, s.aiAPI.ModelName(), usage, budgetEUR); err != nil {
 		return err
 	}
 

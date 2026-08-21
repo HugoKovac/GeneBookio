@@ -126,6 +126,11 @@ func ErrorMessage(v string) predicate.Book {
 	return predicate.Book(sql.FieldEQ(FieldErrorMessage, v))
 }
 
+// RetryDisabled applies equality check predicate on the "retry_disabled" field. It's identical to RetryDisabledEQ.
+func RetryDisabled(v bool) predicate.Book {
+	return predicate.Book(sql.FieldEQ(FieldRetryDisabled, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Book {
 	return predicate.Book(sql.FieldEQ(FieldCreatedAt, v))
@@ -744,6 +749,16 @@ func ErrorMessageEqualFold(v string) predicate.Book {
 // ErrorMessageContainsFold applies the ContainsFold predicate on the "error_message" field.
 func ErrorMessageContainsFold(v string) predicate.Book {
 	return predicate.Book(sql.FieldContainsFold(FieldErrorMessage, v))
+}
+
+// RetryDisabledEQ applies the EQ predicate on the "retry_disabled" field.
+func RetryDisabledEQ(v bool) predicate.Book {
+	return predicate.Book(sql.FieldEQ(FieldRetryDisabled, v))
+}
+
+// RetryDisabledNEQ applies the NEQ predicate on the "retry_disabled" field.
+func RetryDisabledNEQ(v bool) predicate.Book {
+	return predicate.Book(sql.FieldNEQ(FieldRetryDisabled, v))
 }
 
 // TokenUsageIsNil applies the IsNil predicate on the "token_usage" field.
