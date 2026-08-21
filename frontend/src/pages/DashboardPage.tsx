@@ -20,7 +20,7 @@ export default function DashboardPage() {
   }, [token]);
 
   if (error) {
-    return <Alert color="red" maw={480} mx="auto" mt={48}>{error}</Alert>;
+    return <Alert color="red" radius="lg" m="lg">{error}</Alert>;
   }
 
   if (!books) {
@@ -28,18 +28,18 @@ export default function DashboardPage() {
   }
 
   return (
-    <Stack maw={1100} mx="auto" mt={24} gap="lg">
-      <Title order={1}>Your library</Title>
+    <Stack px="lg" pt="lg" pb="lg" gap="lg">
+      <Title order={2} style={{ fontSize: 28 }}>Your Library</Title>
 
       {books.length === 0
         ? <Text c="dimmed">No books in your catalog yet.</Text>
-        : <SimpleGrid cols={{ base: 2, sm: 3, md: 4 }} spacing="lg">
+        : <SimpleGrid cols={{ base: 2, sm: 3, md: 4 }} spacing="md">
             {books.map((book) => (
-              <Card key={book.ID} component={Link} to={`/books/${book.ID}`} withBorder radius="md" padding="sm">
+              <Card key={book.ID} component={Link} to={`/books/${book.ID}`} radius="lg" padding="xs" shadow="sm">
                 <Card.Section>
                   <BookCover title={book.Title} coverURL={book.CoverURL} />
                 </Card.Section>
-                <Stack gap={2} mt="sm">
+                <Stack gap={2} mt="sm" px={2} pb={2}>
                   <Text fw={600} size="sm" lineClamp={2}>{book.Title}</Text>
                   <Text size="xs" c="dimmed" lineClamp={1}>{(book.AuthorNames ?? []).join(', ') || 'Unknown author'}</Text>
                 </Stack>

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"hkorpo/book/internal/book"
 	pbucket "hkorpo/book/internal/platform/bucket"
+	"hkorpo/book/internal/pricing"
 	"hkorpo/book/internal/primitive"
 	"io"
 
@@ -48,11 +49,14 @@ func (s *Service) CreateAudioFromScript(ctx context.Context, bookID string) erro
 		return err
 	}
 
-	// Unlike preparation/script, TTS is priced purely per input character
-	// (see OpenAiTTSClient) and the full input is already in hand — so this
-	// pre-call check is exact, not an estimate, and fully prevents the
-	// spend rather than just detecting it afterwards.
-	estimatedUsage := primitive.ModelUsage{InputTokens: int64(len([]rune(bookContent)))}
+	// Pre-call check on the input side: for a character-priced model
+	// (tts-1/tts-1-hd) this is exact, since the full input is already in
+	// hand, and fully prevents the spend rather than just detecting it
+	// afterwards. For a token-priced model (gpt-4o-mini-tts) the dominant
+	// cost is the output (audio) side, which isn't known until the API
+	// reports real usage — see pricing.EstimateTTSInputUsage and the
+	// post-call CheckBudget below, which is what catches that.
+	estimatedUsage := pricing.EstimateTTSInputUsage(s.ttsAPI.ModelName(), bookContent)
 	if err := s.budgetAPI.CheckBudget(ctx, primitive.GenerateTTS, s.ttsAPI.ModelName(), estimatedUsage, budgetEUR); err != nil {
 		return err
 	}

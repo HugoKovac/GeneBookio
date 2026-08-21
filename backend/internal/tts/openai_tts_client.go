@@ -18,6 +18,19 @@ import (
 // into one (see splitForTTS, wav.go).
 const maxTTSInputChars = 4096
 
+// ttsVoice is one of OpenAI's newest, most natural-sounding voices — see
+// https://platform.openai.com/docs/guides/text-to-speech#voice-options.
+const ttsVoice = "marin"
+
+// ttsInstructions steers gpt-4o-mini-tts's delivery style. It's ignored by
+// tts-1/tts-1-hd (see the Instructions field's doc comment), so it's only
+// sent when the configured model supports it — see the model check below.
+const ttsInstructions = "Voice: warm, engaging podcast narrator, genuinely captivating rather than flat or robotic. " +
+	"Pacing: dynamic and natural, like a skilled storyteller talking to one listener — vary your speed and energy, " +
+	"speed up for tension, slow down for weight. Follow the text's punctuation closely: short pauses on commas, " +
+	"longer dramatic pauses on ellipses, real emphasis on exclamation and question marks. Tone: sincere and warm, " +
+	"never a monotone reading voice."
+
 // OpenAiTTSClient synthesizes audio via OpenAI's audio/speech endpoint.
 type OpenAiTTSClient struct {
 	client openai.Client
@@ -39,12 +52,17 @@ func (oc *OpenAiTTSClient) CreateAudioFromString(ctx context.Context, content st
 	)
 
 	for _, chunk := range splitForTTS(content) {
-		resp, err := oc.client.Audio.Speech.New(ctx, openai.AudioSpeechNewParams{
+		params := openai.AudioSpeechNewParams{
 			Input:          chunk,
 			Model:          oc.model,
-			Voice:          openai.AudioSpeechNewParamsVoiceUnion{OfString: openai.String("fable")},
+			Voice:          openai.AudioSpeechNewParamsVoiceUnion{OfString: openai.String(ttsVoice)},
 			ResponseFormat: openai.AudioSpeechNewParamsResponseFormatWAV,
-		})
+		}
+		if oc.model != openai.SpeechModelTTS1 && oc.model != openai.SpeechModelTTS1HD {
+			params.Instructions = openai.String(ttsInstructions)
+		}
+
+		resp, err := oc.client.Audio.Speech.New(ctx, params)
 		if err != nil {
 			return nil, 0, primitive.ModelUsage{}, errorwrapper.Wrap(err)
 		}

@@ -54,7 +54,7 @@ func main() {
 	if cfg.ConfigAi.TEST_MODE {
 		ttsAPI = tts.NewSubstitutionTTSClient()
 	} else {
-		ttsAPI = tts.NewOpenAiTTSClient(openai.NewClient(), openai.SpeechModelTTS1)
+		ttsAPI = tts.NewOpenAiTTSClient(openai.NewClient(), openai.SpeechModelGPT4oMiniTTS)
 	}
 
 	repo := book.NewRepositoryImpl(dbClient)
@@ -86,3 +86,4 @@ func main() {
 
 	<-sigChan
 }
+

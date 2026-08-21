@@ -3,6 +3,7 @@ package httpserver
 import (
 	"github.com/gofiber/contrib/v3/swaggerui"
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/gofiber/fiber/v3/middleware/logger"
 
 	fiberlogger "hkorpo/book/pkg/fiber/logger"
@@ -16,6 +17,11 @@ func Init() *fiber.App {
 		CustomTags: map[string]logger.LogFunc{
 			"error_trace": fiberlogger.ErrorTraceLoggerTags,
 		},
+	}))
+
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: []string{"http://localhost", "https://localhost", "capacitor://localhost"},
+		AllowHeaders: []string{"Content-Type", "Authorization"},
 	}))
 
 	app.Use(swaggerui.New(swaggerui.Config{

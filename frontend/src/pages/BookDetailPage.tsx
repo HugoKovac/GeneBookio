@@ -1,4 +1,5 @@
-import { Alert, Badge, Button, Group, Loader, Paper, Stack, Text, Title } from '@mantine/core';
+import { ActionIcon, Alert, Badge, Box, Group, Loader, Stack, Text, Title } from '@mantine/core';
+import { IconChevronLeft } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import BookCover from '../features/catalog/components/BookCover';
@@ -49,13 +50,17 @@ export default function BookDetailPage() {
     };
   }, [id, token]);
 
+  const backButton = (
+    <ActionIcon variant="subtle" color="gray" size="lg" radius="xl" onClick={() => navigate('/dashboard')} aria-label="Back to library">
+      <IconChevronLeft size={22} />
+    </ActionIcon>
+  );
+
   if (loadError) {
-    return <Paper withBorder radius="md" p="xl" maw={680} mx="auto" mt={48}>
-      <Stack>
-        <Alert color="red">{loadError}</Alert>
-        <Button variant="subtle" onClick={() => navigate('/dashboard')} w="fit-content">Back to library</Button>
-      </Stack>
-    </Paper>;
+    return <Stack px="lg" pt="lg" gap="lg">
+      {backButton}
+      <Alert color="red" radius="lg">{loadError}</Alert>
+    </Stack>;
   }
 
   if (!book) {
@@ -63,30 +68,32 @@ export default function BookDetailPage() {
   }
 
   return (
-    <Paper withBorder radius="md" p="xl" maw={680} mx="auto" mt={48}>
-      <Stack gap="lg">
-        <Button variant="subtle" onClick={() => navigate('/dashboard')} w="fit-content" px={0}>&larr; Back to library</Button>
+    <Stack px="lg" pt="lg" pb="xl" gap="xl">
+      {backButton}
 
-        <Group align="flex-start" wrap="nowrap">
-          <div style={{ width: 140, flexShrink: 0 }}>
-            <BookCover title={book.Title} coverURL={book.CoverURL} height={200} />
-          </div>
-          <Stack gap={4}>
-            <Title order={2}>{book.Title}</Title>
-            <Text c="dimmed">{(book.AuthorNames ?? []).join(', ') || 'Unknown author'}</Text>
-            {book.ScriptGenerated && <Badge color="green" w="fit-content">Script ready</Badge>}
-          </Stack>
-        </Group>
-
-        {book.Description && <Text>{book.Description}</Text>}
-
-        <Stack gap="xs">
-          <Title order={4}>Listen</Title>
-          {audioLoading && <Loader size="sm" />}
-          {audioError && <Alert color="yellow">{audioError}</Alert>}
-          {audioURL && <audio controls src={audioURL} style={{ width: '100%' }} />}
+      <Stack align="center" gap="md">
+        <Box w={200}>
+          <BookCover title={book.Title} coverURL={book.CoverURL} height={260} />
+        </Box>
+        <Stack gap={4} align="center">
+          <Title order={2} ta="center">{book.Title}</Title>
+          <Text c="dimmed" ta="center">{(book.AuthorNames ?? []).join(', ') || 'Unknown author'}</Text>
+          {book.ScriptGenerated && <Badge color="green" variant="light" mt={4}>Script ready</Badge>}
         </Stack>
       </Stack>
-    </Paper>
+
+      <Stack gap="xs">
+        {audioLoading && <Group justify="center"><Loader size="sm" /></Group>}
+        {audioError && <Alert color="yellow" radius="lg">{audioError}</Alert>}
+        {audioURL && <audio controls src={audioURL} style={{ width: '100%' }} />}
+      </Stack>
+
+      {book.Description && (
+        <Stack gap={4}>
+          <Text fw={600}>Description</Text>
+          <Text c="dimmed">{book.Description}</Text>
+        </Stack>
+      )}
+    </Stack>
   );
 }

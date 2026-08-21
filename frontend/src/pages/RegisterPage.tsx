@@ -26,13 +26,13 @@ export default function RegisterPage() {
 
   return <AuthCard title="Create your account" subtitle="Start building your personal library.">
     <form onSubmit={handleSubmit}><Stack>
-      {error && <Alert color="red">{error}</Alert>}
-      <TextInput name="firstname" label="First name" required autoComplete="given-name" />
-      <TextInput name="lastname" label="Last name" required autoComplete="family-name" />
-      <TextInput name="email" type="email" label="Email" required autoComplete="email" />
-      <PasswordInput name="password" label="Password" description="At least 12 characters" minLength={12} required autoComplete="new-password" />
-      <PasswordInput name="confirmPassword" label="Confirm password" minLength={12} required autoComplete="new-password" />
-      <Button type="submit" loading={loading}>Create account</Button>
+      {error && <Alert color="red" radius="lg">{error}</Alert>}
+      <TextInput name="firstname" label="First name" required autoComplete="given-name" size="md" radius="md" />
+      <TextInput name="lastname" label="Last name" required autoComplete="family-name" size="md" radius="md" />
+      <TextInput name="email" type="email" label="Email" required autoComplete="email" size="md" radius="md" />
+      <PasswordInput name="password" label="Password" description="At least 12 characters" minLength={12} required autoComplete="new-password" size="md" radius="md" />
+      <PasswordInput name="confirmPassword" label="Confirm password" minLength={12} required autoComplete="new-password" size="md" radius="md" />
+      <Button type="submit" loading={loading} size="md" radius="xl" fullWidth mt="sm">Create account</Button>
       <Text size="sm" ta="center">Already have an account? <Anchor component={Link} to="/login">Sign in</Anchor></Text>
     </Stack></form>
   </AuthCard>;

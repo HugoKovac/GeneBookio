@@ -1,6 +1,7 @@
-import { Alert, Button, Group, Loader, Modal, Paper, Stack, Text, TextInput, Title } from '@mantine/core';
+import { Alert, Avatar, Button, Group, Loader, Modal, Paper, Stack, Text, TextInput, Title, UnstyledButton } from '@mantine/core';
+import { IconChevronRight, IconLogout, IconTrash } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/useAuth';
 import { deleteUser, getUser, updateUser } from '../features/user/api';
@@ -71,48 +72,71 @@ export default function ProfilePage() {
   }
 
   if (loadError) {
-    return <Paper withBorder radius="md" p="xl" maw={480} mx="auto" mt={48}>
-      <Alert color="red">{loadError}</Alert>
-    </Paper>;
+    return <Stack px="lg" pt="lg"><Alert color="red" radius="lg">{loadError}</Alert></Stack>;
   }
 
   if (!user) {
     return <Group justify="center" mt={48}><Loader /></Group>;
   }
 
-  return <Paper withBorder radius="md" p="xl" maw={480} mx="auto" mt={48}>
-    <Stack gap="lg">
-      <div>
-        <Title order={2}>Your profile</Title>
-        <Text c="dimmed" mt="xs">Update your account details.</Text>
-      </div>
+  const initials = `${user.Firstname[0] ?? ''}${user.Lastname[0] ?? ''}`.toUpperCase();
 
-      <form onSubmit={handleSubmit}>
-        <Stack>
-          {saveError && <Alert color="red">{saveError}</Alert>}
-          {saveSuccess && <Alert color="green">Your profile has been updated.</Alert>}
-          <TextInput label="Email" value={user.Email} disabled />
-          <TextInput name="firstname" label="First name" defaultValue={user.Firstname} required maxLength={100} autoComplete="given-name" />
-          <TextInput name="lastname" label="Last name" defaultValue={user.Lastname} required maxLength={100} autoComplete="family-name" />
-          <Button type="submit" loading={saving}>Save changes</Button>
+  return (
+    <Stack px="lg" pt="lg" pb="xl" gap="xl">
+      <Title order={2} style={{ fontSize: 28 }}>Profile</Title>
+
+      <Group>
+        <Avatar size={64} radius="xl" color="violet">{initials}</Avatar>
+        <Stack gap={0}>
+          <Text fw={600} size="lg">{user.Firstname} {user.Lastname}</Text>
+          <Text c="dimmed" size="sm">{user.Email}</Text>
         </Stack>
-      </form>
+      </Group>
 
-      <Stack gap="xs">
-        <Button variant="subtle" onClick={handleLogout}>Sign out</Button>
-        <Button variant="subtle" color="red" onClick={openConfirm}>Delete account</Button>
-      </Stack>
+      <Paper withBorder radius="lg" p="md">
+        <form onSubmit={handleSubmit}>
+          <Stack>
+            {saveError && <Alert color="red" radius="lg">{saveError}</Alert>}
+            {saveSuccess && <Alert color="green" radius="lg">Your profile has been updated.</Alert>}
+            <TextInput name="firstname" label="First name" defaultValue={user.Firstname} required maxLength={100} autoComplete="given-name" radius="md" />
+            <TextInput name="lastname" label="Last name" defaultValue={user.Lastname} required maxLength={100} autoComplete="family-name" radius="md" />
+            <Button type="submit" loading={saving} radius="xl">Save changes</Button>
+          </Stack>
+        </form>
+      </Paper>
+
+      <Paper withBorder radius="lg" style={{ overflow: 'hidden' }}>
+        <SettingsRow icon={<IconLogout size={20} />} label="Sign out" onClick={handleLogout} />
+        <SettingsRow icon={<IconTrash size={20} />} label="Delete account" onClick={openConfirm} color="red" last />
+      </Paper>
+
+      <Modal opened={confirmOpened} onClose={closeConfirm} title="Delete account" centered radius="lg">
+        <Stack>
+          {deleteError && <Alert color="red" radius="lg">{deleteError}</Alert>}
+          <Text>This will permanently delete your account. You will no longer be able to sign in. This action cannot be undone.</Text>
+          <Group justify="flex-end">
+            <Button variant="default" radius="xl" onClick={closeConfirm}>Cancel</Button>
+            <Button color="red" radius="xl" loading={deleting} onClick={handleDelete}>Delete my account</Button>
+          </Group>
+        </Stack>
+      </Modal>
     </Stack>
+  );
+}
 
-    <Modal opened={confirmOpened} onClose={closeConfirm} title="Delete account" centered>
-      <Stack>
-        {deleteError && <Alert color="red">{deleteError}</Alert>}
-        <Text>This will permanently delete your account. You will no longer be able to sign in. This action cannot be undone.</Text>
-        <Group justify="flex-end">
-          <Button variant="default" onClick={closeConfirm}>Cancel</Button>
-          <Button color="red" loading={deleting} onClick={handleDelete}>Delete my account</Button>
+function SettingsRow({ icon, label, onClick, color, last }: { icon: ReactNode; label: string; onClick: () => void; color?: string; last?: boolean }) {
+  return (
+    <UnstyledButton
+      onClick={onClick}
+      style={{ display: 'block', width: '100%', borderBottom: last ? undefined : '1px solid var(--mantine-color-default-border)' }}
+    >
+      <Group justify="space-between" px="md" py="sm">
+        <Group gap="sm" c={color}>
+          {icon}
+          <Text c={color}>{label}</Text>
         </Group>
-      </Stack>
-    </Modal>
-  </Paper>;
+        <IconChevronRight size={18} color="var(--mantine-color-dimmed)" />
+      </Group>
+    </UnstyledButton>
+  );
 }
