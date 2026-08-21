@@ -22,7 +22,7 @@ make prepare_chapters     # run the prepare_chapters worker (consumes "prepare",
 make generate_script       # run the generate_script worker (consumes "generate_script", produces "generate_tts")
 make generate_tts          # run the generate_tts worker (consumes "generate_tts")
 
-make docker               # docker compose up -d (all services incl. db/rabbitmq/minio/localai)
+make docker               # docker compose up -d (all services incl. db/rabbitmq/minio)
 make docker-hybrid        # only infra: db, rabbitmq, minio (run Go services locally against them)
 
 make ent                  # regenerate ent ORM code after editing pkg/ent/schema/*.go
@@ -31,7 +31,9 @@ make genNewKeys            # generate a new RSA keypair into keys/ (KEYS_DIR/KEY
 
 Each `cmd/*` binary reads its own `.env` file (see `cmd/<name>/.env.example`) via `pkg/env` + `envconfig`; `backend/.env` holds the shared docker-compose credentials (MySQL/MinIO/RabbitMQ). Copy the relevant `.env.example` to `.env` before running a service.
 
-`prepare_chapters` and `generate_script` (the two AI-driven stages) read `AI_TEST_MODE` (`book.ConfigAi`, envconfig key `AI_TEST_MODE`). When true they wire `book.NewSubstitutionAiClient()` instead of `book.NewOpenAiClient()` as their `AiAPI` — it echoes the request back wrapped in `==START/END OF REQUEST==` markers instead of calling OpenAI, so the pipeline can be exercised without spending real tokens. `make prepare_chapters`/`make generate_script` default `TEST_MODE=true`; override with `make prepare_chapters TEST_MODE=false` (or set `AI_TEST_MODE` directly in `.env`) to hit the real API. `docker-compose.yaml` defaults the same env var to `true` for both services' containers.
+`prepare_chapters`, `generate_script` and `generate_tts` (the three AI-driven stages — the latter now calls OpenAI's TTS API instead of a local model) read `AI_TEST_MODE` (`book.ConfigAi`, envconfig key `AI_TEST_MODE`). When true they wire a substitution client instead of the real OpenAI-backed one — `book.NewSubstitutionAiClient()` (echoes the request back wrapped in `==START/END OF REQUEST==` markers) for the first two, `tts.NewSubstitutionTTSClient()` (returns a tiny silent WAV) for the third — so the pipeline can be exercised without spending real money. `make prepare_chapters`/`make generate_script`/`make generate_tts` default `TEST_MODE=true`; override with e.g. `make generate_tts TEST_MODE=false` (or set `AI_TEST_MODE` directly in `.env`) to hit the real API. `docker-compose.yaml` defaults the same env var to `true` for all three services' containers.
+
+Every AI call's token/character usage is recorded on `Book.TokenUsage` (a `primitive.TokenUsage` JSON column, keyed by model name) via `Repository.AddTokenUsage` — `internal/pricing` turns that into a display cost (`CostUSD`, best-effort `CostEUR` converted via the free Frankfurter exchange-rate API) that `catalog.Service.GetBooks` attaches to each `catalog.BookWithCost`, shown in `frontend-admin`'s catalogue table.
 
 Standard Go tooling applies for tests/build — there's no test/lint wrapper in the Makefile:
 ```
@@ -56,7 +58,7 @@ prepare_chapters (worker, internal/preparation)
 generate_script (worker, internal/script)
    → consumes "generate_script": AI-merges prepared chunks into one script, posts to "generate_tts"
 generate_tts (worker, internal/tts)
-   → consumes "generate_tts": calls local TTS (LocalAI/Kokoro) to synthesize audio, no further queue message
+   → consumes "generate_tts": calls OpenAI's TTS API to synthesize audio, no further queue message
 ```
 
 Queue stage names live in `internal/primitive/queue_channel.go` (`Split`, `Prepare`, `GenerateScript`, `GenerateTTS`). Each worker's `main.go` wires an `InitProducer` for the *next* stage and an `InitConsumer` for its *own* stage — read a worker's `main.go` to see both ends of its hop.
@@ -90,7 +92,7 @@ A `Book`'s progress is tracked both as boolean flags (`Uploaded`/`Parsed`/`Prepa
 | `internal/parsing` | EPUB → chapter chunks (`EpubParserImpl`) | same, plus its own `EpubParser` interface |
 | `internal/preparation` | per-chunk AI preprocessing | same, plus its own `AiAPI` interface |
 | `internal/script` | AI merge of chunks into one script | same, plus its own `AiAPI` interface |
-| `internal/tts` | audio synthesis (`LocalAiClient`) | `Repository`, `BucketRepo`, plus its own `TTSAPI` interface |
+| `internal/tts` | audio synthesis (`OpenAiTTSClient`) | `Repository`, `BucketRepo`, plus its own `TTSAPI` interface |
 
 Each of these exposes a plain `Service` with a positional constructor (`library.NewService(bookAPI)`, `catalog.NewService(repo, bucketRepo)`, ...) — no functional options — so a missing dependency is a compile error, not a nil-pointer panic. Every dependency interface is declared in the same file as the code that needs it (or, for `Repository`/`BucketRepo`/`QueueRepo`, colocated with the implementation in `internal/book`); check a package's `service.go` before assuming a method exists there (e.g. `tts.Service` has no `AiAPI`, only `TTSAPI`).
 
@@ -98,7 +100,7 @@ Each of these exposes a plain `Service` with a positional constructor (`library.
 
 Every `internal/<domain>` package that has HTTP routes owns its own `handler.go` with an exported `Handler` type and `NewHandler(router fiber.Router, ...services)` constructor that registers its routes directly on the passed-in router group — mirroring `internal/user`. `cmd/*/main.go` stays wiring-only: it builds services, creates the route group (attaching shared middleware like `user.MiddlewareAuth` there), and calls each domain's `NewHandler`. When an endpoint's *own* domain logic is genuinely single-package (e.g. `internal/upload`'s `Upload` handler), its handler composes other services directly rather than being pulled out into a separate wrapper — composing services from a domain's handler is fine, only composing them from a *fake* `cmd`-only domain was the anti-pattern. Endpoints that expose another domain's public contract (e.g. `cmd/api`'s `/books/search/:query` and `/books/:query`, which are `library`'s JSON API) live in that owning domain's handler (`library.NewHandler`) even though they're mounted under a shared route group (`/books`) alongside a sibling domain's handler (`catalog.NewHandler` for `/books/` and `/books/audio/:query`).
 
-`internal/platform/*` are thin infra clients (MySQL via ent, MinIO, RabbitMQ, LocalAI, Fiber httpserver) each with their own `Config*` struct populated via `envconfig`; `cmd/*/main.go` composes the `Config*` structs it needs into one local `Config`.
+`internal/platform/*` are thin infra clients (MySQL via ent, MinIO, RabbitMQ, Fiber httpserver) each with their own `Config*` struct populated via `envconfig`; `cmd/*/main.go` composes the `Config*` structs it needs into one local `Config`.
 
 ### Data layer
 
@@ -145,5 +147,5 @@ npm run lint         # oxlint
 ```
 
 - `pages/UploadPage.tsx` — search Google Books (via `cmd/admin`'s `/search`), pick a result, choose the book's language (the one per-book option the pipeline reads — see `Book.Language` / `internal/preparation`, `internal/script`, `internal/tts`), attach the `.epub`, POST to `/upload`.
-- `pages/CataloguePage.tsx` — polls `GET /books/` every 5s and renders each book's `Uploaded`/`Parsed`/`Prepared`/`ScriptGenerated`/`TTSGenerated` flags as progress dots; a failed book's next-expected dot renders red (tooltip = `ErrorMessage`, mapped from `FailedStage` via `FAILED_STAGE_TO_PROGRESS_KEY`) with a Retry button that `POST`s `/books/:id/retry`.
+- `pages/CataloguePage.tsx` — polls `GET /books/` every 5s and renders each book's `Uploaded`/`Parsed`/`Prepared`/`ScriptGenerated`/`TTSGenerated` flags as progress dots; a failed book's next-expected dot renders red (tooltip = `ErrorMessage`, mapped from `FailedStage` via `FAILED_STAGE_TO_PROGRESS_KEY`) with a Retry button that `POST`s `/books/:id/retry`. A Cost column shows each book's `CostUSD`/`CostEUR` (from `catalog.BookWithCost`, see backend AI-cost note above), with a tooltip breaking usage down by model from `TokenUsage`.
 - `features/books/` — the one feature module (`api.ts`, `types.ts`, `components/BookCover.tsx`).

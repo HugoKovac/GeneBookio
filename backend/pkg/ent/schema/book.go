@@ -39,6 +39,7 @@ func (Book) Fields() []ent.Field {
 		field.Bool("failed").Default(false),
 		field.String("failed_stage").MaxLen(20).Optional(),
 		field.Text("error_message").Optional(),
+		field.JSON("token_usage", primitive.TokenUsage{}).Optional(),
 	}
 }
 

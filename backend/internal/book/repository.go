@@ -2,6 +2,7 @@ package book
 
 import (
 	"context"
+	"hkorpo/book/internal/primitive"
 	"hkorpo/book/pkg/ent"
 	"hkorpo/book/pkg/ent/book"
 	"hkorpo/book/pkg/errorwrapper"
@@ -17,6 +18,12 @@ type Repository interface {
 	GetSavedBookByKey(ctx context.Context, bookKey string) (*Book, error)
 	GetBookByID(ctx context.Context, bookID uuid.UUID) (*Book, error)
 	GetBooks(ctx context.Context, page, limit int) ([]*Book, error)
+	// AddTokenUsage accumulates usage onto whatever is already recorded for
+	// model on this book (read-modify-write). Safe as long as at most one
+	// pipeline stage writes to a given book at a time, which holds today:
+	// a book moves through stages sequentially, and preparation's per-chunk
+	// AI calls are aggregated in memory before a single call here.
+	AddTokenUsage(ctx context.Context, bookID uuid.UUID, model string, usage primitive.ModelUsage) error
 }
 
 type RepositoryImpl struct {
@@ -93,6 +100,15 @@ func (r *RepositoryImpl) ClearBookFailure(ctx context.Context, bookID uuid.UUID)
 		Exec(ctx))
 }
 
+func (r *RepositoryImpl) AddTokenUsage(ctx context.Context, bookID uuid.UUID, model string, usage primitive.ModelUsage) error {
+	e, err := r.dbClient.Book.Get(ctx, bookID)
+	if err != nil {
+		return errorwrapper.Wrap(err)
+	}
+	updated := primitive.TokenUsage(e.TokenUsage).Add(model, usage)
+	return errorwrapper.Wrap(r.dbClient.Book.UpdateOneID(bookID).SetTokenUsage(updated).Exec(ctx))
+}
+
 func (r *RepositoryImpl) GetSavedBookByKey(ctx context.Context, bookKey string) (*Book, error) {
 	e, err := r.dbClient.Book.Query().Where(
 		book.KeyEQ(bookKey),
@@ -146,5 +162,6 @@ func fromEntBook(e *ent.Book) *Book {
 		Failed:          e.Failed,
 		FailedStage:     e.FailedStage,
 		ErrorMessage:    e.ErrorMessage,
+		TokenUsage:      e.TokenUsage,
 	}
 }

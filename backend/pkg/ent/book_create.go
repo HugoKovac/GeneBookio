@@ -231,6 +231,12 @@ func (_c *BookCreate) SetNillableErrorMessage(v *string) *BookCreate {
 	return _c
 }
 
+// SetTokenUsage sets the "token_usage" field.
+func (_c *BookCreate) SetTokenUsage(v primitive.TokenUsage) *BookCreate {
+	_c.mutation.SetTokenUsage(v)
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *BookCreate) SetID(v uuid.UUID) *BookCreate {
 	_c.mutation.SetID(v)
@@ -485,6 +491,10 @@ func (_c *BookCreate) createSpec() (*Book, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.ErrorMessage(); ok {
 		_spec.SetField(book.FieldErrorMessage, field.TypeString, value)
 		_node.ErrorMessage = value
+	}
+	if value, ok := _c.mutation.TokenUsage(); ok {
+		_spec.SetField(book.FieldTokenUsage, field.TypeJSON, value)
+		_node.TokenUsage = value
 	}
 	return _node, _spec
 }
@@ -763,6 +773,24 @@ func (u *BookUpsert) UpdateErrorMessage() *BookUpsert {
 // ClearErrorMessage clears the value of the "error_message" field.
 func (u *BookUpsert) ClearErrorMessage() *BookUpsert {
 	u.SetNull(book.FieldErrorMessage)
+	return u
+}
+
+// SetTokenUsage sets the "token_usage" field.
+func (u *BookUpsert) SetTokenUsage(v primitive.TokenUsage) *BookUpsert {
+	u.Set(book.FieldTokenUsage, v)
+	return u
+}
+
+// UpdateTokenUsage sets the "token_usage" field to the value that was provided on create.
+func (u *BookUpsert) UpdateTokenUsage() *BookUpsert {
+	u.SetExcluded(book.FieldTokenUsage)
+	return u
+}
+
+// ClearTokenUsage clears the value of the "token_usage" field.
+func (u *BookUpsert) ClearTokenUsage() *BookUpsert {
+	u.SetNull(book.FieldTokenUsage)
 	return u
 }
 
@@ -1080,6 +1108,27 @@ func (u *BookUpsertOne) UpdateErrorMessage() *BookUpsertOne {
 func (u *BookUpsertOne) ClearErrorMessage() *BookUpsertOne {
 	return u.Update(func(s *BookUpsert) {
 		s.ClearErrorMessage()
+	})
+}
+
+// SetTokenUsage sets the "token_usage" field.
+func (u *BookUpsertOne) SetTokenUsage(v primitive.TokenUsage) *BookUpsertOne {
+	return u.Update(func(s *BookUpsert) {
+		s.SetTokenUsage(v)
+	})
+}
+
+// UpdateTokenUsage sets the "token_usage" field to the value that was provided on create.
+func (u *BookUpsertOne) UpdateTokenUsage() *BookUpsertOne {
+	return u.Update(func(s *BookUpsert) {
+		s.UpdateTokenUsage()
+	})
+}
+
+// ClearTokenUsage clears the value of the "token_usage" field.
+func (u *BookUpsertOne) ClearTokenUsage() *BookUpsertOne {
+	return u.Update(func(s *BookUpsert) {
+		s.ClearTokenUsage()
 	})
 }
 
@@ -1564,6 +1613,27 @@ func (u *BookUpsertBulk) UpdateErrorMessage() *BookUpsertBulk {
 func (u *BookUpsertBulk) ClearErrorMessage() *BookUpsertBulk {
 	return u.Update(func(s *BookUpsert) {
 		s.ClearErrorMessage()
+	})
+}
+
+// SetTokenUsage sets the "token_usage" field.
+func (u *BookUpsertBulk) SetTokenUsage(v primitive.TokenUsage) *BookUpsertBulk {
+	return u.Update(func(s *BookUpsert) {
+		s.SetTokenUsage(v)
+	})
+}
+
+// UpdateTokenUsage sets the "token_usage" field to the value that was provided on create.
+func (u *BookUpsertBulk) UpdateTokenUsage() *BookUpsertBulk {
+	return u.Update(func(s *BookUpsert) {
+		s.UpdateTokenUsage()
+	})
+}
+
+// ClearTokenUsage clears the value of the "token_usage" field.
+func (u *BookUpsertBulk) ClearTokenUsage() *BookUpsertBulk {
+	return u.Update(func(s *BookUpsert) {
+		s.ClearTokenUsage()
 	})
 }
 

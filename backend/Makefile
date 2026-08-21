@@ -24,7 +24,7 @@ generate_script:
 	AI_TEST_MODE=$(TEST_MODE) go run cmd/generate_script/main.go
 
 generate_tts:
-	go run cmd/generate_tts/main.go
+	AI_TEST_MODE=$(TEST_MODE) go run cmd/generate_tts/main.go
 
 swag:
 	swag init -g cmd/api/main.go -o docs/

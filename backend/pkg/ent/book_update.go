@@ -278,6 +278,18 @@ func (_u *BookUpdate) ClearErrorMessage() *BookUpdate {
 	return _u
 }
 
+// SetTokenUsage sets the "token_usage" field.
+func (_u *BookUpdate) SetTokenUsage(v primitive.TokenUsage) *BookUpdate {
+	_u.mutation.SetTokenUsage(v)
+	return _u
+}
+
+// ClearTokenUsage clears the value of the "token_usage" field.
+func (_u *BookUpdate) ClearTokenUsage() *BookUpdate {
+	_u.mutation.ClearTokenUsage()
+	return _u
+}
+
 // Mutation returns the BookMutation object of the builder.
 func (_u *BookUpdate) Mutation() *BookMutation {
 	return _u.mutation
@@ -436,6 +448,12 @@ func (_u *BookUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.ErrorMessageCleared() {
 		_spec.ClearField(book.FieldErrorMessage, field.TypeString)
+	}
+	if value, ok := _u.mutation.TokenUsage(); ok {
+		_spec.SetField(book.FieldTokenUsage, field.TypeJSON, value)
+	}
+	if _u.mutation.TokenUsageCleared() {
+		_spec.ClearField(book.FieldTokenUsage, field.TypeJSON)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -705,6 +723,18 @@ func (_u *BookUpdateOne) ClearErrorMessage() *BookUpdateOne {
 	return _u
 }
 
+// SetTokenUsage sets the "token_usage" field.
+func (_u *BookUpdateOne) SetTokenUsage(v primitive.TokenUsage) *BookUpdateOne {
+	_u.mutation.SetTokenUsage(v)
+	return _u
+}
+
+// ClearTokenUsage clears the value of the "token_usage" field.
+func (_u *BookUpdateOne) ClearTokenUsage() *BookUpdateOne {
+	_u.mutation.ClearTokenUsage()
+	return _u
+}
+
 // Mutation returns the BookMutation object of the builder.
 func (_u *BookUpdateOne) Mutation() *BookMutation {
 	return _u.mutation
@@ -893,6 +923,12 @@ func (_u *BookUpdateOne) sqlSave(ctx context.Context) (_node *Book, err error) {
 	}
 	if _u.mutation.ErrorMessageCleared() {
 		_spec.ClearField(book.FieldErrorMessage, field.TypeString)
+	}
+	if value, ok := _u.mutation.TokenUsage(); ok {
+		_spec.SetField(book.FieldTokenUsage, field.TypeJSON, value)
+	}
+	if _u.mutation.TokenUsageCleared() {
+		_spec.ClearField(book.FieldTokenUsage, field.TypeJSON)
 	}
 	_node = &Book{config: _u.config}
 	_spec.Assign = _node.assignValues

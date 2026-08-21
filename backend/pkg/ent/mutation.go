@@ -56,6 +56,7 @@ type BookMutation struct {
 	failed             *bool
 	failed_stage       *string
 	error_message      *string
+	token_usage        *primitive.TokenUsage
 	clearedFields      map[string]struct{}
 	done               bool
 	oldValue           func(context.Context) (*Book, error)
@@ -888,6 +889,55 @@ func (m *BookMutation) ResetErrorMessage() {
 	delete(m.clearedFields, book.FieldErrorMessage)
 }
 
+// SetTokenUsage sets the "token_usage" field.
+func (m *BookMutation) SetTokenUsage(pu primitive.TokenUsage) {
+	m.token_usage = &pu
+}
+
+// TokenUsage returns the value of the "token_usage" field in the mutation.
+func (m *BookMutation) TokenUsage() (r primitive.TokenUsage, exists bool) {
+	v := m.token_usage
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTokenUsage returns the old "token_usage" field's value of the Book entity.
+// If the Book object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BookMutation) OldTokenUsage(ctx context.Context) (v primitive.TokenUsage, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTokenUsage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTokenUsage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTokenUsage: %w", err)
+	}
+	return oldValue.TokenUsage, nil
+}
+
+// ClearTokenUsage clears the value of the "token_usage" field.
+func (m *BookMutation) ClearTokenUsage() {
+	m.token_usage = nil
+	m.clearedFields[book.FieldTokenUsage] = struct{}{}
+}
+
+// TokenUsageCleared returns if the "token_usage" field was cleared in this mutation.
+func (m *BookMutation) TokenUsageCleared() bool {
+	_, ok := m.clearedFields[book.FieldTokenUsage]
+	return ok
+}
+
+// ResetTokenUsage resets all changes to the "token_usage" field.
+func (m *BookMutation) ResetTokenUsage() {
+	m.token_usage = nil
+	delete(m.clearedFields, book.FieldTokenUsage)
+}
+
 // Where appends a list predicates to the BookMutation builder.
 func (m *BookMutation) Where(ps ...predicate.Book) {
 	m.predicates = append(m.predicates, ps...)
@@ -922,7 +972,7 @@ func (m *BookMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *BookMutation) Fields() []string {
-	fields := make([]string, 0, 17)
+	fields := make([]string, 0, 18)
 	if m.created_at != nil {
 		fields = append(fields, book.FieldCreatedAt)
 	}
@@ -974,6 +1024,9 @@ func (m *BookMutation) Fields() []string {
 	if m.error_message != nil {
 		fields = append(fields, book.FieldErrorMessage)
 	}
+	if m.token_usage != nil {
+		fields = append(fields, book.FieldTokenUsage)
+	}
 	return fields
 }
 
@@ -1016,6 +1069,8 @@ func (m *BookMutation) Field(name string) (ent.Value, bool) {
 		return m.FailedStage()
 	case book.FieldErrorMessage:
 		return m.ErrorMessage()
+	case book.FieldTokenUsage:
+		return m.TokenUsage()
 	}
 	return nil, false
 }
@@ -1059,6 +1114,8 @@ func (m *BookMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldFailedStage(ctx)
 	case book.FieldErrorMessage:
 		return m.OldErrorMessage(ctx)
+	case book.FieldTokenUsage:
+		return m.OldTokenUsage(ctx)
 	}
 	return nil, fmt.Errorf("unknown Book field %s", name)
 }
@@ -1187,6 +1244,13 @@ func (m *BookMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetErrorMessage(v)
 		return nil
+	case book.FieldTokenUsage:
+		v, ok := value.(primitive.TokenUsage)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTokenUsage(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Book field %s", name)
 }
@@ -1235,6 +1299,9 @@ func (m *BookMutation) ClearedFields() []string {
 	if m.FieldCleared(book.FieldErrorMessage) {
 		fields = append(fields, book.FieldErrorMessage)
 	}
+	if m.FieldCleared(book.FieldTokenUsage) {
+		fields = append(fields, book.FieldTokenUsage)
+	}
 	return fields
 }
 
@@ -1266,6 +1333,9 @@ func (m *BookMutation) ClearField(name string) error {
 		return nil
 	case book.FieldErrorMessage:
 		m.ClearErrorMessage()
+		return nil
+	case book.FieldTokenUsage:
+		m.ClearTokenUsage()
 		return nil
 	}
 	return fmt.Errorf("unknown Book nullable field %s", name)
@@ -1325,6 +1395,9 @@ func (m *BookMutation) ResetField(name string) error {
 		return nil
 	case book.FieldErrorMessage:
 		m.ResetErrorMessage()
+		return nil
+	case book.FieldTokenUsage:
+		m.ResetTokenUsage()
 		return nil
 	}
 	return fmt.Errorf("unknown Book field %s", name)

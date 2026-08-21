@@ -22,6 +22,7 @@ import (
 	"hkorpo/book/internal/platform/bucket"
 	"hkorpo/book/internal/platform/database"
 	"hkorpo/book/internal/platform/httpserver"
+	"hkorpo/book/internal/pricing"
 	"hkorpo/book/internal/user"
 	"hkorpo/book/pkg/env"
 	"hkorpo/book/pkg/errorpkg"
@@ -92,7 +93,8 @@ func main() {
 	user.NewHandler(app.Group("/users"), userService)
 
 	libraryService := library.NewService(library.NewOpenLibraryClient())
-	catalogService := catalog.NewService(book.NewRepositoryImpl(dbClient), book.NewBucketRepoImpl(cClient), nil)
+	pricingCalculator := pricing.NewCalculator(pricing.NewExchangeRateClient())
+	catalogService := catalog.NewService(book.NewRepositoryImpl(dbClient), book.NewBucketRepoImpl(cClient), nil, pricingCalculator)
 
 	booksGroup := app.Group("/books")
 	booksGroup.Use(user.MiddlewareAuth(userService))

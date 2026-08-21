@@ -12,7 +12,8 @@ import (
 )
 
 type TTSAPI interface {
-	CreateAudioFromString(ctx context.Context, content string, language primitive.Language) (io.ReadCloser, int64, error)
+	CreateAudioFromString(ctx context.Context, content string, language primitive.Language) (io.ReadCloser, int64, primitive.ModelUsage, error)
+	ModelName() string
 }
 
 // Service synthesizes a book's narration script into audio.
@@ -36,11 +37,14 @@ func (s *Service) CreateAudioFromScript(ctx context.Context, bookID string) erro
 	if err != nil {
 		return err
 	}
-	audio, len, err := s.ttsAPI.CreateAudioFromString(ctx, bookContent, b.Language)
+	audio, len, usage, err := s.ttsAPI.CreateAudioFromString(ctx, bookContent, b.Language)
 	if err != nil {
 		return err
 	}
 	if err := s.bucketRepo.UploadReader(ctx, primitive.AudioBucket, bookID, audio, len, pbucket.WAV); err != nil {
+		return err
+	}
+	if err := s.repo.AddTokenUsage(ctx, uuid.MustParse(bookID), s.ttsAPI.ModelName(), usage); err != nil {
 		return err
 	}
 	return s.repo.UpdateBookStage(ctx, uuid.MustParse(bookID), book.TTSGenerated)

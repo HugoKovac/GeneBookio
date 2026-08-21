@@ -746,6 +746,16 @@ func ErrorMessageContainsFold(v string) predicate.Book {
 	return predicate.Book(sql.FieldContainsFold(FieldErrorMessage, v))
 }
 
+// TokenUsageIsNil applies the IsNil predicate on the "token_usage" field.
+func TokenUsageIsNil() predicate.Book {
+	return predicate.Book(sql.FieldIsNull(FieldTokenUsage))
+}
+
+// TokenUsageNotNil applies the NotNil predicate on the "token_usage" field.
+func TokenUsageNotNil() predicate.Book {
+	return predicate.Book(sql.FieldNotNull(FieldTokenUsage))
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Book) predicate.Book {
 	return predicate.Book(sql.AndPredicates(predicates...))

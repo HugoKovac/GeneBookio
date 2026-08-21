@@ -19,6 +19,7 @@ type Book struct {
 	Failed                                                    bool
 	FailedStage                                               string
 	ErrorMessage                                              string
+	TokenUsage                                                primitive.TokenUsage
 }
 
 type QueryURI struct {

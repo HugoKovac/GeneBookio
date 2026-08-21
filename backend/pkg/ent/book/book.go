@@ -50,6 +50,8 @@ const (
 	FieldFailedStage = "failed_stage"
 	// FieldErrorMessage holds the string denoting the error_message field in the database.
 	FieldErrorMessage = "error_message"
+	// FieldTokenUsage holds the string denoting the token_usage field in the database.
+	FieldTokenUsage = "token_usage"
 	// Table holds the table name of the book in the database.
 	Table = "books"
 )
@@ -74,6 +76,7 @@ var Columns = []string{
 	FieldFailed,
 	FieldFailedStage,
 	FieldErrorMessage,
+	FieldTokenUsage,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

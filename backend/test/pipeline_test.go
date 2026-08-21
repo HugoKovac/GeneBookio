@@ -3,8 +3,9 @@
 // Package integration_test drives the full book pipeline — upload, EPUB
 // split, AI preparation, AI script generation, TTS synthesis — through real
 // MySQL, MinIO and RabbitMQ, wired exactly like each cmd/*/main.go does.
-// The two AI-driven stages use book.SubstitutionAiClient (the same stand-in
-// AI_TEST_MODE wires in production) so the test never spends real AI tokens.
+// All three AI-driven stages use their package's substitution client (the
+// same stand-in AI_TEST_MODE wires in production) so the test never spends
+// real money on AI tokens or audio synthesis.
 //
 // Requires the docker-hybrid infra running (`make docker-hybrid` from
 // backend/) and a test/.env file (copy test/.env.example) pointing at it.
@@ -31,7 +32,6 @@ import (
 	"hkorpo/book/internal/platform/bucket"
 	"hkorpo/book/internal/platform/database"
 	"hkorpo/book/internal/platform/queue"
-	"hkorpo/book/internal/platform/ttsapi"
 	"hkorpo/book/internal/preparation"
 	"hkorpo/book/internal/primitive"
 	"hkorpo/book/internal/script"
@@ -51,7 +51,6 @@ type testConfig struct {
 	queue.ConfigQueue
 	bucket.ConfigBucket
 	database.ConfigDB
-	ttsapi.ConfigTTSAPI
 }
 
 // stageResult carries a pipeline stage's outcome across the consumer
@@ -116,7 +115,7 @@ func TestFullPipeline(t *testing.T) {
 	parsingService := parsing.NewService(repo, bucketRepo, book.NewQueueRepoImpl(prepareQ, prepareCh), parsing.NewEpubParserImpl())
 	preparationService := preparation.NewService(repo, bucketRepo, book.NewQueueRepoImpl(scriptQ, scriptCh), book.NewSubstitutionAiClient())
 	scriptService := script.NewService(repo, bucketRepo, book.NewQueueRepoImpl(ttsQ, ttsAMQPCh), book.NewSubstitutionAiClient())
-	ttsService := tts.NewService(repo, bucketRepo, tts.NewTTSApiClient(ttsapi.Init(&cfg.ConfigTTSAPI)))
+	ttsService := tts.NewService(repo, bucketRepo, tts.NewSubstitutionTTSClient())
 
 	// Wire one consumer per stage, exactly like each cmd/*/main.go does,
 	// but report success/failure on a channel instead of just logging it.
@@ -185,9 +184,7 @@ func TestFullPipeline(t *testing.T) {
 	waitStage(t, "split", bookID, splitDone, 30*time.Second)
 	waitStage(t, "prepare", bookID, preparedDone, 30*time.Second)
 	waitStage(t, "generate_script", bookID, scriptDone, 30*time.Second)
-	// Real TTS synthesis — slower than the AI-substituted stages above, and
-	// the tts_api container itself can take a while to warm up on first use.
-	waitStage(t, "generate_tts", bookID, ttsDone, 6*time.Minute)
+	waitStage(t, "generate_tts", bookID, ttsDone, 30*time.Second)
 
 	// --- assert the pipeline actually did the work at every stage ---
 
@@ -197,6 +194,7 @@ func TestFullPipeline(t *testing.T) {
 	require.True(t, final.Parsed, "book should be marked parsed")
 	require.True(t, final.Prepared, "book should be marked prepared")
 	require.True(t, final.ScriptGenerated, "book should be marked script_generated")
+	require.Contains(t, final.TokenUsage, "test-mode", "usage from the substitution AI/TTS clients should have been recorded")
 
 	// The domain model doesn't surface tts_generated yet, so check ent directly.
 	entBook, err := dbClient.Book.Get(ctx, created.ID)

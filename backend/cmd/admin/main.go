@@ -9,6 +9,7 @@ import (
 	"hkorpo/book/internal/library"
 	"hkorpo/book/internal/platform/bucket"
 	"hkorpo/book/internal/platform/queue"
+	"hkorpo/book/internal/pricing"
 	"hkorpo/book/internal/primitive"
 	"hkorpo/book/internal/upload"
 	"hkorpo/book/internal/user"
@@ -103,7 +104,8 @@ func main() {
 	bucketRepo := book.NewBucketRepoImpl(bucketClient)
 
 	libraryService := library.NewService(library.NewGoogleBooksClient(cfg.ConfigGoogleBooks.APIKey))
-	catalogService := catalog.NewService(repo, bucketRepo, retryQueueRepos)
+	pricingCalculator := pricing.NewCalculator(pricing.NewExchangeRateClient())
+	catalogService := catalog.NewService(repo, bucketRepo, retryQueueRepos, pricingCalculator)
 	uploadService := upload.NewService(repo, bucketRepo, book.NewQueueRepoImpl(q, ch))
 	userService := user.NewService(user.NewRepositoryImpl(dbClient), &cfg.ConfigJWT)
 

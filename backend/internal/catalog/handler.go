@@ -43,14 +43,15 @@ func NewHandler(router fiber.Router, service *Service, enableRetry bool) {
 	}
 }
 
-// GetBooks returns the first page of saved books from the local database.
+// GetBooks returns the first page of saved books from the local database,
+// each annotated with its AI usage cost (see catalog.BookWithCost).
 //
 // @Summary      List saved books
 // @Description  Returns up to 100 books saved in the local database
 // @Tags         books
 // @Security     BearerAuth
 // @Produce      json
-// @Success      200  {array}   book.BookDTO
+// @Success      200  {array}   catalog.BookWithCost
 // @Failure      500  {object}  map[string]string
 // @Router       /books/ [get]
 func (h *Handler) GetBooks(c fiber.Ctx) error {

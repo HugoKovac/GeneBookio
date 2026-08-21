@@ -3,6 +3,7 @@ package book
 import (
 	"context"
 	"fmt"
+	"hkorpo/book/internal/primitive"
 	"hkorpo/book/pkg/errorwrapper"
 
 	"github.com/openai/openai-go/v3"
@@ -33,11 +34,19 @@ func NewSubstitutionAiClient() *SubstitutionAiClient {
 	return &SubstitutionAiClient{}
 }
 
-func (sc *SubstitutionAiClient) Request(_ context.Context, request string) (string, error) {
-	return fmt.Sprintf("==START OF REQUEST==\n%s\n==END OF REQUEST==", request), nil
+func (sc *SubstitutionAiClient) ModelName() string {
+	return "test-mode"
 }
 
-func (oc *OpenAiClient) Request(ctx context.Context, request string) (string, error) {
+func (sc *SubstitutionAiClient) Request(_ context.Context, request string) (string, primitive.ModelUsage, error) {
+	return fmt.Sprintf("==START OF REQUEST==\n%s\n==END OF REQUEST==", request), primitive.ModelUsage{}, nil
+}
+
+func (oc *OpenAiClient) ModelName() string {
+	return string(oc.model)
+}
+
+func (oc *OpenAiClient) Request(ctx context.Context, request string) (string, primitive.ModelUsage, error) {
 	preparation, err := oc.client.Responses.New(ctx, responses.ResponseNewParams{
 		Model: oc.model,
 		Input: responses.ResponseNewParamsInputUnion{OfString: openai.String(
@@ -45,7 +54,12 @@ func (oc *OpenAiClient) Request(ctx context.Context, request string) (string, er
 		)},
 	})
 	if err != nil {
-		return "", errorwrapper.Wrap(fmt.Errorf("generate preparation: %v", err))
+		return "", primitive.ModelUsage{}, errorwrapper.Wrap(fmt.Errorf("generate preparation: %v", err))
 	}
-	return preparation.OutputText(), nil
+	usage := primitive.ModelUsage{
+		InputTokens:  preparation.Usage.InputTokens,
+		OutputTokens: preparation.Usage.OutputTokens,
+		TotalTokens:  preparation.Usage.TotalTokens,
+	}
+	return preparation.OutputText(), usage, nil
 }

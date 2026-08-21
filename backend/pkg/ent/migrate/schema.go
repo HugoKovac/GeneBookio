@@ -28,6 +28,7 @@ var (
 		{Name: "failed", Type: field.TypeBool, Default: false},
 		{Name: "failed_stage", Type: field.TypeString, Nullable: true, Size: 20},
 		{Name: "error_message", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "token_usage", Type: field.TypeJSON, Nullable: true},
 	}
 	// BooksTable holds the schema information for the "books" table.
 	BooksTable = &schema.Table{

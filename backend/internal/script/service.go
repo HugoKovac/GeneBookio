@@ -12,7 +12,8 @@ import (
 )
 
 type AiAPI interface {
-	Request(ctx context.Context, request string) (string, error)
+	Request(ctx context.Context, request string) (string, primitive.ModelUsage, error)
+	ModelName() string
 }
 
 // Service merges a book's prepared chapter chunks into one narration script.
@@ -57,12 +58,16 @@ func (s *Service) GenerateScript(ctx context.Context, bookID string) error {
 		return err
 	}
 
-	output, err := s.aiAPI.Request(ctx, promptGenerateScript+result)
+	output, usage, err := s.aiAPI.Request(ctx, promptGenerateScript+result)
 	if err != nil {
 		return err
 	}
 
 	if err := s.bucketRepo.UploadString(ctx, primitive.ScriptsBucket, fmt.Sprintf("%s/script.txt", bookID), output, pbucket.TEXT); err != nil {
+		return err
+	}
+
+	if err := s.repo.AddTokenUsage(ctx, uuid.MustParse(bookID), s.aiAPI.ModelName(), usage); err != nil {
 		return err
 	}
 

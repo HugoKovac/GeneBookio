@@ -23,6 +23,34 @@ const FAILED_STAGE_TO_PROGRESS_KEY: Record<string, keyof CatalogBook> = {
 
 const POLL_INTERVAL_MS = 5000;
 
+const currencyFormatters = {
+  USD: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 4 }),
+  EUR: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 4 }),
+};
+
+function CostCell({ book }: { book: CatalogBook }) {
+  const usageEntries = Object.entries(book.TokenUsage ?? {});
+
+  if (usageEntries.length === 0) {
+    return <Text size="sm" c="dimmed">—</Text>;
+  }
+
+  const breakdown = usageEntries
+    .map(([model, usage]) => `${model}: ${usage.input_tokens.toLocaleString()} in / ${usage.output_tokens.toLocaleString()} out`)
+    .join('\n');
+
+  return (
+    <Tooltip label={breakdown} multiline maw={320} style={{ whiteSpace: 'pre-line' }}>
+      <Stack gap={0}>
+        <Text size="sm">{currencyFormatters.USD.format(book.CostUSD)}</Text>
+        {book.CostEUR !== undefined && (
+          <Text size="xs" c="dimmed">{currencyFormatters.EUR.format(book.CostEUR)}</Text>
+        )}
+      </Stack>
+    </Tooltip>
+  );
+}
+
 function ProgressStages({ book }: { book: CatalogBook }) {
   const failedKey = book.Failed ? FAILED_STAGE_TO_PROGRESS_KEY[book.FailedStage] : undefined;
 
@@ -104,6 +132,7 @@ export default function CataloguePage() {
                 <Table.Th>Book</Table.Th>
                 <Table.Th>Language</Table.Th>
                 <Table.Th>Progress</Table.Th>
+                <Table.Th>Cost</Table.Th>
                 <Table.Th />
               </Table.Tr>
             </Table.Thead>
@@ -126,6 +155,9 @@ export default function CataloguePage() {
                   </Table.Td>
                   <Table.Td>
                     <ProgressStages book={book} />
+                  </Table.Td>
+                  <Table.Td>
+                    <CostCell book={book} />
                   </Table.Td>
                   <Table.Td>
                     {book.Failed && (

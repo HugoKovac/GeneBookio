@@ -11,13 +11,13 @@ import (
 	"hkorpo/book/internal/platform/bucket"
 	"hkorpo/book/internal/platform/database"
 	"hkorpo/book/internal/platform/queue"
-	"hkorpo/book/internal/platform/ttsapi"
 	"hkorpo/book/internal/primitive"
 	"hkorpo/book/internal/tts"
 	"hkorpo/book/pkg/env"
 	"hkorpo/book/pkg/errorpkg"
 
 	"github.com/kelseyhightower/envconfig"
+	"github.com/openai/openai-go/v3"
 	"github.com/rabbitmq/amqp091-go"
 )
 
@@ -25,7 +25,7 @@ type Config struct {
 	queue.ConfigQueue
 	bucket.ConfigBucket
 	database.ConfigDB
-	ttsapi.ConfigTTSAPI
+	book.ConfigAi
 }
 
 func main() {
@@ -49,11 +49,18 @@ func main() {
 		errorpkg.ExitTrace(err)
 	}
 
+	var ttsAPI tts.TTSAPI
+	if cfg.ConfigAi.TEST_MODE {
+		ttsAPI = tts.NewSubstitutionTTSClient()
+	} else {
+		ttsAPI = tts.NewOpenAiTTSClient(openai.NewClient(), openai.SpeechModelTTS1)
+	}
+
 	repo := book.NewRepositoryImpl(dbClient)
 	ttsService := tts.NewService(
 		repo,
 		book.NewBucketRepoImpl(cClient),
-		tts.NewTTSApiClient(ttsapi.Init(&cfg.ConfigTTSAPI)),
+		ttsAPI,
 	)
 
 	err = queue.InitConsumer(&cfg.ConfigQueue, primitive.GenerateTTS, func(d amqp091.Delivery) error {
