@@ -1,4 +1,4 @@
-import type { CatalogBook, Language, SearchResult } from './types';
+import type { CatalogBook, Genre, Language, SearchResult } from './types';
 
 const apiBaseUrl = import.meta.env.VITE_API_URL ?? '/api';
 
@@ -23,10 +23,11 @@ export async function getCatalog(): Promise<CatalogBook[]> {
   return (await response.json()) as CatalogBook[];
 }
 
-export async function uploadBook(bookKey: string, language: Language, epub: File): Promise<void> {
+export async function uploadBook(bookKey: string, language: Language, genre: Genre, epub: File): Promise<void> {
   const form = new FormData();
   form.append('book_key', bookKey);
   form.append('language', language);
+  form.append('genre', genre);
   form.append('epub', epub);
 
   await request('/upload', { method: 'POST', body: form });

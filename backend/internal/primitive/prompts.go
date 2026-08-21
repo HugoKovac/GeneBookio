@@ -14,3 +14,19 @@ const (
 func PromptFile(kind PromptKind, language Language) string {
 	return string(kind) + "." + language.String() + ".md"
 }
+
+// PrepareChapterPromptKind and GenerateScriptPromptKind pick the fiction vs.
+// none-fiction variant of a stage's prompt based on the book's genre.
+func PrepareChapterPromptKind(genre Genre) PromptKind {
+	if genre == Fiction {
+		return FictionPrepareChapter
+	}
+	return NoneFictionPrepareChapter
+}
+
+func GenerateScriptPromptKind(genre Genre) PromptKind {
+	if genre == Fiction {
+		return FictionGenerateScript
+	}
+	return NoneFictionGenerateScript
+}

@@ -51,6 +51,7 @@ type BookMutation struct {
 	script_generated   *bool
 	tts_generated      *bool
 	language           *primitive.Language
+	genre              *primitive.Genre
 	failed             *bool
 	failed_stage       *string
 	error_message      *string
@@ -689,6 +690,42 @@ func (m *BookMutation) ResetLanguage() {
 	m.language = nil
 }
 
+// SetGenre sets the "genre" field.
+func (m *BookMutation) SetGenre(pr primitive.Genre) {
+	m.genre = &pr
+}
+
+// Genre returns the value of the "genre" field in the mutation.
+func (m *BookMutation) Genre() (r primitive.Genre, exists bool) {
+	v := m.genre
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGenre returns the old "genre" field's value of the Book entity.
+// If the Book object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BookMutation) OldGenre(ctx context.Context) (v primitive.Genre, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGenre is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGenre requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGenre: %w", err)
+	}
+	return oldValue.Genre, nil
+}
+
+// ResetGenre resets all changes to the "genre" field.
+func (m *BookMutation) ResetGenre() {
+	m.genre = nil
+}
+
 // SetFailed sets the "failed" field.
 func (m *BookMutation) SetFailed(b bool) {
 	m.failed = &b
@@ -942,7 +979,7 @@ func (m *BookMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *BookMutation) Fields() []string {
-	fields := make([]string, 0, 18)
+	fields := make([]string, 0, 19)
 	if m.created_at != nil {
 		fields = append(fields, book.FieldCreatedAt)
 	}
@@ -981,6 +1018,9 @@ func (m *BookMutation) Fields() []string {
 	}
 	if m.language != nil {
 		fields = append(fields, book.FieldLanguage)
+	}
+	if m.genre != nil {
+		fields = append(fields, book.FieldGenre)
 	}
 	if m.failed != nil {
 		fields = append(fields, book.FieldFailed)
@@ -1031,6 +1071,8 @@ func (m *BookMutation) Field(name string) (ent.Value, bool) {
 		return m.TtsGenerated()
 	case book.FieldLanguage:
 		return m.Language()
+	case book.FieldGenre:
+		return m.Genre()
 	case book.FieldFailed:
 		return m.Failed()
 	case book.FieldFailedStage:
@@ -1076,6 +1118,8 @@ func (m *BookMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldTtsGenerated(ctx)
 	case book.FieldLanguage:
 		return m.OldLanguage(ctx)
+	case book.FieldGenre:
+		return m.OldGenre(ctx)
 	case book.FieldFailed:
 		return m.OldFailed(ctx)
 	case book.FieldFailedStage:
@@ -1185,6 +1229,13 @@ func (m *BookMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetLanguage(v)
+		return nil
+	case book.FieldGenre:
+		v, ok := value.(primitive.Genre)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGenre(v)
 		return nil
 	case book.FieldFailed:
 		v, ok := value.(bool)
@@ -1347,6 +1398,9 @@ func (m *BookMutation) ResetField(name string) error {
 		return nil
 	case book.FieldLanguage:
 		m.ResetLanguage()
+		return nil
+	case book.FieldGenre:
+		m.ResetGenre()
 		return nil
 	case book.FieldFailed:
 		m.ResetFailed()

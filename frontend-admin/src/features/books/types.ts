@@ -1,5 +1,7 @@
 export type Language = 'fr' | 'en';
 
+export type Genre = 'fiction' | 'none-fiction';
+
 // ModelUsage mirrors primitive.ModelUsage — accumulated usage for one AI
 // model. For character-priced models (e.g. tts-1) input_tokens holds a
 // character count instead of a token count.
@@ -33,6 +35,7 @@ export type CatalogBook = {
   Key: string;
   Description: string;
   Language: Language;
+  Genre: Genre;
   Uploaded: boolean;
   Parsed: boolean;
   Prepared: boolean;

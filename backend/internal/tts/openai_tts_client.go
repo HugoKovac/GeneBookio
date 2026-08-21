@@ -42,7 +42,7 @@ func (oc *OpenAiTTSClient) CreateAudioFromString(ctx context.Context, content st
 		resp, err := oc.client.Audio.Speech.New(ctx, openai.AudioSpeechNewParams{
 			Input:          chunk,
 			Model:          oc.model,
-			Voice:          openai.AudioSpeechNewParamsVoiceUnion{OfString: openai.String("alloy")},
+			Voice:          openai.AudioSpeechNewParamsVoiceUnion{OfString: openai.String("fable")},
 			ResponseFormat: openai.AudioSpeechNewParamsResponseFormatWAV,
 		})
 		if err != nil {

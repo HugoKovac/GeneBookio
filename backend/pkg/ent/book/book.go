@@ -42,6 +42,8 @@ const (
 	FieldTtsGenerated = "tts_generated"
 	// FieldLanguage holds the string denoting the language field in the database.
 	FieldLanguage = "language"
+	// FieldGenre holds the string denoting the genre field in the database.
+	FieldGenre = "genre"
 	// FieldFailed holds the string denoting the failed field in the database.
 	FieldFailed = "failed"
 	// FieldFailedStage holds the string denoting the failed_stage field in the database.
@@ -72,6 +74,7 @@ var Columns = []string{
 	FieldScriptGenerated,
 	FieldTtsGenerated,
 	FieldLanguage,
+	FieldGenre,
 	FieldFailed,
 	FieldFailedStage,
 	FieldErrorMessage,
@@ -131,6 +134,18 @@ func LanguageValidator(l primitive.Language) error {
 		return nil
 	default:
 		return fmt.Errorf("book: invalid enum value for language field: %q", l)
+	}
+}
+
+const DefaultGenre primitive.Genre = "none-fiction"
+
+// GenreValidator is a validator for the "genre" field enum values. It is called by the builders before save.
+func GenreValidator(ge primitive.Genre) error {
+	switch ge.String() {
+	case "fiction", "none-fiction":
+		return nil
+	default:
+		return fmt.Errorf("book: invalid enum value for genre field: %q", ge)
 	}
 }
 
@@ -200,6 +215,11 @@ func ByTtsGenerated(opts ...sql.OrderTermOption) OrderOption {
 // ByLanguage orders the results by the language field.
 func ByLanguage(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLanguage, opts...).ToFunc()
+}
+
+// ByGenre orders the results by the genre field.
+func ByGenre(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGenre, opts...).ToFunc()
 }
 
 // ByFailed orders the results by the failed field.

@@ -581,6 +581,36 @@ func LanguageNotIn(vs ...primitive.Language) predicate.Book {
 	return predicate.Book(sql.FieldNotIn(FieldLanguage, v...))
 }
 
+// GenreEQ applies the EQ predicate on the "genre" field.
+func GenreEQ(v primitive.Genre) predicate.Book {
+	vc := v
+	return predicate.Book(sql.FieldEQ(FieldGenre, vc))
+}
+
+// GenreNEQ applies the NEQ predicate on the "genre" field.
+func GenreNEQ(v primitive.Genre) predicate.Book {
+	vc := v
+	return predicate.Book(sql.FieldNEQ(FieldGenre, vc))
+}
+
+// GenreIn applies the In predicate on the "genre" field.
+func GenreIn(vs ...primitive.Genre) predicate.Book {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Book(sql.FieldIn(FieldGenre, v...))
+}
+
+// GenreNotIn applies the NotIn predicate on the "genre" field.
+func GenreNotIn(vs ...primitive.Genre) predicate.Book {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Book(sql.FieldNotIn(FieldGenre, v...))
+}
+
 // FailedEQ applies the EQ predicate on the "failed" field.
 func FailedEQ(v bool) predicate.Book {
 	return predicate.Book(sql.FieldEQ(FieldFailed, v))

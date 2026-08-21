@@ -14,6 +14,7 @@ type Book struct {
 	Key                                                       string
 	Description                                               string
 	Language                                                  primitive.Language
+	Genre                                                     primitive.Genre
 	Uploaded, Parsed, Prepared, ScriptGenerated, TTSGenerated bool
 	Failed                                                    bool
 	FailedStage                                               string

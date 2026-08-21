@@ -46,6 +46,8 @@ type Book struct {
 	TtsGenerated bool `json:"tts_generated,omitempty"`
 	// Language holds the value of the "language" field.
 	Language primitive.Language `json:"language,omitempty"`
+	// Genre holds the value of the "genre" field.
+	Genre primitive.Genre `json:"genre,omitempty"`
 	// Failed holds the value of the "failed" field.
 	Failed bool `json:"failed,omitempty"`
 	// FailedStage holds the value of the "failed_stage" field.
@@ -68,7 +70,7 @@ func (*Book) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case book.FieldUploaded, book.FieldParsed, book.FieldPrepared, book.FieldScriptGenerated, book.FieldTtsGenerated, book.FieldFailed, book.FieldRetryDisabled:
 			values[i] = new(sql.NullBool)
-		case book.FieldKey, book.FieldTitle, book.FieldDescription, book.FieldCoverURL, book.FieldLanguage, book.FieldFailedStage, book.FieldErrorMessage:
+		case book.FieldKey, book.FieldTitle, book.FieldDescription, book.FieldCoverURL, book.FieldLanguage, book.FieldGenre, book.FieldFailedStage, book.FieldErrorMessage:
 			values[i] = new(sql.NullString)
 		case book.FieldCreatedAt, book.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -174,6 +176,12 @@ func (_m *Book) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field language", values[i])
 			} else if value.Valid {
 				_m.Language = primitive.Language(value.String)
+			}
+		case book.FieldGenre:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field genre", values[i])
+			} else if value.Valid {
+				_m.Genre = primitive.Genre(value.String)
 			}
 		case book.FieldFailed:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -281,6 +289,9 @@ func (_m *Book) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("language=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Language))
+	builder.WriteString(", ")
+	builder.WriteString("genre=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Genre))
 	builder.WriteString(", ")
 	builder.WriteString("failed=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Failed))

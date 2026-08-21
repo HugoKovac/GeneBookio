@@ -97,6 +97,12 @@ func (h *Handler) Upload(c fiber.Ctx) error {
 	}
 	bookData.Language = language
 
+	genre := primitive.Genre(c.FormValue("genre", string(primitive.NoneFiction)))
+	if !slices.Contains(genre.Values(), string(genre)) {
+		return c.Status(http.StatusUnprocessableEntity).SendString("invalid genre")
+	}
+	bookData.Genre = genre
+
 	bookData, err = h.catalogService.SaveBook(c.RequestCtx(), bookData)
 	if err != nil {
 		return err

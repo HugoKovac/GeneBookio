@@ -17,7 +17,7 @@ import {
 import { Link } from 'react-router-dom';
 import BookCover from '../features/books/components/BookCover';
 import { searchBooks, uploadBook } from '../features/books/api';
-import type { Language, SearchResult } from '../features/books/types';
+import type { Genre, Language, SearchResult } from '../features/books/types';
 
 export default function UploadPage() {
   const [query, setQuery] = useState('');
@@ -26,6 +26,7 @@ export default function UploadPage() {
   const [selected, setSelected] = useState<SearchResult | null>(null);
 
   const [language, setLanguage] = useState<Language>('fr');
+  const [genre, setGenre] = useState<Genre>('none-fiction');
   const [file, setFile] = useState<File | null>(null);
 
   const [status, setStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
@@ -77,7 +78,7 @@ export default function UploadPage() {
     setError('');
 
     try {
-      await uploadBook(selected.Key, language, file);
+      await uploadBook(selected.Key, language, genre, file);
       setStatus('success');
       clearSelection();
     } catch (cause) {
@@ -156,6 +157,17 @@ export default function UploadPage() {
             ]}
             value={language}
             onChange={(value) => setLanguage((value as Language) ?? 'fr')}
+            allowDeselect={false}
+          />
+
+          <Select
+            label="Genre"
+            data={[
+              { value: 'none-fiction', label: 'Non-fiction' },
+              { value: 'fiction', label: 'Fiction' },
+            ]}
+            value={genre}
+            onChange={(value) => setGenre((value as Genre) ?? 'none-fiction')}
             allowDeselect={false}
           />
 

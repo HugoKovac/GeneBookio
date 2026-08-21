@@ -50,6 +50,9 @@ func (r *RepositoryImpl) CreateBook(ctx context.Context, book *Book) (*Book, err
 	if book.Language != "" {
 		query.SetLanguage(book.Language)
 	}
+	if book.Genre != "" {
+		query.SetGenre(book.Genre)
+	}
 
 	e, err := query.Save(ctx)
 	if err != nil {
@@ -63,6 +66,7 @@ func (r *RepositoryImpl) CreateBook(ctx context.Context, book *Book) (*Book, err
 		Key:         e.Key,
 		Description: e.Description,
 		Language:    e.Language,
+		Genre:       e.Genre,
 	}, nil
 }
 
@@ -164,6 +168,7 @@ func fromEntBook(e *ent.Book) *Book {
 		Key:             e.Key,
 		Description:     e.Description,
 		Language:        e.Language,
+		Genre:           e.Genre,
 		Uploaded:        e.Uploaded,
 		Parsed:          e.Parsed,
 		Prepared:        e.Prepared,

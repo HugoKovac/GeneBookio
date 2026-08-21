@@ -24,6 +24,7 @@ var (
 		{Name: "script_generated", Type: field.TypeBool, Default: false},
 		{Name: "tts_generated", Type: field.TypeBool, Default: false},
 		{Name: "language", Type: field.TypeEnum, Enums: []string{"fr", "en"}, Default: "fr"},
+		{Name: "genre", Type: field.TypeEnum, Enums: []string{"fiction", "none-fiction"}, Default: "none-fiction"},
 		{Name: "failed", Type: field.TypeBool, Default: false},
 		{Name: "failed_stage", Type: field.TypeString, Nullable: true, Size: 20},
 		{Name: "error_message", Type: field.TypeString, Nullable: true, Size: 2147483647},

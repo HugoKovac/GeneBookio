@@ -85,7 +85,7 @@ func (s *Service) MapOnChunks(ctx context.Context, bookID string, fn func(ctx co
 		return err
 	}
 
-	promptPrepareChapter, err := s.bucketRepo.GetBucketFileAsString(ctx, primitive.PromptsBucket, primitive.PromptFile(primitive.NoneFictionPrepareChapter, b.Language))
+	promptPrepareChapter, err := s.bucketRepo.GetBucketFileAsString(ctx, primitive.PromptsBucket, primitive.PromptFile(primitive.PrepareChapterPromptKind(b.Genre), b.Language))
 	if err != nil {
 		return err
 	}

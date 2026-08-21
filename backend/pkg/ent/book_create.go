@@ -183,6 +183,20 @@ func (_c *BookCreate) SetNillableLanguage(v *primitive.Language) *BookCreate {
 	return _c
 }
 
+// SetGenre sets the "genre" field.
+func (_c *BookCreate) SetGenre(v primitive.Genre) *BookCreate {
+	_c.mutation.SetGenre(v)
+	return _c
+}
+
+// SetNillableGenre sets the "genre" field if the given value is not nil.
+func (_c *BookCreate) SetNillableGenre(v *primitive.Genre) *BookCreate {
+	if v != nil {
+		_c.SetGenre(*v)
+	}
+	return _c
+}
+
 // SetFailed sets the "failed" field.
 func (_c *BookCreate) SetFailed(v bool) *BookCreate {
 	_c.mutation.SetFailed(v)
@@ -326,6 +340,10 @@ func (_c *BookCreate) defaults() {
 		v := book.DefaultLanguage
 		_c.mutation.SetLanguage(v)
 	}
+	if _, ok := _c.mutation.Genre(); !ok {
+		v := book.DefaultGenre
+		_c.mutation.SetGenre(v)
+	}
 	if _, ok := _c.mutation.Failed(); !ok {
 		v := book.DefaultFailed
 		_c.mutation.SetFailed(v)
@@ -390,6 +408,14 @@ func (_c *BookCreate) check() error {
 	if v, ok := _c.mutation.Language(); ok {
 		if err := book.LanguageValidator(v); err != nil {
 			return &ValidationError{Name: "language", err: fmt.Errorf(`ent: validator failed for field "Book.language": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.Genre(); !ok {
+		return &ValidationError{Name: "genre", err: errors.New(`ent: missing required field "Book.genre"`)}
+	}
+	if v, ok := _c.mutation.Genre(); ok {
+		if err := book.GenreValidator(v); err != nil {
+			return &ValidationError{Name: "genre", err: fmt.Errorf(`ent: validator failed for field "Book.genre": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.Failed(); !ok {
@@ -490,6 +516,10 @@ func (_c *BookCreate) createSpec() (*Book, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Language(); ok {
 		_spec.SetField(book.FieldLanguage, field.TypeEnum, value)
 		_node.Language = value
+	}
+	if value, ok := _c.mutation.Genre(); ok {
+		_spec.SetField(book.FieldGenre, field.TypeEnum, value)
+		_node.Genre = value
 	}
 	if value, ok := _c.mutation.Failed(); ok {
 		_spec.SetField(book.FieldFailed, field.TypeBool, value)
@@ -722,6 +752,18 @@ func (u *BookUpsert) SetLanguage(v primitive.Language) *BookUpsert {
 // UpdateLanguage sets the "language" field to the value that was provided on create.
 func (u *BookUpsert) UpdateLanguage() *BookUpsert {
 	u.SetExcluded(book.FieldLanguage)
+	return u
+}
+
+// SetGenre sets the "genre" field.
+func (u *BookUpsert) SetGenre(v primitive.Genre) *BookUpsert {
+	u.Set(book.FieldGenre, v)
+	return u
+}
+
+// UpdateGenre sets the "genre" field to the value that was provided on create.
+func (u *BookUpsert) UpdateGenre() *BookUpsert {
+	u.SetExcluded(book.FieldGenre)
 	return u
 }
 
@@ -1040,6 +1082,20 @@ func (u *BookUpsertOne) SetLanguage(v primitive.Language) *BookUpsertOne {
 func (u *BookUpsertOne) UpdateLanguage() *BookUpsertOne {
 	return u.Update(func(s *BookUpsert) {
 		s.UpdateLanguage()
+	})
+}
+
+// SetGenre sets the "genre" field.
+func (u *BookUpsertOne) SetGenre(v primitive.Genre) *BookUpsertOne {
+	return u.Update(func(s *BookUpsert) {
+		s.SetGenre(v)
+	})
+}
+
+// UpdateGenre sets the "genre" field to the value that was provided on create.
+func (u *BookUpsertOne) UpdateGenre() *BookUpsertOne {
+	return u.Update(func(s *BookUpsert) {
+		s.UpdateGenre()
 	})
 }
 
@@ -1538,6 +1594,20 @@ func (u *BookUpsertBulk) SetLanguage(v primitive.Language) *BookUpsertBulk {
 func (u *BookUpsertBulk) UpdateLanguage() *BookUpsertBulk {
 	return u.Update(func(s *BookUpsert) {
 		s.UpdateLanguage()
+	})
+}
+
+// SetGenre sets the "genre" field.
+func (u *BookUpsertBulk) SetGenre(v primitive.Genre) *BookUpsertBulk {
+	return u.Update(func(s *BookUpsert) {
+		s.SetGenre(v)
+	})
+}
+
+// UpdateGenre sets the "genre" field to the value that was provided on create.
+func (u *BookUpsertBulk) UpdateGenre() *BookUpsertBulk {
+	return u.Update(func(s *BookUpsert) {
+		s.UpdateGenre()
 	})
 }
 

@@ -206,6 +206,20 @@ func (_u *BookUpdate) SetNillableLanguage(v *primitive.Language) *BookUpdate {
 	return _u
 }
 
+// SetGenre sets the "genre" field.
+func (_u *BookUpdate) SetGenre(v primitive.Genre) *BookUpdate {
+	_u.mutation.SetGenre(v)
+	return _u
+}
+
+// SetNillableGenre sets the "genre" field if the given value is not nil.
+func (_u *BookUpdate) SetNillableGenre(v *primitive.Genre) *BookUpdate {
+	if v != nil {
+		_u.SetGenre(*v)
+	}
+	return _u
+}
+
 // SetFailed sets the "failed" field.
 func (_u *BookUpdate) SetFailed(v bool) *BookUpdate {
 	_u.mutation.SetFailed(v)
@@ -349,6 +363,11 @@ func (_u *BookUpdate) check() error {
 			return &ValidationError{Name: "language", err: fmt.Errorf(`ent: validator failed for field "Book.language": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Genre(); ok {
+		if err := book.GenreValidator(v); err != nil {
+			return &ValidationError{Name: "genre", err: fmt.Errorf(`ent: validator failed for field "Book.genre": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.FailedStage(); ok {
 		if err := book.FailedStageValidator(v); err != nil {
 			return &ValidationError{Name: "failed_stage", err: fmt.Errorf(`ent: validator failed for field "Book.failed_stage": %w`, err)}
@@ -418,6 +437,9 @@ func (_u *BookUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Language(); ok {
 		_spec.SetField(book.FieldLanguage, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Genre(); ok {
+		_spec.SetField(book.FieldGenre, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.Failed(); ok {
 		_spec.SetField(book.FieldFailed, field.TypeBool, value)
@@ -639,6 +661,20 @@ func (_u *BookUpdateOne) SetNillableLanguage(v *primitive.Language) *BookUpdateO
 	return _u
 }
 
+// SetGenre sets the "genre" field.
+func (_u *BookUpdateOne) SetGenre(v primitive.Genre) *BookUpdateOne {
+	_u.mutation.SetGenre(v)
+	return _u
+}
+
+// SetNillableGenre sets the "genre" field if the given value is not nil.
+func (_u *BookUpdateOne) SetNillableGenre(v *primitive.Genre) *BookUpdateOne {
+	if v != nil {
+		_u.SetGenre(*v)
+	}
+	return _u
+}
+
 // SetFailed sets the "failed" field.
 func (_u *BookUpdateOne) SetFailed(v bool) *BookUpdateOne {
 	_u.mutation.SetFailed(v)
@@ -795,6 +831,11 @@ func (_u *BookUpdateOne) check() error {
 			return &ValidationError{Name: "language", err: fmt.Errorf(`ent: validator failed for field "Book.language": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Genre(); ok {
+		if err := book.GenreValidator(v); err != nil {
+			return &ValidationError{Name: "genre", err: fmt.Errorf(`ent: validator failed for field "Book.genre": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.FailedStage(); ok {
 		if err := book.FailedStageValidator(v); err != nil {
 			return &ValidationError{Name: "failed_stage", err: fmt.Errorf(`ent: validator failed for field "Book.failed_stage": %w`, err)}
@@ -881,6 +922,9 @@ func (_u *BookUpdateOne) sqlSave(ctx context.Context) (_node *Book, err error) {
 	}
 	if value, ok := _u.mutation.Language(); ok {
 		_spec.SetField(book.FieldLanguage, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Genre(); ok {
+		_spec.SetField(book.FieldGenre, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.Failed(); ok {
 		_spec.SetField(book.FieldFailed, field.TypeBool, value)

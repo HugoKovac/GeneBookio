@@ -63,15 +63,15 @@ func init() {
 	// book.DefaultTtsGenerated holds the default value on creation for the tts_generated field.
 	book.DefaultTtsGenerated = bookDescTtsGenerated.Default.(bool)
 	// bookDescFailed is the schema descriptor for failed field.
-	bookDescFailed := bookFields[12].Descriptor()
+	bookDescFailed := bookFields[13].Descriptor()
 	// book.DefaultFailed holds the default value on creation for the failed field.
 	book.DefaultFailed = bookDescFailed.Default.(bool)
 	// bookDescFailedStage is the schema descriptor for failed_stage field.
-	bookDescFailedStage := bookFields[13].Descriptor()
+	bookDescFailedStage := bookFields[14].Descriptor()
 	// book.FailedStageValidator is a validator for the "failed_stage" field. It is called by the builders before save.
 	book.FailedStageValidator = bookDescFailedStage.Validators[0].(func(string) error)
 	// bookDescRetryDisabled is the schema descriptor for retry_disabled field.
-	bookDescRetryDisabled := bookFields[15].Descriptor()
+	bookDescRetryDisabled := bookFields[16].Descriptor()
 	// book.DefaultRetryDisabled holds the default value on creation for the retry_disabled field.
 	book.DefaultRetryDisabled = bookDescRetryDisabled.Default.(bool)
 	// bookDescID is the schema descriptor for id field.

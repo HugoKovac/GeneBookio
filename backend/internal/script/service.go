@@ -73,7 +73,7 @@ func (s *Service) GenerateScript(ctx context.Context, bookID string) error {
 	}
 	result := builder.String()
 
-	promptGenerateScript, err := s.bucketRepo.GetBucketFileAsString(ctx, primitive.PromptsBucket, primitive.PromptFile(primitive.NoneFictionGenerateScript, b.Language))
+	promptGenerateScript, err := s.bucketRepo.GetBucketFileAsString(ctx, primitive.PromptsBucket, primitive.PromptFile(primitive.GenerateScriptPromptKind(b.Genre), b.Language))
 	if err != nil {
 		return err
 	}

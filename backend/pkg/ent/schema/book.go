@@ -35,6 +35,8 @@ func (Book) Fields() []ent.Field {
 		field.Bool("tts_generated").Default(false),
 		field.Enum("language").GoType(primitive.Language("")).
 			Default(primitive.French.String()),
+		field.Enum("genre").GoType(primitive.Genre("")).
+			Default(primitive.NoneFiction.String()),
 		field.Bool("failed").Default(false),
 		field.String("failed_stage").MaxLen(20).Optional(),
 		field.Text("error_message").Optional(),
