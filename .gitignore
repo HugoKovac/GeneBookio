@@ -4,3 +4,5 @@ resources
 output
 minio-data
 node_modules
+backend/scripts/migrate.env
+backend/backups

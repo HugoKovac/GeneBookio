@@ -45,6 +45,10 @@ go vet ./...
 ```
 `internal/pricing`'s tests make live HTTP calls to the Frankfurter exchange-rate API — expect them to be slow/flaky offline.
 
+### Migrating to another host
+
+`scripts/migrate_mysql.sh`, `scripts/migrate_minio.sh` and `scripts/migrate_all.sh` move the MySQL database and all four MinIO buckets (see Storage layout below) from one host to another (any S3-compatible target for MinIO — another MinIO, AWS S3, Spaces, B2, ...). Configure via `scripts/migrate.env` (copy from `scripts/migrate.env.example`, gitignored) then `source scripts/migrate.env` before running. `migrate_mysql.sh` writes a timestamped dump to `backend/backups/` (also gitignored) before restoring it, so it doubles as a backup step; `migrate_minio.sh` uses the `mc` CLI (`brew install minio/stable/mc`) to mirror buckets non-destructively by default (`--exact` also deletes destination objects absent from the source). `migrate_all.sh` runs both and prompts for confirmation before touching the destination host (`--yes` to skip).
+
 ### Architecture: queue-driven pipeline
 
 The backend is a set of independent binaries under `cmd/`, each a stage in a book-processing pipeline connected by RabbitMQ. A book moves through stages by publishing its `bookID` (a UUID string) as the message body onto the next queue:
