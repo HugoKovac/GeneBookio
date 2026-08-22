@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import i18n from '../../i18n';
 import { configureRevenueCat } from '../subscription/nativePurchases';
+import { getUser } from '../user/api';
 import { login as loginRequest, register as registerRequest, type AuthTokens } from './api';
 import { AuthContext, type AuthContextValue } from './context';
 import { decodeUserID } from './jwt';
@@ -27,6 +29,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (userID) configureRevenueCat(userID);
   }, [userID]);
+
+  // The account's language is the source of truth for the UI once signed
+  // in — sync it on login/register and whenever a stored session is
+  // restored on app load.
+  useEffect(() => {
+    if (!userID || !tokens?.token) return;
+    getUser(userID, tokens.token)
+      .then((user) => i18n.changeLanguage(user.Language))
+      .catch(() => {});
+  }, [userID, tokens?.token]);
 
   const saveTokens = (nextTokens: AuthTokens) => {
     localStorage.setItem(storageKey, JSON.stringify(nextTokens));

@@ -28,7 +28,13 @@ FROM scratch
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build /app/server /server
 
-ADD ./keys ./keys
 ADD ./docs ./docs
+
+# keys/ is gitignored (real private keys, not something a git-built image
+# should bake in) — mount it as a volume at /keys instead (see
+# backend/docker-compose.yaml for local dev, root docker-compose.yaml's
+# keys-init service for the Dokploy deploy). PUBLIC_KEY_PATH etc. in .env are
+# already relative ("keys/...") which resolves against this scratch image's
+# cwd ("/") to /keys/....
 
 ENTRYPOINT [ "/server" ]

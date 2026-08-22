@@ -51,8 +51,8 @@ type BookWithCost struct {
 	CostEUR *float64 `json:"CostEUR,omitempty"`
 }
 
-func (s *Service) GetBooks(ctx context.Context, page, limit int) ([]*BookWithCost, error) {
-	books, err := s.repo.GetBooks(ctx, page, limit)
+func (s *Service) GetBooks(ctx context.Context, language primitive.Language, page, limit int) ([]*BookWithCost, error) {
+	books, err := s.repo.GetBooks(ctx, language, page, limit)
 	if err != nil {
 		return nil, err
 	}

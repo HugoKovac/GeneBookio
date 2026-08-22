@@ -5,6 +5,7 @@ const apiBaseUrl = import.meta.env.VITE_API_URL ?? '/api';
 export type UpdateUserInput = {
   firstname: string;
   lastname: string;
+  language: 'en' | 'fr';
 };
 
 async function request(path: string, token: string, init?: RequestInit): Promise<Response> {

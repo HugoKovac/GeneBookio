@@ -1,4 +1,4 @@
-import { Alert, Avatar, Button, Group, Loader, Modal, Paper, Stack, Text, TextInput, Title, UnstyledButton } from '@mantine/core';
+import { Alert, Avatar, Button, Group, Loader, Modal, Paper, Select, Stack, Text, TextInput, Title, UnstyledButton } from '@mantine/core';
 import { IconChevronRight, IconCreditCard, IconLogout, IconTrash } from '@tabler/icons-react';
 import { Capacitor } from '@capacitor/core';
 import { useDisclosure } from '@mantine/hooks';
@@ -21,11 +21,12 @@ const nativeSubscriptionManagementURL = Capacitor.getPlatform() === 'ios'
 export default function ProfilePage() {
   const { userID, token, logout } = useAuth();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { isActive: hasActiveSubscription } = useSubscription();
 
   const [user, setUser] = useState<User | null>(null);
   const [loadError, setLoadError] = useState('');
+  const [language, setLanguage] = useState<'en' | 'fr'>('en');
 
   const [portalError, setPortalError] = useState('');
   const [portalLoading, setPortalLoading] = useState(false);
@@ -41,7 +42,10 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!userID || !token) return;
     getUser(userID, token)
-      .then(setUser)
+      .then((fetchedUser) => {
+        setUser(fetchedUser);
+        setLanguage(fetchedUser.Language);
+      })
       .catch((cause) => setLoadError(cause instanceof Error ? cause.message : t('profile.loadError')));
   }, [userID, token, t]);
 
@@ -57,8 +61,11 @@ export default function ProfilePage() {
       const updated = await updateUser(userID, token, {
         firstname: String(form.get('firstname')),
         lastname: String(form.get('lastname')),
+        language,
       });
       setUser(updated);
+      setLanguage(updated.Language);
+      i18n.changeLanguage(updated.Language);
       setSaveSuccess(true);
     } catch (cause) {
       setSaveError(cause instanceof Error ? cause.message : t('profile.saveError'));
@@ -133,6 +140,14 @@ export default function ProfilePage() {
             {saveSuccess && <Alert color="green" radius="lg">{t('profile.updated')}</Alert>}
             <TextInput name="firstname" label={t('profile.firstname')} defaultValue={user.Firstname} required maxLength={100} autoComplete="given-name" radius="md" />
             <TextInput name="lastname" label={t('profile.lastname')} defaultValue={user.Lastname} required maxLength={100} autoComplete="family-name" radius="md" />
+            <Select
+              label={t('profile.language')}
+              data={[{ value: 'en', label: 'English' }, { value: 'fr', label: 'Français' }]}
+              value={language}
+              onChange={(value) => value && setLanguage(value as 'en' | 'fr')}
+              allowDeselect={false}
+              radius="md"
+            />
             <Button type="submit" loading={saving} radius="xl">{t('profile.save')}</Button>
           </Stack>
         </form>

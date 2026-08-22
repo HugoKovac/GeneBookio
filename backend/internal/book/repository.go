@@ -20,7 +20,9 @@ type Repository interface {
 	ClearBookFailure(ctx context.Context, bookID uuid.UUID) error
 	GetSavedBookByKey(ctx context.Context, bookKey string) (*Book, error)
 	GetBookByID(ctx context.Context, bookID uuid.UUID) (*Book, error)
-	GetBooks(ctx context.Context, page, limit int) ([]*Book, error)
+	// GetBooks returns saved books, most recent first. When language is
+	// non-empty, only books in that language are returned.
+	GetBooks(ctx context.Context, language primitive.Language, page, limit int) ([]*Book, error)
 	// AddTokenUsage accumulates usage onto whatever is already recorded for
 	// model on this book (read-modify-write). Safe as long as at most one
 	// pipeline stage writes to a given book at a time, which holds today:
@@ -142,9 +144,14 @@ func (r *RepositoryImpl) GetBookByID(ctx context.Context, bookID uuid.UUID) (*Bo
 	return fromEntBook(e), nil
 }
 
-func (r *RepositoryImpl) GetBooks(ctx context.Context, page, limit int) ([]*Book, error) {
-	e, err := r.dbClient.Book.Query().
-		Where().
+func (r *RepositoryImpl) GetBooks(ctx context.Context, language primitive.Language, page, limit int) ([]*Book, error) {
+	query := r.dbClient.Book.Query()
+
+	if language != "" {
+		query = query.Where(book.LanguageEQ(language))
+	}
+
+	e, err := query.
 		Order(ent.Desc(book.FieldCreatedAt)).
 		Offset(page * limit).
 		Limit(limit).

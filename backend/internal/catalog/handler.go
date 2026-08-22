@@ -1,21 +1,31 @@
 package catalog
 
 import (
+	"context"
 	"hkorpo/book/internal/book"
 	"hkorpo/book/internal/primitive"
+	"hkorpo/book/internal/user"
 	"hkorpo/book/pkg/errorwrapper"
 	"strconv"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
+	"github.com/google/uuid"
 )
+
+// UserAPI resolves the authenticated user's language preference, used to
+// filter GetBooks down to books in that language.
+type UserAPI interface {
+	GetByID(ctx context.Context, userID uuid.UUID) (*user.User, error)
+}
 
 type Handler struct {
 	validate *validator.Validate
 	router   fiber.Router
 
 	service *Service
+	userAPI UserAPI
 }
 
 // NewHandler mounts catalog's routes on router. enableRetry gates the
@@ -23,13 +33,18 @@ type Handler struct {
 // (see its Service's queueRepos), not the user-facing cmd/api, since
 // retrying a pipeline stage isn't a regular-user action. requireActiveSubscription,
 // when non-nil, gates audio streaming behind a paid subscription — cmd/admin
-// passes nil since it has no auth/subscription concept at all.
-func NewHandler(router fiber.Router, service *Service, enableRetry bool, requireActiveSubscription fiber.Handler) {
+// passes nil since it has no auth/subscription concept at all. userAPI, when
+// non-nil, is used to look up the authenticated user's language (set by
+// user.MiddlewareAuth on the router group) and filter GetBooks to it —
+// cmd/admin passes nil since it has no auth and its catalogue view should
+// show books in every language.
+func NewHandler(router fiber.Router, service *Service, enableRetry bool, requireActiveSubscription fiber.Handler, userAPI UserAPI) {
 	h := &Handler{
 		validate: validator.New(validator.WithRequiredStructEnabled()),
 		router:   router,
 
 		service: service,
+		userAPI: userAPI,
 	}
 
 	h.router.Get("/",
@@ -66,7 +81,19 @@ func NewHandler(router fiber.Router, service *Service, enableRetry bool, require
 // @Failure      500  {object}  map[string]string
 // @Router       /books/ [get]
 func (h *Handler) GetBooks(c fiber.Ctx) error {
-	books, err := h.service.GetBooks(c.RequestCtx(), 0, 100)
+	var language primitive.Language
+
+	if h.userAPI != nil {
+		if authUserID, ok := c.Locals("authUserID").(uuid.UUID); ok {
+			authUser, err := h.userAPI.GetByID(c.RequestCtx(), authUserID)
+			if err != nil {
+				return err
+			}
+			language = authUser.Language
+		}
+	}
+
+	books, err := h.service.GetBooks(c.RequestCtx(), language, 0, 100)
 	if err != nil {
 		return err
 	}

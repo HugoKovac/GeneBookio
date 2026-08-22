@@ -59,6 +59,34 @@ services:
       - AWS_SECRET_ACCESS_KEY=${SEAWEED_SECRET_KEY}
       - S3_BUCKET=books,scripts,audio,prompts
 
+  # Generates the JWT RSA keypairs (same commands as backend/Makefile's
+  # genNewKeys) into a shared volume, once. keys/ is gitignored so a git-built
+  # image can't ADD it at build time — and generating it per-service inside
+  # each build would give api/admin mismatched keys, since the six services
+  # here are six independent `docker build` invocations. Idempotent: existing
+  # keys are left alone so redeploys don't invalidate every session.
+  keys-init:
+    image: alpine:3
+    restart: "no"
+    volumes:
+      - jwt-keys:/keys
+    entrypoint:
+      - sh
+      - -c
+      - |
+        set -e
+        apk add --no-cache openssl >/dev/null
+        cd /keys
+        for prefix in JWT_ JWT_REFRESH_; do
+          if [ -f "$${prefix}private.pem" ]; then
+            echo "$${prefix}keypair already present, skipping"
+          else
+            echo "generating $${prefix}keypair"
+            openssl genpkey -algorithm RSA -out "$${prefix}private.pem" -pkeyopt rsa_keygen_bits:2048
+            openssl rsa -pubout -in "$${prefix}private.pem" -out "$${prefix}public.pem"
+          fi
+        done
+
   api:
     build:
       context: ./backend
@@ -68,6 +96,10 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      keys-init:
+        condition: service_completed_successfully
+    volumes:
+      - jwt-keys:/keys
     environment:
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
@@ -107,6 +139,10 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      keys-init:
+        condition: service_completed_successfully
+    volumes:
+      - jwt-keys:/keys
     environment:
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
@@ -288,3 +324,4 @@ volumes:
   db-data:
   rabbitmq-data:
   seaweed-data:
+  jwt-keys:

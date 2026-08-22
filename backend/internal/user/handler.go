@@ -178,6 +178,7 @@ func (h *Handler) Register(c fiber.Ctx) error {
 		Lastname:     body.Lastname,
 		Email:        body.Email,
 		PasswordHash: hash,
+		Language:     body.Language,
 	})
 	if err != nil {
 		return err

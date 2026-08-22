@@ -113,7 +113,7 @@ func main() {
 	booksGroup.Use(user.MiddlewareAuth(userService))
 
 	library.NewHandler(booksGroup, libraryService)
-	catalog.NewHandler(booksGroup, catalogService, false, subscription.MiddlewareRequireActiveSubscription(subscriptionService))
+	catalog.NewHandler(booksGroup, catalogService, false, subscription.MiddlewareRequireActiveSubscription(subscriptionService), userService)
 
 	if err := app.Listen(":3000"); err != nil {
 		log.Fatalf("fiber listen failed: %v", err)

@@ -15,11 +15,18 @@ Environment Variables (see [.env.example](.env.example),
    nothing to do unless it's been renamed.
 
 2. **JWT keys** — `backend/keys/` is gitignored (it holds real private keys),
-   so a fresh git checkout Dokploy builds from won't have it. Before the first
-   deploy of each environment, generate a keypair and put it at
-   `backend/keys/` in the checkout Dokploy builds from (e.g. `make genNewKeys`
-   from `backend/`, run once per environment so dev and prod don't share a
-   signing key, then get the files onto the Dokploy host/build context).
+   so a fresh git checkout Dokploy builds from won't have it, and the
+   `backend/Dockerfile` no longer bakes it into the image (it can't — the
+   directory doesn't exist in that checkout, and generating a fresh keypair
+   inside each service's own `docker build` would give `api` and `admin`
+   mismatched keys, since they're separate build invocations sharing the same
+   Dockerfile). Instead a `keys-init` service in `docker-compose.yaml` runs
+   the same two `openssl` commands as `backend/Makefile`'s `genNewKeys`
+   once into a named volume (`jwt-keys`) that `api`/`admin` mount at `/keys`;
+   it's idempotent (skips generation if the files already exist), so
+   redeploys don't rotate keys and invalidate every session. Nothing to do
+   here — it runs automatically before `api`/`admin` start, once per
+   environment (dev and prod each have their own volume, so their own keys).
 
 3. **Admin Basic Auth** — `frontend-admin` (backend/cmd/admin) has no
    authentication of its own by design (see CLAUDE.md), so it's only exposed

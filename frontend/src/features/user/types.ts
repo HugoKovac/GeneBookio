@@ -3,5 +3,6 @@ export type User = {
   Email: string;
   Firstname: string;
   Lastname: string;
+  Language: 'en' | 'fr';
   CreatedAt: string;
 };

@@ -11,6 +11,7 @@ export type LoginInput = {
 export type RegisterInput = LoginInput & {
   firstname: string;
   lastname: string;
+  language: 'en' | 'fr';
 };
 
 const apiBaseUrl = import.meta.env.VITE_API_URL ?? '/api';

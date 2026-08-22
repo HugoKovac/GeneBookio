@@ -38,10 +38,11 @@ type UserIDURI struct {
 }
 
 type RegisterRequestDTO struct {
-	Email     string `json:"email" validate:"required,email,max=200"`
-	Firstname string `json:"firstname" validate:"required,max=100"`
-	Lastname  string `json:"lastname" validate:"required,max=100"`
-	Password  string `json:"password" validate:"required,min=12,max=100"`
+	Email     string             `json:"email" validate:"required,email,max=200"`
+	Firstname string             `json:"firstname" validate:"required,max=100"`
+	Lastname  string             `json:"lastname" validate:"required,max=100"`
+	Password  string             `json:"password" validate:"required,min=12,max=100"`
+	Language  primitive.Language `json:"language" validate:"omitempty,oneof=en fr"`
 }
 
 type LoginRequestDTO struct {

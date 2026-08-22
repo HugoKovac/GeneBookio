@@ -5,7 +5,6 @@ import { IconHome, IconHomeFilled, IconBook, IconBookFilled, IconUser, IconUserF
 import type { TablerIcon } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../features/auth/useAuth';
-import LanguageSwitcher from '../components/LanguageSwitcher';
 import MiniPlayerBar from '../features/player/components/MiniPlayerBar';
 import NowPlayingOverlay from '../features/player/components/NowPlayingOverlay';
 
@@ -36,7 +35,6 @@ export default function MainLayout() {
 
   return (
     <AppShell footer={{ height: 64 }}>
-      <LanguageSwitcher />
       <AppShell.Main pt="env(safe-area-inset-top, 0px)" pl="env(safe-area-inset-left, 0px)" pr="env(safe-area-inset-right, 0px)">
         <Outlet />
       </AppShell.Main>

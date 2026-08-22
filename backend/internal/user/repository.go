@@ -76,13 +76,17 @@ func (r *RepositoryImpl) List(ctx context.Context) ([]*User, error) {
 }
 
 func (r *RepositoryImpl) Create(ctx context.Context, user *User) (*User, error) {
-	e, err := r.dbClient.User.Create().
+	query := r.dbClient.User.Create().
 		SetFirstname(user.Firstname).
 		SetLastname(user.Lastname).
 		SetEmail(user.Email).
-		SetPasswordHash(user.PasswordHash).
-		Save(ctx)
+		SetPasswordHash(user.PasswordHash)
 
+	if user.Language != "" {
+		query.SetLanguage(user.Language)
+	}
+
+	e, err := query.Save(ctx)
 	if err != nil {
 		return nil, errorwrapper.Wrap(err)
 	}

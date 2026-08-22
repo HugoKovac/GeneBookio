@@ -19,7 +19,8 @@ export default function RegisterPage() {
     if (password !== String(form.get('confirmPassword'))) return setError(t('auth.register.passwordMismatch'));
     setError(''); setLoading(true);
     try {
-      await register({ firstname: String(form.get('firstname')), lastname: String(form.get('lastname')), email: String(form.get('email')), password });
+      const language = navigator.language.toLowerCase().startsWith('fr') ? 'fr' : 'en';
+      await register({ firstname: String(form.get('firstname')), lastname: String(form.get('lastname')), email: String(form.get('email')), password, language });
       navigate('/dashboard', { replace: true });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : t('auth.register.error'));
