@@ -1,6 +1,5 @@
+import { authFetch } from '../../lib/apiClient';
 import type { User } from './types';
-
-const apiBaseUrl = import.meta.env.VITE_API_URL ?? '/api';
 
 export type UpdateUserInput = {
   firstname: string;
@@ -9,9 +8,9 @@ export type UpdateUserInput = {
 };
 
 async function request(path: string, token: string, init?: RequestInit): Promise<Response> {
-  const response = await fetch(`${apiBaseUrl}${path}`, {
+  const response = await authFetch(path, token, {
     ...init,
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...init?.headers },
+    headers: { 'Content-Type': 'application/json', ...init?.headers },
   });
 
   if (!response.ok) {

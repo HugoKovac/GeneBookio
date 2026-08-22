@@ -93,7 +93,16 @@
     "title": "Abonnez-vous pour les résumés",
     "subtitle": "Débloquez les résumés audio de tous les livres de votre bibliothèque.",
     "cta": "S'abonner",
-    "error": "Impossible de démarrer le paiement. Veuillez réessayer."
+    "error": "Impossible de démarrer le paiement. Veuillez réessayer.",
+    "close": "Fermer",
+    "perMonth": "/ mois",
+    "feature1": "Résumés audio de tous les livres",
+    "feature2": "De nouveaux titres ajoutés régulièrement",
+    "feature3": "Annulez à tout moment, sans engagement",
+    "restore": "Restaurer les achats",
+    "restoring": "Restauration…",
+    "restoreNone": "Aucun abonnement actif trouvé pour ce compte.",
+    "finePrint": "L'abonnement se renouvelle automatiquement chaque mois. Annulez à tout moment depuis votre profil."
   },
   "subscribeReturn": {
     "confirming": "Confirmation de votre paiement…",

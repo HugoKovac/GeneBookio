@@ -50,6 +50,10 @@ type LoginRequestDTO struct {
 	Password string `json:"password" validate:"required,min=12,max=100"`
 }
 
+type RefreshRequestDTO struct {
+	RefreshToken string `json:"refresh_token" validate:"required"`
+}
+
 type UpdateUserRequestDTO struct {
 	Firstname string             `json:"firstname" validate:"required,max=100"`
 	Lastname  string             `json:"lastname" validate:"required,max=100"`

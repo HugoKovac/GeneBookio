@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"crypto/rsa"
+	"errors"
 	"hkorpo/book/internal/primitive"
 	"hkorpo/book/pkg/errorwrapper"
 	"time"
@@ -69,6 +70,27 @@ func (s *Service) GenerateToken(ctx context.Context, user *User, privateKey *rsa
 
 	return signedToken, nil
 
+}
+
+// ParseToken verifies tokenString against publicKey and returns its claims.
+// Callers pass configJWT.PublicKey for an access token or
+// configJWT.RefreshPublicKey for a refresh token — the two are signed with
+// different keypairs so one can't be presented as the other.
+func (s *Service) ParseToken(tokenString string, publicKey *rsa.PublicKey) (*UserTokenClaims, error) {
+	var claims UserTokenClaims
+
+	token, err := jwt.ParseWithClaims(tokenString, &claims, func(t *jwt.Token) (any, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodRSA); !ok {
+			return nil, errors.New("unexpected signing method")
+		}
+
+		return publicKey, nil
+	})
+	if err != nil || !token.Valid {
+		return nil, errorwrapper.Wrap(errors.New("invalid token"))
+	}
+
+	return &claims, nil
 }
 
 func (s *Service) HashPassword(password string) ([]byte, error) {

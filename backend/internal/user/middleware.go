@@ -1,14 +1,12 @@
 package user
 
 import (
-	"errors"
 	"hkorpo/book/pkg/errorwrapper"
 	"net/http"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
 
@@ -51,16 +49,8 @@ func MiddlewareAuth(userService *Service) fiber.Handler {
 			return c.SendStatus(http.StatusUnauthorized)
 		}
 
-		var claims UserTokenClaims
-
-		token, err := jwt.ParseWithClaims(tokenString, &claims, func(t *jwt.Token) (any, error) {
-			if _, ok := t.Method.(*jwt.SigningMethodRSA); !ok {
-				return nil, errors.New("unexpected signing method")
-			}
-
-			return userService.configJWT.PublicKey, nil
-		})
-		if err != nil || !token.Valid {
+		claims, err := userService.ParseToken(tokenString, userService.configJWT.PublicKey)
+		if err != nil {
 			return c.SendStatus(http.StatusUnauthorized)
 		}
 

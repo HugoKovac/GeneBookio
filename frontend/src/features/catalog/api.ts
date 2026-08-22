@@ -1,11 +1,8 @@
+import { apiBaseUrl, authFetch } from '../../lib/apiClient';
 import type { Book } from './types';
 
-const apiBaseUrl = import.meta.env.VITE_API_URL ?? '/api';
-
 async function request(path: string, token: string): Promise<Response> {
-  const response = await fetch(`${apiBaseUrl}${path}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const response = await authFetch(path, token);
 
   if (!response.ok) {
     throw new Error('We could not complete your request. Please try again.');

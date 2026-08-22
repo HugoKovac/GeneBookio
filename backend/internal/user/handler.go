@@ -54,6 +54,10 @@ func NewHandler(router fiber.Router, userService *Service) {
 		h.Login,
 	)
 
+	h.router.Post("/refresh",
+		h.Refresh,
+	)
+
 }
 
 // Get returns a user by UUID.
@@ -250,5 +254,52 @@ func (h *Handler) Login(c fiber.Ctx) error {
 	return c.JSON(map[string]any{
 		"token":         token,
 		"refresh_token": refreshToken,
+	})
+}
+
+// Refresh exchanges a still-valid refresh token for a new access token,
+// without requiring the user to log in again. The refresh token itself is
+// stateless (no server-side store or rotation, matching Login/Register) so
+// it's returned unchanged; only the access token is reissued.
+//
+// @Summary      Refresh an access token
+// @Description  Exchange a refresh token for a new access token
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        body  body      RefreshRequestDTO  true  "Refresh payload"
+// @Success      200   {object}  map[string]string
+// @Failure      400   {object}  map[string]string
+// @Failure      401   {object}  map[string]string
+// @Router       /users/refresh [post]
+func (h *Handler) Refresh(c fiber.Ctx) error {
+	var body RefreshRequestDTO
+
+	if err := c.Bind().Body(&body); err != nil {
+		return errorwrapper.Wrap(err)
+	}
+
+	if err := validator.New().Struct(&body); err != nil {
+		return errorwrapper.Wrap(err)
+	}
+
+	claims, err := h.userService.ParseToken(body.RefreshToken, h.userService.configJWT.RefreshPublicKey)
+	if err != nil {
+		return c.SendStatus(http.StatusUnauthorized)
+	}
+
+	u, err := h.userService.GetByID(c.RequestCtx(), claims.UserID)
+	if err != nil {
+		return c.SendStatus(http.StatusUnauthorized)
+	}
+
+	token, err := h.userService.GenerateToken(c.RequestCtx(), u, h.userService.configJWT.PrivateKey, h.userService.configJWT.JWT_TOKEN_EXP)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(map[string]any{
+		"token":         token,
+		"refresh_token": body.RefreshToken,
 	})
 }

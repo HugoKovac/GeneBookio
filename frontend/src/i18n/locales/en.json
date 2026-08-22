@@ -93,7 +93,16 @@
     "title": "Subscribe for summaries",
     "subtitle": "Unlock audio summaries for every book in your library.",
     "cta": "Subscribe",
-    "error": "Unable to start checkout. Please try again."
+    "error": "Unable to start checkout. Please try again.",
+    "close": "Close",
+    "perMonth": "/ month",
+    "feature1": "Audio summaries for every book",
+    "feature2": "New titles added regularly",
+    "feature3": "Cancel anytime, no commitment",
+    "restore": "Restore purchases",
+    "restoring": "Restoring…",
+    "restoreNone": "No active subscription found for this account.",
+    "finePrint": "Subscription renews automatically each month. Cancel anytime from your profile."
   },
   "subscribeReturn": {
     "confirming": "Confirming your payment…",

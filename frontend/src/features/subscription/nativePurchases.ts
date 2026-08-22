@@ -74,3 +74,8 @@ export async function purchaseCurrentPackage(aPackage: PurchasesPackage) {
   await ensureConfigured();
   return Purchases.purchasePackage({ aPackage });
 }
+
+export async function restorePurchases() {
+  await ensureConfigured();
+  return Purchases.restorePurchases();
+}

@@ -1,7 +1,4 @@
-export type AuthTokens = {
-  token: string;
-  refresh_token: string;
-};
+import type { AuthTokens } from './tokenStore';
 
 export type LoginInput = {
   email: string;
